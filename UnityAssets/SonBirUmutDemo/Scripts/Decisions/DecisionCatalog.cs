@@ -18,10 +18,15 @@ namespace SonBirUmutDemo.Decisions
         public int RequiredEnergy { get; }
         public int RequiredWater { get; }
         public DecisionEffect Effect { get; }
+        public string Advantage { get; }
+        public string Tradeoff { get; }
+        public string NextEffect { get; }
+        public string Feedback { get; }
 
         public DecisionOption(string id, string title, string description, int cost,
             int energyDelta, int waterDelta, int emissionsDelta,
-            DecisionEffect effect = DecisionEffect.Standard, int requiredEnergy = 0, int requiredWater = 0)
+            DecisionEffect effect = DecisionEffect.Standard, int requiredEnergy = 0, int requiredWater = 0,
+            string advantage = "", string tradeoff = "", string nextEffect = "", string feedback = "")
         {
             if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Option id is required.", nameof(id));
             if (cost < 0 || cost > 999) throw new ArgumentOutOfRangeException(nameof(cost));
@@ -40,6 +45,10 @@ namespace SonBirUmutDemo.Decisions
             Effect = effect;
             RequiredEnergy = requiredEnergy;
             RequiredWater = requiredWater;
+            Advantage = advantage;
+            Tradeoff = tradeoff;
+            NextEffect = nextEffect;
+            Feedback = feedback;
         }
     }
 
@@ -78,34 +87,61 @@ namespace SonBirUmutDemo.Decisions
         public static readonly DecisionPointDefinition EnergyStation = new DecisionPointDefinition(
             EnergyStationId,
             new DecisionOption(Solar, "A. Güneş enerjisi kur",
-                "Yüksek ilk yatırım; su pompası için daha fazla kapasite sağlar.", 60, 35, 0, 1),
+                "Temiz enerji kapasitesi, yüksek ilk yatırım.", 60, 35, 0, 0,
+                advantage: "Enerji kapasitesi +35; emisyon artışı yok.",
+                tradeoff: "60 bütçe gider; sonraki yatırımlara az pay kalır.",
+                nextEffect: "Pompa için güçlü kapasite sağlar.", feedback: "Güneş panelleri kuruldu."),
             new DecisionOption(Diesel, "B. Dizel jeneratör kullan",
-                "Daha düşük ilk maliyet, yüksek kapasite; daha fazla emisyon ve su gideri.", 25, 50, -3, 18),
+                "Düşük ilk maliyetle yüksek kapasite, yüksek emisyon etkisi.", 25, 50, -3, 18,
+                advantage: "25 bütçeyle enerji kapasitesi +50.",
+                tradeoff: "3 su harcar; emisyon etkisi +18.",
+                nextEffect: "Su yatırımına para kalır; emisyon riski sürer.", feedback: "Dizel jeneratör devreye alındı."),
             new DecisionOption(Conservation, "C. Enerji tasarrufu uygula",
-                "Yatırım gerektirmez; suyu korur fakat kullanılabilir enerji kapasitesini azaltır.", 0, -5, 8, 0));
+                "Yatırım gerektirmez, enerji kapasitesinden ödün verir.", 0, -5, 8, 0,
+                advantage: "Bütçe harcamaz; 8 su korunur.",
+                tradeoff: "Enerji kapasitesi 5 azalır.",
+                nextEffect: "Düşük enerji pompayı sınırlayıp pahalılaştırabilir.", feedback: "Enerji tasarrufu önlemleri alındı."));
 
         public static readonly DecisionPointDefinition WaterStation = new DecisionPointDefinition(
             WaterStationId,
             new DecisionOption(Pump, "A. Arıtma ve pompalama",
                 "Enerjiye bağlı olarak en çok 50 su kazandırır. Enerji 25'in altındaysa işletme maliyeti 5 artar.",
-                25, 0, 0, 0, DecisionEffect.Pump, requiredEnergy: 10),
+                25, 0, 0, 0, DecisionEffect.Pump, requiredEnergy: 10,
+                advantage: "Enerjiye bağlı yüksek su kazanımı.",
+                tradeoff: "25–30 bütçe ister; en az 10 enerji gerekir.",
+                nextEffect: "Tarım için su artar, yatırım bütçesi azalır.", feedback: "Arıtma ve pompalama altyapısı kuruldu."),
             new DecisionOption(Efficiency, "B. Su verimliliği",
                 "Kaçakları onarır: 18 su geri kazanılır. Bu ve sonraki turda su kullanımı 8 yerine 4 olur.",
-                10, 0, 18, 0, DecisionEffect.WaterEfficiency),
+                10, 0, 18, 0, DecisionEffect.WaterEfficiency,
+                advantage: "18 su geri kazanılır; tüketim yarıya iner.",
+                tradeoff: "10 bütçe harcar; pompaya göre kazanım daha azdır.",
+                nextEffect: "Tarım turunda da olağan su tüketimi 4 olur.", feedback: "Su kaçakları onarıldı."),
             new DecisionOption(Continue, "C. Mevcut düzeni sürdür",
-                "Bütçe harcamaz. Kaçaklardan 5 su kaybedilir; olağan tur tüketimi sürer.", 0, 0, -5, 0));
+                "Yatırımı erteler, su kaybını sürdürür.", 0, 0, -5, 0,
+                advantage: "Bütçe harcamaz; tarıma yatırım payı kalır.",
+                tradeoff: "Kaçaklardan 5 su kaybolur; tüketim sürer.",
+                nextEffect: "Azalan su, sulama seçeneğini kapatabilir.", feedback: "Su altyapısında mevcut düzen korundu."));
 
         public static readonly DecisionPointDefinition FarmStation = new DecisionPointDefinition(
             FarmStationId,
             new DecisionOption(Protect, "A. Doğal alanları koru",
                 "Kalan suya bağlı olarak bitkilere en çok 22 destek; emisyon etki göstergesi 2 azalır.",
-                10, 0, 0, -2, DecisionEffect.ProtectNature),
+                10, 0, 0, -2, DecisionEffect.ProtectNature,
+                advantage: "Kalan suya bağlı bitki desteği; emisyon etkisi -2.",
+                tradeoff: "10 bütçe harcar; yeni su üretmez.",
+                nextEffect: "Doğal yaşamı ve kuraklık dayanıklılığını destekler.", feedback: "Doğal alanlar koruma altına alındı."),
             new DecisionOption(Irrigate, "B. Tarımsal sulamaya öncelik ver",
                 "En az 20 su ister ve 20 su harcar. Kalan suya bağlı olarak en çok 36 bitki desteği sağlar.",
-                15, 0, -20, 0, DecisionEffect.Irrigate, requiredWater: 20),
+                5, 0, -20, 0, DecisionEffect.Irrigate, requiredWater: 20,
+                advantage: "Mevcut kanallarla bitkilere hızlı destek.",
+                tradeoff: "5 bütçe ve 20 su harcar; en az 20 su gerekir.",
+                nextEffect: "Tarım güçlenir; kuraklık için su rezervi azalır.", feedback: "Mevcut kanallardan tarımsal sulama başlatıldı."),
             new DecisionOption(Store, "C. Kurak dönem için su depola",
                 "Yatırım gerektirmez; bu tur yalnızca 2 su kullanılır. Sulama ertelendiği için bitki desteği -5.",
-                0, 0, 0, 0, DecisionEffect.StoreWater));
+                0, 0, 0, 0, DecisionEffect.StoreWater,
+                advantage: "Ücretsiz; bu tur su tüketimi en fazla 2.",
+                tradeoff: "Sulama ertelenir; doğrudan bitki desteği -5.",
+                nextEffect: "Su rezervi kalır; tarım ve doğal yaşam zorlanabilir.", feedback: "Su, gelecek kurak dönem için ayrıldı."));
 
         public static readonly ReadOnlyCollection<DecisionPointDefinition> All =
             Array.AsReadOnly(new[] { EnergyStation, WaterStation, FarmStation });

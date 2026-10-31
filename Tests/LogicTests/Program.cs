@@ -13,7 +13,7 @@ internal static class Program
     private static int Main(string[] args)
     {
         Run("Initial state", () => CheckState(ResourceState.Initial(), 100, 20, 40, 55, 0));
-        Run("Solar outcome", () => CheckState(Choose(DecisionCatalog.Solar), 40, 55, 32, 41, 1));
+        Run("Solar outcome", () => CheckState(Choose(DecisionCatalog.Solar), 40, 55, 32, 41, 0));
         Run("Diesel outcome", () => CheckState(Choose(DecisionCatalog.Diesel), 75, 70, 29, 41, 18));
         Run("Conservation outcome", () => CheckState(Choose(DecisionCatalog.Conservation), 100, 15, 40, 53, 0));
         Run("Unaffordable choice is atomic", () =>
@@ -70,7 +70,7 @@ internal static class Program
         });
         Run("Recovery and resource ceilings", () =>
         {
-            var state = new SimulationRules(0, 0).ApplyTurn(new ResourceState(100, 99, 100, 99, 99), Option(DecisionCatalog.Solar));
+            var state = new SimulationRules(0, 0).ApplyTurn(new ResourceState(100, 99, 100, 99, 99), new DecisionOption("bounds", "Bounds", "", 0, 35, 8, 10));
             Check(state.Energy == 100 && state.Water == 100 && state.PlantHealth == 100 && state.Emissions == 100);
         });
         Run("Water availability affects plant health", () =>
@@ -279,6 +279,145 @@ internal static class Program
         });
         Run("Empty decision registry is rejected", () => Throws<ArgumentException>(() => new GameSession(definitions: Array.Empty<DecisionPointDefinition>())));
         Run("All 27 base sequences and no softlocks", () => TestMatrix(args));
+        Run("Solar choice and environmental losses are distinct", () =>
+        {
+            var session = new GameSession();
+            var preview = session.GetPreview(DecisionCatalog.EnergyStationId, DecisionCatalog.Solar);
+            var b = preview.Breakdown;
+            Check(b.DecisionEnergy == 35 && b.DecisionPlants == 0 && b.DecisionWater == 0 && b.DecisionEmissions == 0);
+            Check(b.WaterUse == 8 && b.WaterPlantEffect == -8 && b.DroughtDamage == 6);
+            Check(preview.After.PlantHealth - preview.Before.PlantHealth == -14);
+            Check(preview.After.Emissions == 0 && b.PlantLimitAdjustment == 0);
+            Select(session, DecisionCatalog.Solar);
+            CheckState(session.State, 40, 55, 32, 41, 0);
+        });
+        Run("Drought tuning cannot change the decision's own effect", () =>
+        {
+            var state = new ResourceState(100, 20, 60, 80, 0);
+            var mild = new SimulationRules(0).Preview(state, Option(DecisionCatalog.Solar));
+            var dry = new SimulationRules(12).Preview(state, Option(DecisionCatalog.Solar));
+            Check(mild.Breakdown.DecisionPlants == dry.Breakdown.DecisionPlants && mild.Breakdown.DecisionEnergy == dry.Breakdown.DecisionEnergy);
+            Check(mild.Breakdown.WaterPlantEffect == dry.Breakdown.WaterPlantEffect);
+            Check(mild.After.PlantHealth - dry.After.PlantHealth == 12 && dry.After.Emissions == 0);
+        });
+        Run("Water condition and external drought are separate terms", () =>
+        {
+            var rules = new SimulationRules();
+            var wet = rules.Preview(new ResourceState(100, 20, 60, 80, 0), Option(DecisionCatalog.Solar));
+            var dry = rules.Preview(new ResourceState(100, 20, 40, 80, 0), Option(DecisionCatalog.Solar));
+            Check(wet.Breakdown.WaterPlantEffect == 4 && dry.Breakdown.WaterPlantEffect == -8);
+            Check(wet.Breakdown.DroughtDamage == 6 && dry.Breakdown.DroughtDamage == 6);
+            Check(wet.After.PlantHealth - dry.After.PlantHealth == 12);
+        });
+        Run("Conservation savings and household use reconcile", () =>
+        {
+            var preview = new GameSession().GetPreview(DecisionCatalog.EnergyStationId, DecisionCatalog.Conservation);
+            Check(preview.Breakdown.DecisionWater == 8 && preview.Breakdown.WaterUse == 8);
+            Check(preview.After.Water == preview.Before.Water && preview.After.Emissions == 0);
+        });
+        Run("Breakdown reconciles all clamped resource totals", () =>
+        {
+            var rules = new SimulationRules();
+            int accepted = 0;
+            foreach (var point in DecisionCatalog.All)
+            foreach (var option in point.Options)
+            foreach (int energy in new[] { 0, 20, 100 })
+            foreach (int water in new[] { 0, 19, 35, 100 })
+            foreach (int plants in new[] { 0, 55, 100 })
+            foreach (int emissions in new[] { 0, 99, 100 })
+            {
+                var before = new ResourceState(100, energy, water, plants, emissions);
+                var preview = rules.Preview(before, option);
+                if (!preview.CanChoose) { Check(preview.Breakdown == null); continue; }
+                accepted++;
+                var b = preview.Breakdown;
+                var after = preview.After;
+                Check(after.Budget - before.Budget == -preview.Cost);
+                Check(after.Energy - before.Energy == b.DecisionEnergy + b.EnergyLimitAdjustment);
+                Check(after.Water - before.Water == b.DecisionWater - b.WaterUse + b.WaterLimitAdjustment);
+                Check(after.PlantHealth - before.PlantHealth == b.DecisionPlants + b.WaterPlantEffect - b.DroughtDamage + b.PlantLimitAdjustment);
+                Check(after.Emissions - before.Emissions == b.DecisionEmissions + b.EmissionsLimitAdjustment);
+            }
+            Check(accepted > 500);
+        });
+        Run("Blocked previews do not contain applied environmental events", () =>
+        {
+            var session = new GameSession(new ResourceState(0, 0, 0, 0, 0));
+            var before = session.State;
+            var blocked = session.GetPreview(DecisionCatalog.EnergyStationId, DecisionCatalog.Solar);
+            Check(!blocked.CanChoose && blocked.Breakdown == null && ReferenceEquals(before, session.State));
+            Check(session.History.Count == 0 && session.Summary == null);
+        });
+        Run("Solar feedback names the actual source of plant damage", () =>
+        {
+            var session = new GameSession();
+            Select(session, DecisionCatalog.Solar);
+            string notice = DecisionMessaging.SelectionFeedback(session.History[0]);
+            Check(notice.Contains("Güneş panelleri kuruldu.") && notice.Contains("Bütçe -60"));
+            Check(notice.Contains("Kuraklık baskısı: Bitki -6") && notice.Contains("Su koşulu: Bitki -8"));
+            Check(notice.Contains("Emisyon +0") && notice.Contains("Bitki -14"));
+        });
+        Run("Every card has an advantage tradeoff and downstream explanation", () =>
+        {
+            foreach (var point in DecisionCatalog.All)
+            foreach (var option in point.Options)
+                Check(!string.IsNullOrWhiteSpace(option.Advantage) && !string.IsNullOrWhiteSpace(option.Tradeoff) &&
+                    !string.IsNullOrWhiteSpace(option.NextEffect) && !string.IsNullOrWhiteSpace(option.Feedback));
+        });
+        Run("Conservation and irrigation are alternative rebirth paths", () =>
+        {
+            var nature = Play(DecisionCatalog.Solar, DecisionCatalog.Pump, DecisionCatalog.Protect);
+            var crops = Play(DecisionCatalog.Solar, DecisionCatalog.Pump, DecisionCatalog.Irrigate);
+            var savings = Play(DecisionCatalog.Conservation, DecisionCatalog.Efficiency, DecisionCatalog.Protect);
+            Check(nature.Ending.Category == EndingCategory.Rebirth && crops.Ending.Category == EndingCategory.Rebirth && savings.Ending.Category == EndingCategory.Rebirth);
+            CheckState(crops.State, 10, 55, 46, 73, 0);
+            Check(nature.State.Water > crops.State.Water && crops.State.PlantHealth > nature.State.PlantHealth && crops.State.Budget > nature.State.Budget);
+            Check(savings.State.Budget > crops.State.Budget && savings.State.Energy < crops.State.Energy);
+        });
+        Run("Storage can succeed when starting reserves support it", () =>
+        {
+            var session = new GameSession(new ResourceState(100, 20, 100, 100, 0));
+            Select(session, DecisionCatalog.Solar); Select(session, DecisionCatalog.Pump); Select(session, DecisionCatalog.Store);
+            Check(session.Ending.Category == EndingCategory.Rebirth);
+        });
+        Run("Ending summary covers water farming nature and two decisions", () =>
+        {
+            var session = Play(DecisionCatalog.Solar, DecisionCatalog.Efficiency, DecisionCatalog.Protect);
+            var summary = session.Summary;
+            Check(summary.DrinkingWater.Contains("42") && summary.Agriculture.Contains("59") && summary.Nature.Contains("koruması seçildi"));
+            Check(summary.KeyDecisions.Count == 2 && summary.KeyDecisions[0] != summary.KeyDecisions[1]);
+            Check(summary.KeyDecisions[0].Contains("Su verimliliği") && summary.KeyDecisions[1].Contains("Doğal alanları koru"));
+            Check(!string.IsNullOrWhiteSpace(summary.RemainingRisk));
+        });
+        Run("Emission risk highlights energy without changing ending classification", () =>
+        {
+            var session = Play(DecisionCatalog.Diesel, DecisionCatalog.Pump, DecisionCatalog.Irrigate);
+            Check(session.Ending.Category == EndingCategory.PartialTransition);
+            Check(session.Summary.RemainingRisk.Contains("emisyon"));
+            Check(session.Summary.KeyDecisions[1].Contains("Dizel jeneratör"));
+        });
+        Run("Summaries distinguish prioritized farming and water storage", () =>
+        {
+            var irrigated = Play(DecisionCatalog.Solar, DecisionCatalog.Pump, DecisionCatalog.Irrigate);
+            var stored = Play(DecisionCatalog.Solar, DecisionCatalog.Continue, DecisionCatalog.Store);
+            Check(irrigated.Summary.Agriculture.Contains("Sulamaya öncelik") && stored.Summary.Agriculture.Contains("Sulama ertelendi"));
+            Check(stored.Summary.DrinkingWater.Contains("kritik") && stored.Summary.RemainingRisk.Contains("su rezervi"));
+            Check(EndingSummary.ProxyNote.Contains("su kalitesi") && EndingSummary.ProxyNote.Contains("ortak bitki"));
+        });
+        Run("Fresh session clears ending insights and source breakdown history", () =>
+        {
+            var completed = Play(DecisionCatalog.Solar, DecisionCatalog.Pump, DecisionCatalog.Irrigate);
+            var fresh = new GameSession();
+            Check(completed.Summary != null && fresh.Summary == null && fresh.Ending == null && fresh.History.Count == 0);
+            CheckState(fresh.State, 100, 20, 40, 55, 0);
+        });
+        Run("Critical resource guidance keeps free alternatives visible", () =>
+        {
+            string warning = DecisionMessaging.CriticalResources(new ResourceState(0, 0, 0, 0, 20));
+            Check(warning.Contains("Su kritik") && warning.Contains("Bitkiler kritik") && warning.Contains("ücretsiz seçenek"));
+            Check(warning.Contains("enerji yetersiz") && warning.Contains("emisyon"));
+            Check(!DecisionMessaging.CriticalResources(new ResourceState(0, 0, 0, 0, 20), false).Contains("ücretsiz seçenek"));
+        });
         Console.WriteLine($"{passed} passed; {failed} failed.");
         return failed == 0 ? 0 : 1;
     }
@@ -308,6 +447,7 @@ internal static class Program
     {
         int completed = 0, blocked = 0;
         var endings = new HashSet<EndingCategory>();
+        var rebirthFarmOptions = new HashSet<string>();
         var report = new StringBuilder("# 27 karar dizisi — saf C# test raporu\n\nUnity oynanış testi değildir. Değer sırası: bütçe / enerji / su / bitki / emisyon.\n\n| Enerji | Su | Tarım | Sonuç | Son değerler |\n| --- | --- | --- | --- | --- |\n");
         foreach (var energy in DecisionCatalog.EnergyStation.Options)
         foreach (var water in DecisionCatalog.WaterStation.Options)
@@ -338,10 +478,14 @@ internal static class Program
             Check(state.Budget >= 0 && state.Energy >= 0 && state.Energy <= 100 && state.Water >= 0 && state.Water <= 100 && state.PlantHealth >= 0 && state.PlantHealth <= 100);
             Check(!session.TryChoose(point, farm.Id, out _));
             endings.Add(session.Ending.Category);
+            Check(session.Summary != null && session.Summary.KeyDecisions.Count == 2);
+            if (session.Ending.Category == EndingCategory.Rebirth) rebirthFarmOptions.Add(farm.Id);
             completed++;
             report.AppendLine($"| {energy.Id} | {water.Id} | {farm.Id} | {session.Ending.Title} | {state.Budget} / {state.Energy} / {state.Water} / {state.PlantHealth} / {state.Emissions} |");
         }
         Check(completed == 25 && blocked == 2 && endings.Count == 3, $"Matrix: {completed} completed, {blocked} blocked, {endings.Count} endings");
+        Check(rebirthFarmOptions.Contains(DecisionCatalog.Protect) && rebirthFarmOptions.Contains(DecisionCatalog.Irrigate));
+        report.AppendLine("\nBu dalda güneş emisyon etkisi 0; mevcut kanallarla sulama bütçe maliyeti 5. Hem koruma hem sulama ile Yeniden Doğuş mümkündür.");
         report.AppendLine("\n25 dizi doğrudan finale ulaştı. Su yetersizliği nedeniyle engellenen 2 sulama dizisinde ücretsiz depolama seçilerek ilerleme doğrulandı. Üç final kategorisine de ulaşıldı.");
         if (args.Length == 2 && args[0] == "--report") File.WriteAllText(args[1], report.ToString());
         Console.WriteLine("MATRIX 27 checked: 25 completed, 2 blocked with a valid fallback; all 3 endings reached.");

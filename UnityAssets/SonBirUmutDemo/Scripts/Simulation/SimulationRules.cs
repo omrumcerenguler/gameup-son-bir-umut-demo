@@ -51,10 +51,13 @@ namespace SonBirUmutDemo.Simulation
                 case DecisionEffect.StoreWater: use = Math.Min(2, use); plantSupport = -5; break;
             }
             int water = Math.Max(0, Math.Min(100, state.Water + waterDelta - use));
-            int plantChange = plantSupport + (water >= 35 ? 4 : -8) - DroughtPressure;
+            int waterPlantEffect = water >= 35 ? 4 : -8;
+            int plantChange = plantSupport + waterPlantEffect - DroughtPressure;
             var after = new ResourceState(state.Budget - cost, state.Energy + option.EnergyDelta,
                 water, state.PlantHealth + plantChange, state.Emissions + option.EmissionsDelta);
-            return new DecisionPreview(state, after, cost, "");
+            var breakdown = new TurnBreakdown(state, after, option.EnergyDelta, waterDelta,
+                plantSupport, option.EmissionsDelta, use, waterPlantEffect, DroughtPressure);
+            return new DecisionPreview(state, after, cost, "", breakdown);
         }
     }
 }

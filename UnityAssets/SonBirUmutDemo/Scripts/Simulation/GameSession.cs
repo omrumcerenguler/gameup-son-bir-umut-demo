@@ -19,6 +19,7 @@ namespace SonBirUmutDemo.Simulation
         public DecisionPointDefinition CurrentPoint => IsComplete ? null : orderedPoints[CompletedCount];
         public ReadOnlyCollection<DecisionRecord> History { get; }
         public EndingResult Ending { get; private set; }
+        public EndingSummary Summary { get; private set; }
 
         public GameSession(ResourceState initial = null, SimulationRules rules = null,
             IEnumerable<DecisionPointDefinition> definitions = null)
@@ -57,7 +58,11 @@ namespace SonBirUmutDemo.Simulation
             State = preview.After;
             choices.Add(pointId, optionId);
             history.Add(new DecisionRecord(pointId, selected, preview));
-            if (IsComplete) Ending = EndingResult.Evaluate(State);
+            if (IsComplete)
+            {
+                Ending = EndingResult.Evaluate(State);
+                Summary = new EndingSummary(State, History);
+            }
             message = selected.Title + " — karar uygulandı.";
             return true;
         }

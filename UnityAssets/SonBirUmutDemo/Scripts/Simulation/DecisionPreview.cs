@@ -10,13 +10,15 @@ namespace SonBirUmutDemo.Simulation
         public int Cost { get; }
         public ResourceState Before { get; }
         public ResourceState After { get; }
+        public TurnBreakdown Breakdown { get; }
 
-        public DecisionPreview(ResourceState before, ResourceState after, int cost, string reason)
+        public DecisionPreview(ResourceState before, ResourceState after, int cost, string reason, TurnBreakdown breakdown = null)
         {
             Before = before;
             After = after;
             Cost = cost;
             Reason = reason;
+            Breakdown = breakdown;
         }
 
         public static DecisionPreview Blocked(ResourceState before, string reason, int cost = 0) =>
