@@ -27,6 +27,9 @@ namespace SonBirUmutDemo.Core
         [SerializeField] private DemoAudioManager audioManager;
         [SerializeField] private DemoStationFeedback[] sessionFeedback;
         [SerializeField] private DemoCrisisAtmosphere sessionAtmosphere;
+        [SerializeField, HideInInspector] private bool finalPacing;
+        [SerializeField] private MaintenanceTaskNode[] taskNodes;
+        private int nextTaskSeed;
         private ReleaseFlow releaseFlow;
         private GameRunState legacyRun;
         private int lastUiActionFrame = -1;
@@ -58,6 +61,7 @@ namespace SonBirUmutDemo.Core
         private bool applicationHasFocus = true;
         public GameRunState Run => releaseCandidate ? releaseFlow?.Run : legacyRun;
         public GameSession Session => Run?.Session;
+        public bool UsesTaskNodes => Run != null && Run.UsesTaskNodes;
         public bool UsesPlaytestMode => Run != null && Run.UsesPlaytestMode;
         public Vector3 PlayerPosition => player != null ? player.transform.position : Vector3.zero;
         public bool SimulationPaused => ReleaseMenuVisible || IntroOpen || CardsOpen || IsComplete || !applicationHasFocus || applicationPaused;
@@ -84,8 +88,8 @@ namespace SonBirUmutDemo.Core
                 if (!UsesCrisisDemo) return null;
                 if (EmergencyActive) return DecisionCatalog.WaterStationId;
                 var nearest = NearestTask(false);
-                if (nearest != null) return nearest.StationId;
-                return Run.Crisis.Emergency.Status == EmergencyStatus.Waiting ? DecisionCatalog.WaterStationId : null;
+                if (nearest != null) return UsesTaskNodes ? null : nearest.StationId;
+                return !UsesTaskNodes && Run.Crisis.Emergency.Status == EmergencyStatus.Waiting ? DecisionCatalog.WaterStationId : null;
             }
         }
         public string Objective
@@ -98,7 +102,10 @@ namespace SonBirUmutDemo.Core
                 if (!UsesCrisisDemo) return "Hazırlık tamamlandı; köyün durumunu izle.";
                 if (EmergencyActive) return "ACİL: Su deposuna ulaş ve hattı onar.";
                 var task = NearestTask(false);
-                if (task != null) return task.Title + " · " + DemoStory.ShortPointName(task.StationId);
+                if (task != null) return UsesTaskNodes ? $"Bakım {Run.Crisis.CompletedCount}/{Run.Crisis.RequiredCount} · {task.Title}" :
+                    task.Title + " · " + DemoStory.ShortPointName(task.StationId);
+                if (UsesTaskNodes && !double.IsPositiveInfinity(Run.Crisis.NextDispatchIn))
+                    return $"Yeni bakım çağrısı {Math.Ceiling(Run.Crisis.NextDispatchIn):0} sn içinde · Köyü denetle";
                 if (!Run.Crisis.Emergency.IsResolved) return "Su hattındaki çağrıya hazır ol.";
                 if (Run.CrisisPressure > Run.CrisisRules.StableThreshold)
                     return "Müdahaleler tamam · Nöbet sonunu bekle.";
@@ -119,14 +126,25 @@ namespace SonBirUmutDemo.Core
         }
         public bool NoticeVisible => !ReleaseMenuVisible && !IsComplete && !IntroOpen && !CardsOpen && !EmergencyActive && Time.unscaledTime < messageUntil && !string.IsNullOrEmpty(ResultMessage);
 
+        public MaintenanceTask CurrentTask => !ReleaseMenuVisible && !IsComplete && Run!=null && Run.Phase==GameRunPhase.CrisisManagement && !EmergencyActive ? NearestTask(false) : null;
+        public Transform TaskTarget => NodeFor(CurrentTask)?.transform;
+        public string TaskAge => CurrentTask==null ? "" : $"Açık {Math.Floor(Run.Crisis.ElapsedSeconds-CurrentTask.AvailableSince):0} sn";
+        private MaintenanceTaskNode NodeFor(MaintenanceTask task)
+        {
+            if(task==null || taskNodes==null) return null;
+            foreach(var node in taskNodes) if(node!=null && node.TaskId==task.Id && node.LocationId==task.LocationId) return node;
+            return null;
+        }
         private MaintenanceTask NearestTask(bool requireRange)
         {
             if (!UsesCrisisDemo || player == null) return null;
             MaintenanceTask nearest = null; float distance = float.PositiveInfinity;
             foreach (var task in Run.Crisis.Tasks)
             {
-                if (task.Status != MaintenanceStatus.Available || (requireRange && !IsStationInRange(task.StationId))) continue;
-                Transform target = StationTransform(task.StationId);
+                if (task.Status != MaintenanceStatus.Available) continue;
+                var node=UsesTaskNodes ? NodeFor(task) : null;
+                if(requireRange && (UsesTaskNodes ? node==null || !node.IsInRange(player.transform.position) : !IsStationInRange(task.StationId))) continue;
+                Transform target = UsesTaskNodes ? node?.transform : StationTransform(task.StationId);
                 if (target == null) continue;
                 float next = (target.position - player.transform.position).sqrMagnitude;
                 if (next < distance) { nearest = task; distance = next; }
@@ -157,7 +175,7 @@ namespace SonBirUmutDemo.Core
 
         public void Configure(DemoPlayerMotor motor, EnergyStation energyStation)
         {
-            player = motor; station = energyStation; completeDemo = false; crisisMode = false; crisisDemo = false; playtestMode = false; releaseCandidate = false;
+            player = motor; station = energyStation; completeDemo = false; crisisMode = false; crisisDemo = false; playtestMode = false; releaseCandidate = false; finalPacing=false;
         }
 
         public void ConfigureCompleteDemo(DemoPlayerMotor motor, EnergyStation energyStation,
@@ -172,7 +190,7 @@ namespace SonBirUmutDemo.Core
         public void ConfigureCrisisFoundation()
         {
             if (!completeDemo) throw new InvalidOperationException("Kriz sahnesi üç karar noktası gerektirir.");
-            crisisMode = true; crisisDemo = false; playtestMode = false; releaseCandidate = false;
+            crisisMode = true; crisisDemo = false; playtestMode = false; releaseCandidate = false; finalPacing=false;
         }
 
         public void ConfigureCrisisDemo(CrisisStationMarker[] markers)
@@ -189,6 +207,29 @@ namespace SonBirUmutDemo.Core
         {
             if (!playtestMode) throw new InvalidOperationException("Release scene needs the Playtest profile.");
             releaseCandidate = true; audioManager = audio; sessionFeedback = feedback; sessionAtmosphere = atmosphere;
+        }
+
+        public void ConfigureFinalPacing(MaintenanceTaskNode[] nodes)
+        {
+            if(!releaseCandidate || nodes==null || nodes.Length!=FinalPacingCatalog.All.Count)
+                throw new InvalidOperationException("Final Pacing requires the release shell and ten task nodes.");
+            finalPacing=true; taskNodes=nodes;
+            if(!ValidTaskNodes()) throw new InvalidOperationException("Task node identities or positions do not match the catalog.");
+        }
+
+        private bool ValidTaskNodes()
+        {
+            if(taskNodes==null || taskNodes.Length!=FinalPacingCatalog.All.Count) return false;
+            var locations=new System.Collections.Generic.HashSet<string>();
+            foreach(var node in taskNodes)
+            {
+                if(node==null || !locations.Add(node.LocationId)) return false;
+                var definition=FinalPacingCatalog.At(node.LocationId);
+                if(definition==null || definition.TaskId!=node.TaskId) return false;
+                Vector3 point=node.transform.position;
+                if(Math.Abs(point.x-definition.Position.X)>.01 || Math.Abs(point.z-definition.Position.Z)>.01) return false;
+            }
+            return true;
         }
 
         // Shared by keyboard and IMGUI, including a one-command-per-frame guard.
@@ -232,6 +273,7 @@ namespace SonBirUmutDemo.Core
             if (player == null || station == null || (completeDemo &&
                 (waterStation == null || farmStation == null || world == null || followCamera == null)) ||
                 (crisisDemo && (crisisMarkers == null || crisisMarkers.Length != 3)) ||
+                (finalPacing && !ValidTaskNodes()) ||
                 (releaseCandidate && (audioManager == null || sessionAtmosphere == null || sessionFeedback == null || sessionFeedback.Length != 3)))
             {
                 Debug.LogError("Demo referansları eksik. Tools > GameUP menüsünden yeni sahne oluşturun.", this);
@@ -277,6 +319,7 @@ namespace SonBirUmutDemo.Core
             bool wasEnded = IsComplete;
             var beforeIncident = UsesCrisisDemo ? Run.Crisis.Emergency.Status : EmergencyStatus.Waiting;
             var beforeResources = CurrentResources;
+            string availableBefore = AvailableTasks();
             var task = UsesCrisisDemo && Run.Phase == GameRunPhase.CrisisManagement ? NearestTask(true) : null;
             InteractionKind owner = InteractionPolicy.Resolve(CardsOpen || IsComplete, EmergencyActive, CanInteract, task != null);
             bool repairHeld = false, repairInRange = false;
@@ -291,10 +334,23 @@ namespace SonBirUmutDemo.Core
             else if (owner == InteractionKind.StrategicDecision && DemoInput.InteractPressed) CardsOpen = true;
             else if (owner == InteractionKind.Maintenance && DemoInput.InteractPressed)
             {
-                if (Run.TryCompleteMaintenance(task.StationId, out var message)) { ShowMessage(message, task.Title + " tamamlandı", 3f); audioManager?.Play(SoundCue.Maintenance); }
+                bool completed;
+                string message;
+                if(UsesTaskNodes)
+                {
+                    var node=NodeFor(task);
+                    completed=Run.TryCompleteTask(task.Id,task.LocationId,node!=null && node.IsInRange(player.transform.position),CardsOpen || ReleaseMenuVisible,out message);
+                }
+                else completed=Run.TryCompleteMaintenance(task.StationId,out message);
+                if(completed) { ShowMessage(message,task.Title+" tamamlandı",3f); audioManager?.Play(SoundCue.Maintenance); }
             }
             if (!releaseCandidate && !CardsOpen && DemoInput.CancelPressed) DismissNotice();
             TickRun(repairHeld,repairInRange);
+            if(UsesTaskNodes && !IsComplete && availableBefore!=AvailableTasks() && !EmergencyActive)
+            {
+                var next=NearestTask(false);
+                if(next!=null) ShowMessage(next.Description,(task!=null && task.Status==MaintenanceStatus.Completed ? "Bakım tamam · " : "Yeni hedef · ")+next.Title,3f);
+            }
             if (!ReferenceEquals(beforeResources, CurrentResources) && world != null) world.Apply(CurrentResources);
             if (UsesCrisisDemo && beforeIncident != Run.Crisis.Emergency.Status)
             {
@@ -310,6 +366,13 @@ namespace SonBirUmutDemo.Core
                 DismissNotice();
                 audioManager?.Play(Result.Category == EndingCategory.Rebirth ? SoundCue.Success : SoundCue.Failure);
             }
+        }
+
+        private string AvailableTasks()
+        {
+            if(!UsesTaskNodes) return "";
+            string ids=""; foreach(var item in Run.Crisis.Tasks) if(item.Status==MaintenanceStatus.Available) ids+=item.Id+";";
+            return ids;
         }
 
         private void TickRun(bool held,bool inRange)
@@ -358,11 +421,11 @@ namespace SonBirUmutDemo.Core
 
         private GameRunState CreateRun()
         {
-            return new GameRunState(playtestMode ? GameMode.PlaytestDemo : crisisDemo ? GameMode.CrisisDemo : crisisMode ? GameMode.CrisisFoundation : GameMode.LegacyDecisions,
+            return new GameRunState(finalPacing ? GameMode.FinalPacing : playtestMode ? GameMode.PlaytestDemo : crisisDemo ? GameMode.CrisisDemo : crisisMode ? GameMode.CrisisFoundation : GameMode.LegacyDecisions,
                 new GameRunSettings(durationSeconds, initialPressure, baseRise, waterRiskRise,
                     plantRiskRise, energyRiskRise, maximumRisePerSecond),
                 definitions: completeDemo ? DecisionCatalog.All : new[] { DecisionCatalog.EnergyStation },
-                crisisRules: new CrisisRules(stableThreshold, stableDuration, emergencyDelay, emergencyWindow, repairDuration));
+                crisisRules: new CrisisRules(stableThreshold, stableDuration, emergencyDelay, emergencyWindow, repairDuration), taskSeed: finalPacing ? nextTaskSeed++ : 0);
         }
 
         public void Restart()
@@ -391,6 +454,7 @@ namespace SonBirUmutDemo.Core
             if (releaseCandidate)
             {
                 audioManager.StopEffects();
+                if(finalPacing) foreach(var node in taskNodes) if(node!=null) node.RefreshNow();
                 foreach (var marker in crisisMarkers) if (marker != null) marker.RefreshNow();
                 foreach (var feedback in sessionFeedback) if (feedback != null) feedback.RefreshNow();
                 sessionAtmosphere.RefreshNow();

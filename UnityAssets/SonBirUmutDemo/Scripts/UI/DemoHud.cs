@@ -217,7 +217,10 @@ namespace SonBirUmutDemo.UI
             var state = game.CurrentResources;
             theme.Panel(new Rect(15, 12, 1250, 61));
             int seconds = Mathf.CeilToInt((float)game.Run.RemainingSeconds);
+            Color timerColor=GUI.contentColor;
+            if(game.UsesTaskNodes && seconds<=60) GUI.contentColor=seconds<=20 ? DemoGuiTheme.Red : DemoGuiTheme.Gold;
             GUI.Label(new Rect(29, 26, 110, 30), game.UsesCrisisMode ? $"{seconds / 60:00}:{seconds % 60:00}" : "KÖY", theme.Heading);
+            GUI.contentColor=timerColor;
             Color pressureColor = game.Run.CrisisPressure >= 80 ? DemoGuiTheme.Red : DemoGuiTheme.Gold;
             GUI.Label(new Rect(145, 21, 170, 25), game.UsesCrisisMode ? $"Baskı {game.Run.CrisisPressure:0}" : "Hazırlık", theme.Body);
             if (game.UsesCrisisMode) DemoGuiTheme.Bar(new Rect(145, 54, 155, 4), (float)game.Run.CrisisPressure / 100, pressureColor);
@@ -233,6 +236,8 @@ namespace SonBirUmutDemo.UI
             {
                 theme.Panel(new Rect(330, 83, 620, 34));
                 GUI.Label(new Rect(345, 90, 590, 23), game.Objective, theme.Small);
+                if(game.UsesTaskNodes && game.CurrentTask!=null)
+                    GUI.Label(new Rect(975,88,285,30),game.TaskAge,theme.Small);
             }
         }
 
@@ -250,6 +255,11 @@ namespace SonBirUmutDemo.UI
 
         private void DrawHint()
         {
+            if(game.UsesTaskNodes && game.Run.RemainingSeconds<=20 && !game.EmergencyActive)
+            {
+                theme.Panel(new Rect(420,125,440,35),DemoGuiTheme.Red);
+                GUI.Label(new Rect(435,131,410,25),"Son 20 saniye · Önceliğini seç!",theme.Small);
+            }
             if (game.NoticeVisible || !game.HasInteraction) return;
             theme.Panel(new Rect(400, 650, 480, 46), DemoGuiTheme.Green);
             GUI.Label(new Rect(418, 662, 444, 26), game.InteractionHint, theme.Body);
@@ -273,22 +283,24 @@ namespace SonBirUmutDemo.UI
         private void DrawStationMarker()
         {
             string id = game.TargetStationId;
-            if (id == null) return;
+            Transform taskTarget=game.UsesTaskNodes ? game.TaskTarget : null;
+            if (id == null && taskTarget==null) return;
             int index = id == DecisionCatalog.EnergyStationId ? 0 : id == DecisionCatalog.WaterStationId ? 1 : 2;
-            if (view == null || stationMarkers == null || index >= stationMarkers.Length || stationMarkers[index] == null || scale <= 0)
+            if (view == null || scale<=0 || (taskTarget==null && (stationMarkers==null || index>=stationMarkers.Length || stationMarkers[index]==null)))
                 return;
-            Vector3 screen = view.WorldToScreenPoint(stationMarkers[index].position + Vector3.up * 3.5f);
+            Vector3 screen = view.WorldToScreenPoint((taskTarget!=null ? taskTarget.position : stationMarkers[index].position) + Vector3.up * (taskTarget!=null ? 2 : 3.5f));
             float rawX = (screen.x - canvasOffset.x) / scale;
             float rawY = (Screen.height - screen.y - canvasOffset.y) / scale;
             if (screen.z <= 0) { rawX = 1280 - rawX; rawY = 720 - rawY; }
             float x = Mathf.Clamp(rawX, 145, 1135);
-            float y = Mathf.Clamp(rawY, game.EmergencyActive ? 255 : 155, 580);
+            float minY=game.EmergencyActive ? 255 : game.UsesTaskNodes && game.Run.RemainingSeconds<=20 ? 205 : 155;
+            float y = Mathf.Clamp(rawY, minY, 580);
             bool offscreen = screen.z <= 0 || x != rawX || y != rawY;
             Color color = game.EmergencyActive ? DemoGuiTheme.Red : DemoGuiTheme.Gold;
-            if (!offscreen && !game.EmergencyActive && !game.HasInteraction) return;
+            if (!offscreen && !game.EmergencyActive && !game.HasInteraction && taskTarget==null) return;
             theme.Panel(new Rect(x - 130, y - 16, 260, 39), color);
             string prefix = offscreen ? "Yön: " : game.EmergencyActive ? "ACİL: " : "";
-            GUI.Label(new Rect(x - 120, y - 8, 240, 26), prefix + DemoStory.ShortPointName(id), theme.Small);
+            GUI.Label(new Rect(x - 120, y - 8, 240, 26), prefix + (taskTarget!=null ? game.CurrentTask.Title : DemoStory.ShortPointName(id)), theme.Small);
         }
 
         private void DrawNotification()

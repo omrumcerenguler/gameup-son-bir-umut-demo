@@ -18,7 +18,7 @@ namespace SonBirUmutDemo.Core
         public const string CrisisIntroduction = "Azalan yağışlar köyün su ve yaşam kaynaklarını zorluyor. " +
             "Enerji, su ve tarım kararlarını ver; altyapıyı onar ve kriz baskısını düşür.";
         public static string CrisisGoal(GameRunState run) =>
-            $"{run.Crisis.Tasks.Count} bakım görevinden en az {run.Crisis.RequiredCount} tanesini tamamla. Su hattındaki arızaya müdahale et; " +
+            (run.UsesTaskNodes ? "Köye dağılmış " : "") + $"{run.Crisis.Tasks.Count} bakım görevinden en az {run.Crisis.RequiredCount} tanesini tamamla. Su hattındaki arızaya müdahale et; " +
             $"baskıyı {run.CrisisRules.StableThreshold:0} veya altında {run.CrisisRules.StableDuration:0} saniye koru.";
         public static string HowTo(GameRunState run) => "WASD ile yürü, Sol Shift ile koş.\n\n" +
             "Enerji → su → tarım noktalarında E ile karar ver.\n\n" +

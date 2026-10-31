@@ -28,7 +28,7 @@ namespace SonBirUmutDemo.Interaction
                 game.Run.Phase == GameRunPhase.CrisisManagement;
             bool emergency = active && game.EmergencyActive;
             var task = active ? game.Run.Crisis.AtStation(stationId) : null;
-            if (maintenanceVisual != null) maintenanceVisual.SetActive(active && !emergency &&
+            if (maintenanceVisual != null) maintenanceVisual.SetActive(active && !game.UsesTaskNodes && !emergency &&
                 task != null && task.Status == MaintenanceStatus.Available);
             if (emergencyVisual != null) emergencyVisual.SetActive(emergency && game.Run.Crisis.Emergency.StationId == stationId);
         }
