@@ -1,8 +1,8 @@
-# Hakan / Enes — Windows, Unity 6.3 LTS entegrasyonu
+# Hakan / Enes — Aşama 2 görsel sürüm, Unity 6.3 LTS
 
 ## Durum ve dal
 
-Bu sürüm **feature/polish-backup-demo** dalındadır. `main` ve kaynak `feature/complete-demo` değiştirilmez; otomatik merge yapılmaz. Mac üzerinde Unity yoktur. Kullanıcının aktarımına göre Hakan kaynak complete-demo dalını üç kararla Eksik Dönüşüm finaline kadar oynadı. Bu polish sürümü Unity'de henüz doğrulanmadı; saf C# testleri **54/54** geçti.
+Bu sürüm **feature/polish-backup-demo** dalındadır. `main` ve kaynak `feature/complete-demo` değiştirilmez; otomatik merge yapılmaz. Mac üzerinde Unity yoktur. Kullanıcının aktarımına göre Hakan kaynak complete-demo dalını üç kararla Eksik Dönüşüm finaline kadar oynadı. Aşama 1 ve yeni Aşama 2 görsel sürümü bu Mac'te Unity'de doğrulanmadı; saf C# regresyon testleri yeniden **54/54** geçti.
 
 ## 1. Kaynakları güvenle al
 
@@ -34,15 +34,15 @@ Input sembollerini elle tanımlama. Yeni backend'de güncelleme modu **Process E
 
 Console'u aç (**Window > General > Console**); import/derleme bitene kadar bekle. İlk kırmızı hata başka bir scriptte de olsa önce onu çöz. Bu Mac'te gerçek Unity derlemesi yapılmadı.
 
-## 3. Mevcut sahneyi kullan veya yeni tam demo sahnesi oluştur
+## 3. Aşama 2 için yeni görsel sahneyi üret
 
-Mevcut üç noktalı CompleteDemo sahnesi güncel scriptlerle kullanılabilir; bu aşamada Scene Builder, modeller ve referans alanları değişmedi. Yeniden üretmek zorunlu değildir. Yeni sahne istersen:
+**Görsel köy ve low-poly karakter için bu adım gereklidir.** Eski CompleteDemo sahnesi korunur; sadece kaynakları kopyalayıp eski sahneyi açarsan yeni kaydedilmiş geometriyi görmezsin. Güncel Scene Builder yeni varlıkları ve referansları kurar:
 
 1. Play'i durdur, Prefab düzenleme modundan çık. Açık sahnelerde kaydedilmemiş değişiklik varsa kendin kaydet veya geri al; araç bunları kaydetmez veya atmaz.
 2. **Tools > GameUP > Create Demo Scene** seç.
-3. Araç temiz yeni sahne açar; mevcut temiz sahneleri kapatır. Eski dosyaları silmez. Yeni yol **`Assets/SonBirUmutDemo/Scenes/SonBirUmutCompleteDemo.unity`**; doluysa numaralı benzersiz yol kullanılır.
-4. Yeni materyaller **`Assets/SonBirUmutDemo/Generated/CompleteDemo...`** altına kaydedilir; önceki materyaller ezilmez. Console'da oluşturulan sahne yolunu kontrol et.
-5. Hierarchy'de `Kırsal harita - Son Bir Umut` altında `01 - ENERJİ İSTASYONU`, `02 - SU DEPOSU`, `03 - TARIM VE DOĞAL ALAN` gruplarını kontrol et. Oyuncu, kamera ve Demo oturumu referansları bağlı olmalı.
+3. Araç temiz yeni sahne açar; mevcut temiz sahneleri kapatır. Eski dosyaları silmez. Yeni yol **`Assets/SonBirUmutDemo/Scenes/SonBirUmutVisualDemo.unity`**; doluysa numaralı benzersiz yol kullanılır.
+4. Yeni gerçek mesh (`Art_Canopy`, `Art_GableRoof`, `Art_Icosahedron`) ve materyaller **`Assets/SonBirUmutDemo/Generated/VisualDemo...`** altına kaydedilir; önceki materyaller ezilmez. Console'da oluşturulan sahne yolunu kontrol et.
+5. Hierarchy'de `Kırsal harita - Son Bir Umut` altında `01 - ENERJİ İSTASYONU`, `02 - SU DEPOSU`, `03 - TARIM VE DOĞAL ALAN` gruplarını kontrol et. Oyuncu, kamera ve Demo oturumu referansları bağlı olmalı. `Low-poly köylü`, `Köy detayları`, `Su havuzu - kuraklık görünümü`, `DemoCharacterVisual` ve genişletilmiş DemoWorldView alanlarını da kontrol et.
 
 Dünya koordinatlarıyla enerji **(3, 0, 0)**, su **(-2, 0, 5)**, tarım **(6, 0, -5)** konumundadır. Su göstergesi deponun önündeki mavi çubuktur. Enerji noktasında sarı kutu, tarımda ürün sıraları ve tahta işaret bulunur.
 
@@ -73,13 +73,26 @@ Ek kontroller:
 - Aynı noktaya dönmek ikinci seçim veya ikinci maliyet üretmemeli.
 - Panel/jeneratör/tasarruf, pompa/vana/uyarı ve koruma/sulama/depolama grupları seçime göre açılmalı.
 - Su çubuğu kaynakla değişmeli; bitki sağlığı ≥55 yeşil, 30–54 sarı, daha azı kuru görünmeli. Tarlanın rengi de değişmeli.
-- Üçüncü kararda final başlığı, su/tarım/doğa özeti, öne çıkan iki karar ve süren risk görünmeli. Kamera yumuşakça uzaklaşıp/yükselip köyü sol tarafta göstermeli; yeni harita yüklenmemeli.
+- Üçüncü kararda final başlığı, su/tarım/doğa özeti, öne çıkan iki karar ve süren risk görünmeli. Kamera yumuşakça uzaklaşıp/yükselip köyü sol tarafta göstermeli; yeni harita yüklenmemeli. Finalin **Köyün durumu / Kararlarının etkisi** sekmelerini ve kaydırmayı dene. **Köyü izle** paneli gizleyip kadrajı ortalamalı; rapora dönüşte sağ panele yer açılmalı.
 - Finalde karakter durmalı. Yeniden Oyna; tüm kaynak, görsel, ilerleme, kamera, oyuncu ve hız durumunu sıfırlayıp girişe dönmeli. Birkaç farklı diziyle arka arkaya dene.
 - İlk kez oynayan ekip üyesinin süresini ölç. **3–5 dakika hedeftir; henüz ölçülmedi.** Gerekiyorsa metin ve hareket hissi için geri bildirim yaz; yapay bekleme eklenmedi.
 
 Formüller [DECISIONS](DECISIONS.md), 27 dizi [DECISION_MATRIX](DECISION_MATRIX.md) içindedir. Bu puanlar bilimsel ölçüm değildir. Jeneratör anlık sıcaklık artışı oluşturmaz; giriş yaklaşan kuraklığa odaklanır; hastalık veya NPC görevi içermez.
 
-## Bu aşamanın öncelikli anlaşılabilirlik kontrolü
+## Aşama 2 görsel regresyonu — Unity'de henüz yapılmadı
+
+- Eğimli çatılar, pencereler/kapılar, temel, patikalar, çit, kuyu, bank ve kayalar görünmeli. Ev, kuyu, bank, çit ve harita sınırı çarpışmalarını dene; dekoratif küçük nesneler çarpışmasızdır.
+- Görünen karakter kapsül değil köylü olmalı; collider hâlâ CharacterController. Yüz/burun ileri yönü göstermeli. Kol/bacak hareketi gerçek hıza bağlı olmalı; duvara dayanırken ve kart/giriş/final sırasında yürüyüş pozu sürmemeli.
+- Su deposunun çubuğuna ek olarak havuz yüzeyi küçülmeli; su <20'de kuru zemin çatlakları açılmalı, su 0'da yüzey kapanmalı.
+- Bitki <30'da taç yerine kuru dallar; ≥30'da taç, ≥55'te yeşil görünüm. Ürün boyu/toprak rengi sağlıkla değişmeli. Bu animasyonlar yalnız görseldir; HUD kaynakları seçim anında merkezi hesaba göre güncellenir.
+- Aynı üç karar grubunu farklı rotalarda izle. Emisyon yüksek diye köyün aniden ısınması veya sağlıklı bitkinin sırf final kategorisi nedeniyle kuruması beklenmez; görsel durum gerçek kaynaklara bağlıdır.
+- Tema/kontrast, beş kaynak çubuğu, sıradaki nokta etiketi, kart engeli, bildirim ve yeni final sekmeleri okunmalı. Kaydırma için fare tekerini kullan.
+- Yeniden Oyna; model gruplarını, havuz/taç/ürün durumunu, adım pozunu, final sekmesi/kaydırmasını ve kamera panel konumunu sıfırlamalı.
+- Sahneyi kapatıp yeniden aç; mesh/materyaller kaybolmamalı. `Scenes`, `Generated/VisualDemo...` ve `.meta` dosyaları birlikte korunmalı.
+
+[Dosya bazında Aşama 2 raporu](VISUAL_STAGE2.md)
+
+## Aşama 1 anlaşılabilirlik kontrolleri de korunur
 
 - Yeni başlık **Son Bir Umut: Kuraklıktan Önce**; kısa köye dönüş anlatımı, hastalık anlatımı yok.
 - Ana hedef, 0/3–3/3 ilerleme, sıradaki nokta ve kritik kaynak uyarısı kart/final dahil görünür kalmalı.
@@ -88,7 +101,7 @@ Formüller [DECISIONS](DECISIONS.md), 27 dizi [DECISION_MATRIX](DECISION_MATRIX.
 - Alt soldaki bildirimde seçilen eylem, bütçe, ayrı bileşenler ve net sonuç görünmeli. **×** veya **Esc** hemen kapatmalı, 10 saniyede kendiliğinden kapanmalı; hareketi veya E ile sonraki etkileşimi kilitlememeli. Merkezdeki değişen nesneyi örtmediğini kontrol et.
 - Sulama şimdi 5 bütçe ve 20 su harcar. **Güneş → pompa → sulama: 10 / 55 / 46 / 73 / 0, Yeniden Doğuş** olmalı. Koruma yoluyla su/bitki ödünleşimini karşılaştır.
 - Finalde stok, tarım/doğa ortak göstergesi ve karar gerekçeleri okunmalı. Su kalitesinin veya ayrı ürün veriminin ölçüldüğü izlenimi oluşmamalı.
-- 1280×720 ve 1920×1080'de kart, bildirim ve final metinlerinin kırpılmadığını dene. Yeni arayüz bu Mac'te render edilmedi.
+- 1280×720 ve 1920×1080'de kart, bildirim ve final metinlerinin kırpılmadığını dene. Aşama 2 arayüzü bu Mac'te render edilmedi.
 
 ## 6. Eski prototip ve sahne güvenliği
 
@@ -106,12 +119,12 @@ Sahne aracını iki kere çalıştırıp yeni numaralı yolları doğrula. Kirli
 | Eksik yeni sınıf | Güncel klasörün tamamı kopyalandı mı? Eski ve yeni kaynaklar karıştı mı? |
 | InputSystem bulunamadı | Paket / Active Input Handling uyumu; elle eklenen semboller |
 | Kart tıklanmıyor | Both veya Old, Editor yeniden başlatma ve Game odağı |
-| Yalnız enerji görünüyor | Eski sahne açıktır; yeni araçla CompleteDemo sahnesi üret |
+| Yalnız enerji görünüyor | Eski sahne açıktır; yeni araçla VisualDemo sahnesi üret |
 | Referans eksik / Missing Script | Mevcut .meta korunmuş mu? Yeni sahne oluşturucu kullanıldı mı? |
 | Pembe model | URP/Built-in shader ve proje pipeline eşleşmesi; HDRP kullanılmaması |
 | Final kadrajı dar | 16:9 Game görünümü; IsometricFollowCamera Overview Size ve Horizontal Offset; test kaydına değerleri yaz |
 
-Editor kontrolleri geçerse **File > Build Profiles** Windows profili aç; yeni CompleteDemo sahnesini Scene List'e ekleyip başlangıç sahnesi yap. Mevcut Windows build modüllerini kullan; Mac'e SDK kurulmaz. Çıktıyı depoya ekleme. EXE içinde kontrol listesinin oynanış adımlarını tekrarla.
+Editor kontrolleri geçerse **File > Build Profiles** Windows profili aç; yeni VisualDemo sahnesini Scene List'e ekleyip başlangıç sahnesi yap. Mevcut Windows build modüllerini kullan; Mac'e SDK kurulmaz. Çıktıyı depoya ekleme. EXE içinde kontrol listesinin oynanış adımlarını tekrarla.
 
 Test kaydı: commit, tam Unity sürümü, pipeline, input modu, Windows sürümü, FPS, hareket değerleri, süre ve ilk Console hatası. [UNITY_TEST_CHECKLIST](../UNITY_TEST_CHECKLIST.md) kutularını yalnızca gerçekten çalıştırdıktan sonra işaretle.
 

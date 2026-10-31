@@ -1,6 +1,6 @@
 # Son Bir Umut — Unity test kontrol listesi
 
-**Durum: Yeni polish sürümü için aşağıdaki Unity kontrolleri henüz yapılmadı.** Mac üzerinde Unity Editor bulunmaz. Kutuları Hakan veya Enes yalnızca testi gerçekten çalıştırınca işaretlemelidir. Saf C# testlerinin geçmesi bu kutuları tamamlamaz.
+**Durum: Yeni görsel Aşama 2 sürümü için aşağıdaki Unity kontrolleri henüz yapılmadı.** Mac üzerinde Unity Editor bulunmaz. Kutuları Hakan veya Enes yalnızca testi gerçekten çalıştırınca işaretlemelidir. Saf C# testlerinin geçmesi bu kutuları tamamlamaz.
 
 | Test kaydı | Değer |
 | --- | --- |
@@ -20,12 +20,32 @@
 - [ ] Unity 6.3 LTS script derlemesi tamamlandı; Console'da hata / Missing Script yok.
 - [ ] UnityEditor kodları build'e sızmıyor; Editor klasöründe.
 - [ ] Tools > GameUP > Create Demo Scene üç noktayı ve bağlı referansları kuruyor.
-- [ ] SonBirUmutCompleteDemo.unity yeni dosya; eski enerji sahnesi değiştirilmedi.
+- [ ] SonBirUmutVisualDemo.unity yeni dosya; eski enerji sahnesi değiştirilmedi.
 - [ ] Aracı ikinci kez çalıştırınca ayrı numaralı sahne ve materyal klasörü oluşuyor.
 - [ ] Kirli açık sahnede araç uyarıp duruyor; kaydetme, silme veya değişiklik atma yok.
 - [ ] Prefab düzenleme / Play modunda araç mevcut içeriğe müdahale etmiyor.
 - [ ] Sahneyi kapatıp tekrar açınca materyaller ve referanslar korunuyor; pembe model yok.
 - [ ] Eski tek istasyonlu sahnenin referansları ve tek noktalı akışı yeni kaynaklarla ayrıca denendi.
+
+## Aşama 2: gerçekten yeni görsel sahne
+
+- [ ] Güncel Tools menüsü yeni SonBirUmutVisualDemo sahnesini ve Generated/VisualDemo klasörünü oluşturdu; eski CompleteDemo ezilmedi.
+- [ ] Üç gerçek mesh varlığı (Canopy, GableRoof, Icosahedron) ve materyaller kaydedildi; sahne tekrar açılınca eksik/pembe model yok.
+- [ ] Eğimli çatılar, pencereler/kapılar, taş temeller, patika, çit, kuyu, bank, kaya ve ot ayrıntıları görülüyor.
+- [ ] Kapsül collider üzerinde köylü baş/yüz/şapka/ceket/çanta/kol/bacak modeli var; görsel kapsül kaldırıldı.
+- [ ] Yüz ileri yöne bakıyor; yürüyüşte görsel eklemler hareket ediyor, root hareketi değişmiyor.
+- [ ] Ayaklar zemine oturuyor; duvar, kart, giriş ve finalde yerinde yürüyüş sürmüyor.
+- [ ] Yeni ev temel/kuyu/bank/çit çarpışmaları erişim yollarını kapatmıyor; üç noktaya ulaşılabiliyor.
+- [ ] Yeşil/sarı taç ve kuru dal görünümü sağlığa uyuyor; taç/dal aynı anda yanlış açık kalmıyor.
+- [ ] Ürün boyu ve toprak rengi değişiyor; su havuzu çekiliyor, <20 suda çatlaklar beliriyor; 0 suda yüzey kapalı.
+- [ ] Görsel geçiş sırasında kaynaklar fazladan değişmiyor; dünya kategoriden değil gerçek durumdan türetiliyor.
+- [ ] Opak tema, kaynak çubukları ve sıradaki nokta etiketi 1280×720 ve 1920×1080'de okunuyor.
+- [ ] Kartlarda avantaj/bedel/sonrası, seçim/tur/kuraklık ve net değerler kırpılmıyor; engelli düğme seçilemiyor.
+- [ ] Finalin Köyün durumu / Kararlarının etkisi sekmeleri ve fareyle kaydırma çalışıyor; tüm metinlere erişiliyor.
+- [ ] Köyü izle paneli gizliyor, kamera köyü ortalıyor; Sonuç raporuna dön sağ panele yer açıyor.
+- [ ] Köyü izleme sırasında hareket/karar kilidi korunuyor; rapora dönüş kaynak veya seçim değiştirmiyor.
+- [ ] Üç kez yeniden oynamada görsel poz, taç, ürün, havuz, tema dokuları, sekme/kaydırma ve kadraj sızıntısı yok.
+- [ ] Windows EXE'de yeni sahne/mesh/materyaller ve finali izleme çalışıyor; FPS / ilk hata kaydedildi.
 
 ## Öncelik: akıcı hareket
 
@@ -108,7 +128,7 @@
 
 ## Windows teslimi
 
-- [ ] Build Profiles sahne listesinde yeni CompleteDemo başlangıç sahnesi.
+- [ ] Build Profiles sahne listesinde yeni VisualDemo başlangıç sahnesi.
 - [ ] Windows build hatasız oluşuyor ve EXE açılıyor.
 - [ ] EXE içinde WASD/çapraz, E, kart tıklama, üç karar, final ve yeniden oynama tekrar denendi.
 - [ ] Oynanış süresi ölçüldü; 3–5 dakika hedefine ilişkin geri bildirim yazıldı.

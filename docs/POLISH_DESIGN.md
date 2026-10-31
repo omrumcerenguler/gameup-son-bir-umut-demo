@@ -1,5 +1,7 @@
 # Aşama 1 — hikâye ve kararların anlaşılabilirliği
 
+Bu belge Aşama 1 kaydıdır. Sonraki görsel değişiklikler ve değişen dosyalar [Aşama 2 raporunda](VISUAL_STAGE2.md) açıklanır. Aşağıdaki “korunan dosyalar” ifadesi Aşama 1 için geçerlidir.
+
 ## Korunan temel
 
 Çalışan `feature/complete-demo` tabanı kullanılır. Geliştirme `feature/polish-backup-demo` dalındadır; `main` ve kaynak dal değiştirilmez, merge yapılmaz. Üç etkileşim, CharacterController, kamera, giriş adaptörü, dünya görünümü ve Scene Builder dosyaları korunur. Yeni 3D model yoktur. Final sınıflandırmasının eşikleri de aynıdır.

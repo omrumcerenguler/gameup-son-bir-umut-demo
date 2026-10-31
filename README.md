@@ -2,9 +2,23 @@
 
 Unity 6.3 LTS / C# ile kırsal yaşam, kuraklık ve dayanıklılık temalı küçük 3D izometrik demo. Hedef Windows'ta 3–5 dakikalık bir deneyimdir; süre ve yeni sürümün oynanışı henüz Unity'de ölçülmedi.
 
-**Geliştirme dalı: `feature/polish-backup-demo`.** Çalışan üç kararlı `feature/complete-demo` temel alındı; bu kaynak dal ve `main` değiştirilmez. Kullanıcının aktarımına göre Hakan önceki dalda üç kararı, dünya değişimlerini ve Eksik Dönüşüm finalini Unity'de oynadı. Bu polish sürümü Unity onayı bekler; Mac'te Editor yoktur.
+**Geliştirme dalı: `feature/polish-backup-demo`.** Çalışan üç kararlı `feature/complete-demo` temel alındı; bu kaynak dal ve `main` değiştirilmez. Kullanıcının aktarımına göre Hakan önceki dalda üç kararı, dünya değişimlerini ve Eksik Dönüşüm finalini Unity'de oynadı. Bu dal artık Aşama 2 görsel kaynaklarını da içerir; yeni sürüm Unity onayı bekler. Mac'te Editor yoktur.
 
-## Korunan demo ve bu aşamanın iyileştirmeleri
+## Aşama 2: görsel kalite ve final sunumu
+
+`a5a41ed` yalnızca Aşama 1 kaydıydı; o commit'te görsel Aşama 2 yoktu. Bu aşamada gerçek kaynak değişiklikleri eklendi:
+
+- Kiremit çatılı/pencereli evler, taş temeller, patikalar, çit, kuyu, bank, kaya ve kuru ot detayları.
+- Kapsül collider üstünde çokgen köylü modeli: baş, yüz yönü, şapka, ceket, çanta, kol/bacak; gerçek harekete bağlı basit görsel adım hareketi.
+- Suya göre çekilen havuz/çatlaklar; bitki sağlığına göre yaprak veya kuru dal, ürün boyu ve toprak görünümü. Geçişler görseldir; kaynak değerleri değişmez.
+- Opak koyu tema, renkli kaynak çubukları, belirgin seçim kartları ve sıradaki nokta etiketi.
+- Sekmeli/kaydırılabilir final raporu ve **Köyü izle / Sonuç raporuna dön**; kamera panel gizlenince köyü ortalar.
+
+**Yeni köy/karakter için Tools menüsünden yeni sahne üretmek gerekir.** Mevcut sahneyi yalnız açmak, kaydedilmiş geometrisini kendiliğinden değiştirmez.
+
+[Aşama 2 dosya ve doğrulama raporu](docs/VISUAL_STAGE2.md)
+
+## Korunan oyun döngüsü ve Aşama 1 iyileştirmeleri
 
 - CharacterController korunarak hızlanma, frenleme ve yumuşak Y dönüşü; kamera yönüne göre WASD ve çapraz hız sınırı.
 - Tek primitive köy; enerji → su → tarım sırasıyla üç nokta ve her birinde üç kart.
@@ -23,7 +37,7 @@ Kaynaklar boyutsuz örnek oyun puanlarıdır. Emisyon anlık köy sıcaklığı 
 2. Unity **6.3 LTS**, **Universal 3D (URP)** veya **3D Built-in** projesi kullan. Kaynak klasörü doğrudan Unity projesi değildir.
 3. `UnityAssets/SonBirUmutDemo` içeriğini mevcut `Assets/SonBirUmutDemo` üzerine **klasörü silmeden** kopyala. Eski `.meta`, `Scenes` ve `Generated` dosyalarını koru.
 4. Active Input Handling: **Both** veya **Input Manager (Old)**. IMGUI fare girdisi nedeniyle New-only desteklenmez; gerekirse Editor'ı yeniden başlat.
-5. Mevcut üç noktalı sahneyi kullanabilirsin; yeni sahne gerekirse Console derlemesi tamamlanınca **Tools > GameUP > Create Demo Scene**. Yeni sahne `Assets/SonBirUmutDemo/Scenes/SonBirUmutCompleteDemo.unity` veya numaralı benzersiz yola kaydedilir; eski sahneler ezilmez.
+5. Console derlemesi tamamlanınca **Tools > GameUP > Create Demo Scene** çalıştır. Görsel sürüm **`Assets/SonBirUmutDemo/Scenes/SonBirUmutVisualDemo.unity`** veya numaralı yeni yola kaydedilir. Yeni mesh/materyaller `Generated/VisualDemo...` içindedir; eski sahneler ezilmez.
 6. Game görünümünü 16:9 aç, Play, Enter. WASD ile dolaş; sıradaki noktada E, kartta Seç. Üç karardan sonra finali ve Yeniden Oyna'yı dene.
 
 [Windows kurulum rehberi](docs/INTEGRATION.md) · [Unity test listesi](UNITY_TEST_CHECKLIST.md) · [Hareket değişikliği](docs/MOVEMENT.md) · [Mimari](docs/ARCHITECTURE.md)
@@ -55,6 +69,6 @@ Harici test paketi gerekmez. **54 test grubu geçti, 0 başarısız.** Mevcut 39
 
 ## Eski prototip ve gizlilik
 
-Eski sahne dosyaları değiştirilmez. Serileştirilmiş `player` / `station` referansları korunur; eski sahne tek istasyon modunda kalır. Hareket, kamera, etkileşimler, dünya görünümü ve Scene Builder kaynak daldakiyle aynıdır. Küçük dengeleme farkları: güneş emisyonu +1 → 0; mevcut kanallarla sulama bütçesi 15 → 5. Yeni 3D model eklenmedi. Birebir önceki davranış için `main` kaynaklarını ayrı test projesinde kullan; dal değiştirmek tek başına dış Unity projesindeki kopyayı güncellemez.
+Eski sahne dosyaları değiştirilmez. Serileştirilmiş `player` / `station` referansları korunur; eski sahne tek istasyon modunda kalır. Aşama 2; Aşama 1 oyun mantığını, CharacterController motorunu ve üç etkileşimi değiştirmez. Kamera ve dünya kodundaki değişiklikler sunum içindir. Aşama 1 dengeleme farkları: güneş emisyonu +1 → 0; mevcut kanallarla sulama bütçesi 15 → 5. Aşama 2 modeli ve köy ayrıntıları C# Editor aracıyla üretilir; harici model paketi gerekmez. Birebir önceki davranış için `main` kaynaklarını ayrı test projesinde kullan; dal değiştirmek tek başına dış Unity projesindeki kopyayı güncellemez.
 
 [GitHub](https://github.com/omrumcerenguler/gameup-son-bir-umut-demo) herkese açıktır. Yerel PDF, JPG/PNG ve WhatsApp görüntüleri paylaşılmaz, değiştirilmez. Yalnızca açık dosya yollarını stage et, staged içeriği incele; toplu ekleme veya force push kullanma. SDK, gerçek Unity projesi, build çıktısı ve kişisel belge bu kaynak teslimine eklenmez.

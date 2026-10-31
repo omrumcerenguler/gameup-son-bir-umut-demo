@@ -1,4 +1,4 @@
-# Mimari — anlaşılır kararlar / polish
+# Mimari — Aşama 2 görsel sunum
 
 ## Sınırlar ve durum
 
@@ -20,12 +20,15 @@ Unity 6.3 LTS / Windows hedefi. Tek primitive harita, üç karar ve üç final v
 | `DemoGameController` | Giriş anlatımı, oynama/kart/final akışı, kapatılabilir bildirim ve Unity referansları |
 | `DemoStory` | Merkezi, kolay değiştirilebilir giriş, hedef ve kapanış metni |
 | `DemoInput` | Koşullu eski/yeni klavye API'si; Both/Old IMGUI gereksinimi |
+| `DemoVisualBuilder` (Editor) | Çokgen mesh, köy/karakter ayrıntıları; gerçek Editor varlıkları |
+| `DemoCharacterVisual` | Root hareketini değiştirmeden, controller hızından eklem pozu |
+| `DemoGuiTheme` | HUD/kart/final renkleri, stilleri ve temizlenen runtime dokular |
 | `DemoPlayerMotor` | Korunan CharacterController; yatay hız ve Y dönüşü yumuşatması |
-| `IsometricFollowCamera` | Sabit açı; normal takip ve finalde panoramik kadraj |
+| `IsometricFollowCamera` | Sabit açı; normal takip, panoramik final ve rapor paneline göre yumuşak merkezleme |
 | `EnergyStation` | Önceki enerji noktasının korunan menzil ve model referansları |
 | `DecisionStation` | Su ve tarım menzili; seçime karşılık gelen görsel grubu |
-| `DemoWorldView` | Su göstergesi, ağaç ve tarla renklerinin durumdan türetilmesi |
-| `DemoHud` | IMGUI giriş, HUD, kartlar, net etki ve final geçmişi |
+| `DemoWorldView` | Su göstergesi/havuz, kuru dal/taç, ürün boyu ve toprak renginin durumdan türetilmesi; görsel geçişler |
+| `DemoHud` | Temalı IMGUI, kaynak çubukları, hedef etiketi, kaydırılabilir final sekmeleri ve köyü izleme modu |
 | `Editor/DemoSceneBuilder` | Primitive çevre, referans bağlama ve benzersiz Editor varlıkları |
 
 `Simulation` ve `Decisions` UnityEngine'den bağımsızdır. `Tests/LogicTests` bu dosyaları doğrudan derler; mantığın kopyasını kullanmaz. UnityEditor referansları yalnızca `Editor` klasöründedir. Harici model, UI paketi, singleton veya Rigidbody eklenmedi.
@@ -47,17 +50,19 @@ Karar formülleri ve eşikler [DECISIONS](DECISIONS.md), tüm temel diziler [DEC
 
 Ağaçlar bitki sağlığı ≥55'te yeşil, 30–54'te sarı, daha düşükte kurudur. Tarla rengi sağlıkla sürekli değişir. Depo önündeki mavi gösterge suyla ölçeklenir; suyun sıfırında çok ince bir taban kalır. `MaterialPropertyBlock` ile renkler değiştirilir, ortak materyal varlıkları değiştirilmez. Yeniden oynama yeni materyal kopyaları yaratmaz.
 
-Evler, ağaç gövdeleri/taçları, depo, istasyon kaidesi ve harita sınırları çarpışma içerir. Karar sonrasında görünen dekoratif modeller oyuncuyu içine hapsetmemek için çarpışmasızdır. Gösterge ve tarla ürünleri de dekoratiftir.
+Ev/temel, ağaç gövdeleri, depo, kuyu, bank oturağı, çit kirişleri, istasyon kaidesi ve harita sınırları çarpışma içerir. Yaprak taçları ve küçük dekorlar görseldir. Karar sonrasında görünen dekoratif modeller oyuncuyu içine hapsetmemek için çarpışmasızdır. Gösterge ve tarla ürünleri de dekoratiftir.
 
-Araç `SonBirUmutCompleteDemo.unity` ve `Generated/CompleteDemo...` için benzersiz yollar kullanır. Kirli açık sahne, Prefab düzenleme modu veya New-only input durumunda hiçbir sahne üretmeden durur. Mevcut sahne dosyası silinmez veya kaydedilmez.
+Araç `SonBirUmutVisualDemo.unity` ve `Generated/VisualDemo...` için benzersiz yollar kullanır. Kirli açık sahne, Prefab düzenleme modu veya New-only input durumunda hiçbir sahne üretmeden durur. Mevcut sahne dosyası silinmez veya kaydedilmez.
 
 ## Geriye dönüş
 
 `EnergyStation` sınıfı ve eski serileştirilmiş `player`, `station`, kamera `target`, hareket `speed` alanları korunur. Eski sahnelerde yeni `completeDemo` alanı false olduğundan tek noktalı akış sürer. Üç noktalı akış yalnızca yeni sahne oluşturucunun `ConfigureCompleteDemo` çağrısıyla açılır. Birebir eski denge ve kod `main` dalındadır; mevcut feature dalında tasarruf ücretsizdir.
 
-## Bu aşamada korunanlar
+## Aşama 2 sınırı
 
-CharacterController, kamera, Input adaptörü, EnergyStation/DecisionStation, DemoWorldView, Scene Builder ve EndingResult eşik dosyaları değiştirilmedi. Yeni harita veya model yoktur. Giriş metni ve kart ödünleşimleri merkezidir. İki sayısal değişiklik güneş emisyonu 0 ve sulama bütçesi 5'tir; ayrıntı [POLISH_DESIGN](POLISH_DESIGN.md) içindedir.
+Aşama 2'de Simulation/Decisions kaynakları, kaynak değerleri, final sınıflandırması, DemoGameController, DemoInput ve DemoPlayerMotor birebir korunur. Scene Builder yeni geometri kurar; kamera, dünya görünümü ve HUD yalnız sunum için genişletilir. Yeni modeli görmek için yeni VisualDemo sahnesi üretilir; eski sahneler değiştirilmez. [Aşama 2 raporu](VISUAL_STAGE2.md), önceki mantık/tasarım kaydı [POLISH_DESIGN](POLISH_DESIGN.md) içindedir.
+
+DemoWorldView kaynak hedeflerini okur; kendi `plantView/waterView` değerleri yalnız interpolasyon içindir. Oturum değişince görsel durum sıfırlanır. DemoCharacterVisual root konumuna veya collider'a yazmaz. DemoGuiTheme küçük runtime dokularını OnDestroy'da serbest bırakır. Final sekmeleri/kadraj değişimi yeni GameSession yaratmaz veya kaynak harcamaz.
 
 ## Açık doğrulamalar
 

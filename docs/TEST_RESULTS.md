@@ -1,4 +1,4 @@
-# Doğrulama kaydı — polish aşama 1
+# Doğrulama kaydı — görsel Aşama 2
 
 ## Gerçekten çalıştırılan kontroller
 
@@ -7,8 +7,14 @@
 - 27 temel karar dizisinin 25'i doğrudan tamamlandı. Su yetersizliğinden engellenen 2 sulama dizisinde ücretsiz depolama ile tamamlanma doğrulandı. Üç final kategorisine ulaşıldı; hem koruma hem sulama ile Yeniden Doğuş mümkün.
 - Yeni kapsam: seçim etkisi / tur kullanımı / su koşulu / dışsal kuraklığın ayrımı; değişen kuraklığın seçim etkisini değiştirmemesi; kaynak sınırlarında bileşenlerle net değişimin uzlaşması; doğru bildirim; kart metinlerinin tamamlığı; alternatif başarılı kaynak dağılımları; mevcut durum/ID'lerden sonuç açıklamaları; yeni oturumda özet/geçmiş sıfırlanması.
 - Önceki sıra, bütçe/enerji/su yetersizliği, atomik ret, tekrar engeli, kaynak sınırları, sıfır kaynakla ilerleme, pompa bağımlılığı ve verimlilik testleri de geçti.
-- 19 C# kaynak dosyası, geçici Roslyn denetleyicisiyle C# 9 düzeyinde 5 Editor/player input sembol birleşiminde tarandı; **sözdizimi hatası yok**. Bu Unity API/tür çözümlemesi veya Unity derlemesi değildir; araç depoya eklenmedi.
+- 22 C# kaynak dosyası, geçici Roslyn denetleyicisiyle C# 9 düzeyinde 5 Editor/player input sembol birleşiminde tarandı; **sözdizimi hatası yok**. Bu Unity API/tür çözümlemesi veya Unity derlemesi değildir; araç depoya eklenmedi.
 - `git diff --check`, açık stage dosya listesi ve içerik incelemesi yapıldı. Korunan dallar ve yerel PDF/görseller için commit/içerik özeti ile değişiklik zamanı karşılaştırması yapıldı.
+
+## Aşama 2 regresyonu
+
+- Aynı 54 test yeniden çalıştırıldı: 54 geçti, 0 başarısız. Kaynak/karar/final hesapları, DemoGameController, DemoInput ve DemoPlayerMotor içerik özetleri `a5a41ed` başlangıcıyla karşılaştırıldı; birebir aynı.
+- Üç prosedürel mesh'in kaynak üçgen dizileri sayısal olarak denetlendi: Canopy 8, GableRoof 8, Icosahedron 20 üçgen. İndeks sınırı, dejenere üçgen ve dışa dönük yüz kontrolleri geçti. Bu denetim Unity mesh import/render testi değildir.
+- `git diff --check` ve korunan PDF/görsellerin içerik/değişiklik zamanı denetlendi. Test kaynakları veya karar dengesi Aşama 2 için değiştirilmedi.
 
 ## Kaynak dalın ekip doğrulaması
 
@@ -16,8 +22,8 @@ Kullanıcının aktarımına göre Hakan `feature/complete-demo` sürümünü Un
 
 ## Henüz yapılmayanlar
 
-Bu Mac'te Unity Editor yoktur. Yeni polish sürümünün Unity 6.3 LTS derlemesi, genişletilen HUD/kart/bildirim/final metinlerinin okunabilirliği, ×/Esc ve zaman aşımı, mevcut sahne uyumu, yeniden oynama sırasında bildirim temizliği ve Windows build doğrulanmadı. Korunan hareket, kamera ve sahne yapısında da regresyon kontrolü Hakan/Enes'tedir.
+Bu Mac'te Unity Editor yoktur. Yeni Aşama 2 sürümünün Unity 6.3 LTS derlemesi, prosedürel mesh/materyal importu, sahne üretimi, köylü modeli/ayak teması, yeni engeller, havuz/dal/ürün geçişleri, tema/kart/sekme/kaydırma, hedef etiketi, finali izleme kadrajı ve Windows build doğrulanmadı. Korunan hareket, kamera ve sahne yapısında da regresyon kontrolü Hakan/Enes'tedir.
 
-3–5 dakika deneyim süresi ölçülmedi. Yeni 3D model veya görsel dünya düzenlemesi yapılmadı. Doğrulanmış yeni bir Unity hata kaydı yoktur; Editor testi olmadan hatasız çalışma iddiası yoktur.
+3–5 dakika deneyim süresi ölçülmedi. Bu aşamada görsel kaynak kodu eklendi; yeni sahne Windows Editor aracında üretilmelidir. Bu Mac'te sahne/render çıktısı veya doğrulama ekran görüntüsü üretilmedi. Doğrulanmış yeni bir Unity hata kaydı yoktur; Editor testi olmadan hatasız çalışma iddiası yoktur.
 
 [Kontrol listesi](../UNITY_TEST_CHECKLIST.md) kutularını yalnız gerçekten çalıştırılan polish adımlarıyla doldurun. Commit, tam Unity patch sürümü, Windows, pipeline, input modu ve ilk Console hatasını kaydedin. Saf C# geçişi UI/fizik testinin yerine geçmez.
