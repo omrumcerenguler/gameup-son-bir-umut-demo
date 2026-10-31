@@ -419,6 +419,8 @@ internal static class Program
             Check(!DecisionMessaging.CriticalResources(new ResourceState(0, 0, 0, 0, 20), false).Contains("ücretsiz seçenek"));
         });
         RunStateTests.Register(Run);
+        CrisisDemoTests.Register(Run);
+        if (failed == 0 && args.Length == 2 && args[0] == "--crisis-report") CrisisDemoTests.SimulateAll(args[1]);
         Console.WriteLine($"{passed} passed; {failed} failed.");
         return failed == 0 ? 0 : 1;
     }
