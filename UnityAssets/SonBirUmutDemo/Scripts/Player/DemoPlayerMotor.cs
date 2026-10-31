@@ -8,9 +8,13 @@ namespace SonBirUmutDemo.Player
     {
         [SerializeField] private DemoGameController game;
         [SerializeField] private Transform cameraTransform;
-        [SerializeField] private float speed = 4f;
+        [SerializeField, Min(0.1f)] private float speed = 3.5f;
+        [SerializeField, Min(0.1f)] private float acceleration = 12f;
+        [SerializeField, Min(0.1f)] private float deceleration = 16f;
+        [SerializeField, Min(1f)] private float turnSpeed = 600f;
         private CharacterController controller;
         private float verticalSpeed;
+        private Vector3 horizontalVelocity;
 
         public void Configure(DemoGameController owner, Transform view)
         {
@@ -27,11 +31,24 @@ namespace SonBirUmutDemo.Player
             Vector3 forward = Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up).normalized;
             Vector3 right = Vector3.ProjectOnPlane(cameraTransform.right, Vector3.up).normalized;
             Vector3 direction = Vector3.ClampMagnitude(forward * input.y + right * input.x, 1f);
+            // Digital input still has eight targets; velocity and facing move continuously between them.
+            // Modal UI is an immediate stop, independent of the normal braking distance.
+            if (game.CardsOpen) horizontalVelocity = Vector3.zero;
+            else horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, direction * speed,
+                (input.sqrMagnitude > 0.001f ? acceleration : deceleration) * Time.deltaTime);
             if (controller.isGrounded && verticalSpeed < 0) verticalSpeed = -2f;
-            verticalSpeed += Physics.gravity.y * Time.deltaTime;
-            controller.Move((direction * speed + Vector3.up * verticalSpeed) * Time.deltaTime);
-            if (direction.sqrMagnitude > 0.01f)
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), 12f * Time.deltaTime);
+            verticalSpeed = Mathf.Max(-30f, verticalSpeed + Physics.gravity.y * Time.deltaTime);
+            controller.Move((horizontalVelocity + Vector3.up * verticalSpeed) * Time.deltaTime);
+            if (horizontalVelocity.sqrMagnitude > 0.01f)
+                transform.rotation = Quaternion.RotateTowards(transform.rotation,
+                    Quaternion.LookRotation(horizontalVelocity, Vector3.up), turnSpeed * Time.deltaTime);
+        }
+
+        private void OnDisable() => horizontalVelocity = Vector3.zero;
+
+        private void OnApplicationFocus(bool focused)
+        {
+            if (!focused) horizontalVelocity = Vector3.zero;
         }
 
         public void ResetPosition(Vector3 position, Quaternion rotation)
@@ -41,6 +58,7 @@ namespace SonBirUmutDemo.Player
             controller.enabled = false;
             transform.SetPositionAndRotation(position, rotation);
             verticalSpeed = 0;
+            horizontalVelocity = Vector3.zero;
             controller.enabled = true;
         }
     }
