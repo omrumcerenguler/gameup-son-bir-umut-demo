@@ -364,7 +364,7 @@ namespace SonBirUmutDemo.Core
                 if (releaseCandidate) { world.Apply(CurrentResources); sessionAtmosphere.RefreshNow(); }
                 if (followCamera != null) followCamera.SetOverview(completeDemo);
                 DismissNotice();
-                audioManager?.Play(Result.Category == EndingCategory.Rebirth ? SoundCue.Success : SoundCue.Failure);
+                audioManager?.Play(PresentationRules.EndingSound(Result.Category));
             }
         }
 
@@ -453,7 +453,7 @@ namespace SonBirUmutDemo.Core
             }
             if (releaseCandidate)
             {
-                audioManager.StopEffects();
+                audioManager.ResetSession();
                 if(finalPacing) foreach(var node in taskNodes) if(node!=null) node.RefreshNow();
                 foreach (var marker in crisisMarkers) if (marker != null) marker.RefreshNow();
                 foreach (var feedback in sessionFeedback) if (feedback != null) feedback.RefreshNow();

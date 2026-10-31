@@ -38,13 +38,17 @@ namespace SonBirUmutDemo.Editor
         [MenuItem("Tools/GameUP/Create Final Pacing Scene")]
         public static void CreateFinalPacingScene() => BuildScene(5);
 
+        [MenuItem("Tools/GameUP/Create Final Polish Scene")]
+        public static void CreateFinalPolishScene() => BuildScene(6);
+
         private static void BuildScene(int mode)
         {
             bool crisisFoundation = mode != 0;
             bool crisisDemo = mode >= 2;
             bool playtest = mode >= 3;
             bool release = mode >= 4;
-            bool pacing = mode == 5;
+            bool pacing = mode >= 5;
+            bool polish = mode == 6;
             if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling)
                 return;
             if (!DemoInput.SupportsRuntimeUi)
@@ -79,14 +83,15 @@ namespace SonBirUmutDemo.Editor
             Shader shader = Shader.Find(urp ? "Universal Render Pipeline/Lit" : "Standard");
             if (shader == null)
                 throw new InvalidOperationException("Uygun Lit shader bulunamadı. Projenin render pipeline ayarını kontrol edin.");
+            AudioClip[] atmosphereClips=polish ? DemoPolishAudioBuilder.TryImportClips() : null;
             EnsureFolder("Assets", "SonBirUmutDemo");
             EnsureFolder(Root, "Scenes");
             EnsureFolder(Root, "Generated");
             string materialsFolder = AssetDatabase.GenerateUniqueAssetPath(Root + "/Generated/" +
-                (pacing ? "FinalPacing" : release ? "ReleaseCandidate" : playtest ? "PlaytestDemo" : crisisDemo ? "CrisisDemo" : crisisFoundation ? "CrisisFoundation" : "VisualDemo"));
+                (polish ? "FinalPolish" : pacing ? "FinalPacing" : release ? "ReleaseCandidate" : playtest ? "PlaytestDemo" : crisisDemo ? "CrisisDemo" : crisisFoundation ? "CrisisFoundation" : "VisualDemo"));
             AssetDatabase.CreateFolder(Root + "/Generated", System.IO.Path.GetFileName(materialsFolder));
             string scenePath = AssetDatabase.GenerateUniqueAssetPath(Root + "/Scenes/" +
-                (pacing ? "SonBirUmutFinalPacing.unity" : release ? "SonBirUmutReleaseCandidate.unity" : playtest ? "SonBirUmutPlaytestDemo.unity" : crisisDemo ? "SonBirUmutCrisisDemo.unity" : crisisFoundation ? "SonBirUmutCrisisFoundation.unity" : "SonBirUmutVisualDemo.unity"));
+                (polish ? "SonBirUmutFinalPolish.unity" : pacing ? "SonBirUmutFinalPacing.unity" : release ? "SonBirUmutReleaseCandidate.unity" : playtest ? "SonBirUmutPlaytestDemo.unity" : crisisDemo ? "SonBirUmutCrisisDemo.unity" : crisisFoundation ? "SonBirUmutCrisisFoundation.unity" : "SonBirUmutVisualDemo.unity"));
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var art = new DemoVisualBuilder(shader, materialsFolder);
             var terrain = Material("DrySoil", new Color(0.66f, 0.53f, 0.31f), shader, materialsFolder);
@@ -240,6 +245,7 @@ namespace SonBirUmutDemo.Editor
                 },gameObject.GetComponent<DemoCrisisAtmosphere>());
             }
             if(pacing) game.ConfigureFinalPacing(DemoPacingBuilder.Build(game,environment,metal,yellow,water,leaves,yellow,green));
+            if(polish && atmosphereClips!=null) DemoPolishAudioBuilder.Configure(game,game.Audio,atmosphereClips);
             motor.ConfigureSprint(playtest ? 1.9f : 1.6f);
             motor.Configure(game, cameraObject.transform);
             characterVisual.SetGame(game);

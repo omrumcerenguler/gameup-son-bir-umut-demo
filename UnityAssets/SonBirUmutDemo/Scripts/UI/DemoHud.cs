@@ -152,24 +152,36 @@ namespace SonBirUmutDemo.UI
                         ReleaseButton(new Rect(480,550,320,46),"Geri",ReleaseCommand.Back);
                         break;
                     case ReleaseScreen.Settings:
-                        theme.Panel(new Rect(360,175,560,410),DemoGuiTheme.Green);
-                        GUI.Label(new Rect(400,200,480,40),"Ses Ayarları",theme.Title);
-                        var audio = game.Audio;
-                        bool controls = GUI.enabled;
-                        GUI.enabled = controls && audio.Available;
-                        bool muted = GUI.Toggle(new Rect(405,265,470,36),audio.Settings.Muted,"Ses kapalı",theme.Toggle);
-                        if (muted != audio.Settings.Muted) audio.SetMuted(muted);
-                        GUI.Label(new Rect(405,325,470,28),$"Ana ses düzeyi  %{audio.Settings.Volume*100:0}",theme.Body);
-                        float volume = GUI.HorizontalSlider(new Rect(405,365,460,28),(float)audio.Settings.Volume,0,1);
-                        audio.SetVolume(volume);
-                        GUI.enabled = controls;
-                        GUI.Label(new Rect(405,408,470,55),audio.Available ? "Tercihin yeni oyunlarda da korunur." :
-                            "Ses kullanılamıyor. Oyun sessiz devam eder.",theme.Small);
-                        ReleaseButton(new Rect(480,495,320,46),"Geri",ReleaseCommand.Back);
+                        DrawAudioSettings();
                         break;
                 }
             }
             finally { GUI.enabled = previous; }
+        }
+
+        private void DrawAudioSettings()
+        {
+            theme.Panel(new Rect(360,120,560,550),DemoGuiTheme.Green);
+            GUI.Label(new Rect(400,143,480,40),"Ses Ayarları",theme.Title);
+            var audio=game.Audio;bool controls=GUI.enabled;
+            GUI.enabled=controls && audio.AnyAudioAvailable;
+            bool muted=GUI.Toggle(new Rect(405,200,470,36),audio.Settings.Muted,"Tüm sesleri kapat",theme.Toggle);
+            if(muted!=audio.Settings.Muted) audio.SetMuted(muted);
+            GUI.Label(new Rect(405,248,470,28),$"Ana ses  %{audio.Settings.Volume*100:0}",theme.Body);
+            audio.SetVolume(GUI.HorizontalSlider(new Rect(405,285,460,28),(float)audio.Settings.Volume,0,1));
+            GUI.enabled=controls && audio.AtmosphereAvailable;
+            GUI.Label(new Rect(405,330,470,28),$"Müzik  %{audio.Settings.MusicVolume*100:0}",theme.Body);
+            audio.SetMusicVolume(GUI.HorizontalSlider(new Rect(405,367,460,28),(float)audio.Settings.MusicVolume,0,1));
+            GUI.enabled=controls && audio.AnyAudioAvailable;
+            GUI.Label(new Rect(405,412,470,28),$"Efekt ve ortam  %{audio.Settings.EffectsVolume*100:0}",theme.Body);
+            audio.SetEffectsVolume(GUI.HorizontalSlider(new Rect(405,449,460,28),(float)audio.Settings.EffectsVolume,0,1));
+            GUI.enabled=controls;
+            string note=!audio.AnyAudioAvailable ? "Ses kullanılamıyor. Oyun sessiz devam eder." :
+                audio.UsesAtmosphere && !audio.AtmosphereAvailable ? "Arka plan sesi kullanılamıyor; kısa efektler korunur." :
+                !audio.UsesAtmosphere ? "Bu sahnede yalnız kısa efektler var." :
+                !audio.Available ? "Kısa efektler kullanılamıyor; arka plan sesleri hazır." : "Tercihler yeni oyunlarda da korunur.";
+            GUI.Label(new Rect(405,495,470,54),note,theme.Small);
+            ReleaseButton(new Rect(480,580,320,46),"Geri",ReleaseCommand.Back);
         }
 
         private void DrawReleaseEnding()
@@ -196,7 +208,7 @@ namespace SonBirUmutDemo.UI
             }
             else
             {
-                GUI.Label(new Rect(755,231,490,72),DemoStory.EndingBrief(result.Category,result.CrisisStabilized),theme.Body);
+                GUI.Label(new Rect(755,231,490,80),DemoStory.EndingBrief(result.Category,result.CrisisStabilized)+(game.Audio.UsesAtmosphere ? "\n"+PresentationRules.EndingReason(result) : ""),theme.Body);
                 var state=game.CurrentResources;
                 theme.ResourceMeter(new Rect(755,316,150,34),"Bütçe",state.Budget,DemoGuiTheme.Gold);
                 theme.ResourceMeter(new Rect(920,316,150,34),"Enerji",state.Energy,DemoGuiTheme.Gold);
@@ -218,8 +230,9 @@ namespace SonBirUmutDemo.UI
             theme.Panel(new Rect(15, 12, 1250, 61));
             int seconds = Mathf.CeilToInt((float)game.Run.RemainingSeconds);
             Color timerColor=GUI.contentColor;
-            if(game.UsesTaskNodes && seconds<=60) GUI.contentColor=seconds<=20 ? DemoGuiTheme.Red : DemoGuiTheme.Gold;
-            GUI.Label(new Rect(29, 26, 110, 30), game.UsesCrisisMode ? $"{seconds / 60:00}:{seconds % 60:00}" : "KÖY", theme.Heading);
+            var warning=PresentationRules.Warning(game.Run.RemainingSeconds);
+            if(game.UsesTaskNodes && warning!=TimeWarning.None) GUI.contentColor=warning==TimeWarning.FinalSeconds ? DemoGuiTheme.Red : DemoGuiTheme.Gold;
+            GUI.Label(new Rect(29, 26, 110, 30), game.UsesCrisisMode ? $"{seconds / 60:00}:{seconds % 60:00}"+(game.UsesTaskNodes && warning!=TimeWarning.None ? " !" : "") : "KÖY", theme.Heading);
             GUI.contentColor=timerColor;
             Color pressureColor = game.Run.CrisisPressure >= 80 ? DemoGuiTheme.Red : DemoGuiTheme.Gold;
             GUI.Label(new Rect(145, 21, 170, 25), game.UsesCrisisMode ? $"Baskı {game.Run.CrisisPressure:0}" : "Hazırlık", theme.Body);
@@ -245,7 +258,7 @@ namespace SonBirUmutDemo.UI
         {
             theme.Panel(new Rect(300, 235, 680, 365), DemoGuiTheme.Gold);
             GUI.Label(new Rect(330, 255, 620, 65), DemoStory.Title, theme.Title);
-            GUI.Label(new Rect(330, 330, 620, 84), "Yağışlar azalıyor, köy kuraklığa hazırlanıyor. Enerji, su ve tarım hakkında üç karar ver.", theme.Body);
+            GUI.Label(new Rect(330, 330, 620, 84), "Yağışlar azalıyor; köyün geleceği kararlarına bağlı. İlk hedef: ENERJİ istasyonu. Sonra su ve tarıma geç.", theme.Body);
             string goal = game.UsesCrisisDemo ? DemoStory.CrisisGoal(game.Run) :
                 "İşaretli noktaları sırayla ziyaret et ve köyün geleceğini şekillendir.";
             GUI.Label(new Rect(330, 414, 620, 65), goal, theme.Body);
@@ -255,10 +268,11 @@ namespace SonBirUmutDemo.UI
 
         private void DrawHint()
         {
-            if(game.UsesTaskNodes && game.Run.RemainingSeconds<=20 && !game.EmergencyActive)
+            var warning=PresentationRules.Warning(game.Run.RemainingSeconds);
+            if(game.UsesTaskNodes && warning!=TimeWarning.None && !game.EmergencyActive)
             {
-                theme.Panel(new Rect(420,125,440,35),DemoGuiTheme.Red);
-                GUI.Label(new Rect(435,131,410,25),"Son 20 saniye · Önceliğini seç!",theme.Small);
+                theme.Panel(new Rect(420,125,440,35),warning==TimeWarning.FinalSeconds ? DemoGuiTheme.Red : DemoGuiTheme.Gold);
+                GUI.Label(new Rect(435,131,410,25),warning==TimeWarning.FinalSeconds ? "[!] Son 20 saniye · Önceliğini seç!" : "[!] Son 60 saniye · Müdahaleleri tamamla",theme.Small);
             }
             if (game.NoticeVisible || !game.HasInteraction) return;
             theme.Panel(new Rect(400, 650, 480, 46), DemoGuiTheme.Green);
@@ -293,7 +307,7 @@ namespace SonBirUmutDemo.UI
             float rawY = (Screen.height - screen.y - canvasOffset.y) / scale;
             if (screen.z <= 0) { rawX = 1280 - rawX; rawY = 720 - rawY; }
             float x = Mathf.Clamp(rawX, 145, 1135);
-            float minY=game.EmergencyActive ? 255 : game.UsesTaskNodes && game.Run.RemainingSeconds<=20 ? 205 : 155;
+            float minY=game.EmergencyActive ? 255 : game.UsesTaskNodes && PresentationRules.Warning(game.Run.RemainingSeconds)!=TimeWarning.None ? 205 : 155;
             float y = Mathf.Clamp(rawY, minY, 580);
             bool offscreen = screen.z <= 0 || x != rawX || y != rawY;
             Color color = game.EmergencyActive ? DemoGuiTheme.Red : DemoGuiTheme.Gold;
