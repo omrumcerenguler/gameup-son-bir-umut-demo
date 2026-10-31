@@ -1,4 +1,5 @@
 using SonBirUmutDemo.Core;
+using SonBirUmutDemo.Simulation;
 using UnityEngine;
 
 namespace SonBirUmutDemo.Player
@@ -9,6 +10,7 @@ namespace SonBirUmutDemo.Player
         [SerializeField] private DemoGameController game;
         [SerializeField] private Transform cameraTransform;
         [SerializeField, Min(0.1f)] private float speed = 3.5f;
+        [SerializeField, Min(1f)] private float sprintMultiplier = 1.6f;
         [SerializeField, Min(0.1f)] private float acceleration = 12f;
         [SerializeField, Min(0.1f)] private float deceleration = 16f;
         [SerializeField, Min(1f)] private float turnSpeed = 600f;
@@ -33,9 +35,11 @@ namespace SonBirUmutDemo.Player
             Vector3 direction = Vector3.ClampMagnitude(forward * input.y + right * input.x, 1f);
             // Digital input still has eight targets; velocity and facing move continuously between them.
             // Modal UI is an immediate stop, independent of the normal braking distance.
+            float targetSpeed = MovementPolicy.TargetSpeed(speed, DemoInput.SprintHeld, game.MovementLocked, sprintMultiplier);
+            Vector3 targetVelocity = direction * targetSpeed;
             if (game.MovementLocked) horizontalVelocity = Vector3.zero;
-            else horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, direction * speed,
-                (input.sqrMagnitude > 0.001f ? acceleration : deceleration) * Time.deltaTime);
+            else horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, targetVelocity,
+                (targetVelocity.sqrMagnitude < horizontalVelocity.sqrMagnitude ? deceleration : acceleration) * Time.deltaTime);
             if (controller.isGrounded && verticalSpeed < 0) verticalSpeed = -2f;
             verticalSpeed = Mathf.Max(-30f, verticalSpeed + Physics.gravity.y * Time.deltaTime);
             controller.Move((horizontalVelocity + Vector3.up * verticalSpeed) * Time.deltaTime);

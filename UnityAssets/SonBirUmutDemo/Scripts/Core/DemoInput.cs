@@ -41,6 +41,20 @@ namespace SonBirUmutDemo.Core
             }
         }
 
+        public static bool SprintHeld
+        {
+            get
+            {
+#if ENABLE_INPUT_SYSTEM
+                return Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed;
+#elif ENABLE_LEGACY_INPUT_MANAGER
+                return Input.GetKey(KeyCode.LeftShift);
+#else
+                return false;
+#endif
+            }
+        }
+
         public static bool InteractPressed
         {
             get

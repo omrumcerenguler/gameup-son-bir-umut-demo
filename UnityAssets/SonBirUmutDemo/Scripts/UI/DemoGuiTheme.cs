@@ -14,13 +14,14 @@ namespace SonBirUmutDemo.UI
         public static readonly Color Gold = new Color(.91f, .73f, .39f);
         public static readonly Color Blue = new Color(.43f, .74f, .87f);
         public static readonly Color Red = new Color(.92f, .50f, .37f);
-        public readonly GUIStyle Title, Heading, Body, Small, Tiny, Button, QuietButton;
+        public readonly GUIStyle Title, Heading, ChoiceTitle, Body, Small, Tiny, Button, QuietButton;
         private readonly Texture2D normal, hover, pressed, disabled, quiet;
         private readonly GUIStyle unavailable;
         public DemoGuiTheme()
         {
             Title = Label(25, Text, true);
             Heading = Label(20, Text, true);
+            ChoiceTitle = Label(17, Text, true);
             Body = Label(17, Text);
             Small = Label(15, Muted);
             Tiny = Label(14, Text);
@@ -85,6 +86,17 @@ namespace SonBirUmutDemo.UI
             bool click = GUI.Button(area, title, !enabled ? unavailable : quietStyle ? QuietButton : Button);
             GUI.enabled = previous;
             return click;
+        }
+
+        public void EffectChip(Rect area, string name, int delta, bool emissions = false)
+        {
+            bool beneficial = emissions ? delta < 0 : delta > 0;
+            Color color = delta == 0 ? Muted : beneficial ? Green : Red;
+            Fill(area, Card);
+            Color previous = Tiny.normal.textColor;
+            Tiny.normal.textColor = color;
+            GUI.Label(area, name + " " + delta.ToString("+0;-0;0"), Tiny);
+            Tiny.normal.textColor = previous;
         }
 
         private static GUIStyle Label(int size, Color color, bool bold = false)

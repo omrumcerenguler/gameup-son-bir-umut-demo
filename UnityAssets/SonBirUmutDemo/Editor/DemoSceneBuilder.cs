@@ -20,7 +20,12 @@ namespace SonBirUmutDemo.Editor
     {
         private const string Root = "Assets/SonBirUmutDemo";
         [MenuItem("Tools/GameUP/Create Demo Scene")]
-        public static void CreateDemoScene()
+        public static void CreateDemoScene() => BuildScene(false);
+
+        [MenuItem("Tools/GameUP/Create Crisis Foundation Scene")]
+        public static void CreateCrisisFoundationScene() => BuildScene(true);
+
+        private static void BuildScene(bool crisisFoundation)
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling)
                 return;
@@ -59,9 +64,11 @@ namespace SonBirUmutDemo.Editor
             EnsureFolder("Assets", "SonBirUmutDemo");
             EnsureFolder(Root, "Scenes");
             EnsureFolder(Root, "Generated");
-            string materialsFolder = AssetDatabase.GenerateUniqueAssetPath(Root + "/Generated/VisualDemo");
+            string materialsFolder = AssetDatabase.GenerateUniqueAssetPath(Root + "/Generated/" +
+                (crisisFoundation ? "CrisisFoundation" : "VisualDemo"));
             AssetDatabase.CreateFolder(Root + "/Generated", System.IO.Path.GetFileName(materialsFolder));
-            string scenePath = AssetDatabase.GenerateUniqueAssetPath(Root + "/Scenes/SonBirUmutVisualDemo.unity");
+            string scenePath = AssetDatabase.GenerateUniqueAssetPath(Root + "/Scenes/" +
+                (crisisFoundation ? "SonBirUmutCrisisFoundation.unity" : "SonBirUmutVisualDemo.unity"));
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var art = new DemoVisualBuilder(shader, materialsFolder);
             var terrain = Material("DrySoil", new Color(0.66f, 0.53f, 0.31f), shader, materialsFolder);
@@ -178,6 +185,11 @@ namespace SonBirUmutDemo.Editor
             var gameObject = new GameObject("Demo oturumu");
             var game = gameObject.AddComponent<DemoGameController>();
             game.ConfigureCompleteDemo(motor, station, waterPoint, farmPoint, world, follow);
+            if (crisisFoundation)
+            {
+                game.ConfigureCrisisFoundation();
+                gameObject.AddComponent<DemoCrisisAtmosphere>().Configure(game, light, camera);
+            }
             motor.Configure(game, cameraObject.transform);
             characterVisual.SetGame(game);
             world.SetGame(game);
@@ -185,7 +197,8 @@ namespace SonBirUmutDemo.Editor
             if (!EditorSceneManager.SaveScene(scene, scenePath))
                 throw new InvalidOperationException("Demo sahnesi kaydedilemedi. Console ve dosya izinlerini kontrol edin.");
             Selection.activeGameObject = playerObject;
-            Debug.Log("Görsel Aşama 2 demo sahnesi oluşturuldu: " + scenePath + ". Game görünümünü açıp Play'e basın. Unity çalışma testi henüz yapılmalıdır.");
+            Debug.Log((crisisFoundation ? "Kriz Nöbeti altyapı" : "Üç karar görsel") + " demo sahnesi oluşturuldu: " +
+                scenePath + ". Game görünümünü açıp Play'e basın. Unity çalışma testi henüz yapılmalıdır.");
         }
 
         private static DecisionStation CreateWaterStation(Transform environment, Material metal, Material water, Material green, Material yellow, out Transform gauge)

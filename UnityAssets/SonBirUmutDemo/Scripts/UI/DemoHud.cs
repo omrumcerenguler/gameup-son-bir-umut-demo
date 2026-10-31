@@ -19,6 +19,9 @@ namespace SonBirUmutDemo.UI
         private Vector2 finalScroll;
         private int finalTab;
         private bool overviewOnly;
+        private bool detailsOpen, wasCardsOpen;
+        private string shownPoint;
+        private Vector2 detailsScroll;
         private float scale;
         private Vector2 canvasOffset;
         public void Configure(DemoGameController owner, IsometricFollowCamera camera = null, Transform[] markers = null)
@@ -48,10 +51,15 @@ namespace SonBirUmutDemo.UI
                 finalScroll = Vector2.zero;
                 finalTab = 0;
                 overviewOnly = false;
+                detailsOpen = false; wasCardsOpen = false; shownPoint = null;
                 if (followCamera != null)
                     followCamera.SetResultPanelVisible(true);
             }
 
+            string pointId = game.Session.CurrentPoint?.Id;
+            if ((game.CardsOpen && !wasCardsOpen) || pointId != shownPoint)
+            { detailsOpen = false; detailsScroll = Vector2.zero; }
+            wasCardsOpen = game.CardsOpen; shownPoint = pointId;
             Matrix4x4 previous = GUI.matrix;
             scale = Mathf.Min(Screen.width / 1280f, Screen.height / 720f);
             canvasOffset = new Vector2((Screen.width - 1280f * scale) / 2, (Screen.height - 720f * scale) / 2);
@@ -84,8 +92,17 @@ namespace SonBirUmutDemo.UI
         {
             var state = game.Session.State;
             theme.Panel(new Rect(15, 12, 1250, 153), DemoGuiTheme.Green);
-            GUI.Label(new Rect(30, 21, 900, 32), DemoStory.Title, theme.Title);
-            GUI.Label(new Rect(30, 56, 900, 25), DemoStory.MainGoal, theme.Small);
+            GUI.Label(new Rect(30, 21, 900, 32), (game.UsesCrisisMode ? "Son Bir Umut: Kriz Nöbeti" : DemoStory.Title), theme.Title);
+            if (game.UsesCrisisMode)
+            {
+                int seconds = Mathf.CeilToInt((float)game.Run.RemainingSeconds);
+                GUI.Label(new Rect(30, 56, 250, 25), $"SÜRE  {seconds / 60:00}:{seconds % 60:00}", theme.Body);
+                GUI.Label(new Rect(285, 56, 280, 25), $"KRİZ BASKISI  {game.Run.CrisisPressure:0}/100", theme.Body);
+                DemoGuiTheme.Bar(new Rect(575, 64, 170, 5), (float)game.Run.CrisisPressure / 100, DemoGuiTheme.Gold);
+                GUI.Label(new Rect(760, 56, 245, 25), game.IntroOpen ? "Hazırlan" : game.IsComplete ? "Nöbet bitti" :
+                    game.Run.Phase == GameRunPhase.CrisisManagement ? "Kriz aşaması" : "Stratejik hazırlık", theme.Small);
+            }
+            else GUI.Label(new Rect(30, 56, 900, 25), DemoStory.MainGoal, theme.Small);
             GUI.Label(new Rect(1020, 25, 215, 25), $"HAZIRLIK  {game.Session.CompletedCount}/{game.Session.PointCount}", theme.Body);
             DemoGuiTheme.Bar(new Rect(1020, 59, 215, 5), game.Session.CompletedCount / (float)game.Session.PointCount, DemoGuiTheme.Green);
             Resource(0, "Bütçe", state.Budget, DemoGuiTheme.Gold);
@@ -95,7 +112,8 @@ namespace SonBirUmutDemo.UI
             Resource(4, "Emisyon etkisi", state.Emissions, DemoGuiTheme.Red);
             GUI.Label(new Rect(30, 140, 1200, 23), game.IsComplete ? "Kuraklık dönemi — köyün durumunu ve kararlarının etkisini incele." : "Sıradaki: " + game.Objective, theme.Small);
             theme.Panel(new Rect(15, 170, 1250, 29));
-            GUI.Label(new Rect(28, 176, 1220, 21), DecisionMessaging.CriticalResources(state, !game.IsComplete), theme.Tiny);
+            GUI.Label(new Rect(28, 176, 1220, 21), DecisionMessaging.CriticalResources(state,
+                game.Run.Phase == GameRunPhase.Preparation), theme.Tiny);
         }
 
         private void Resource(int index, string name, int value, Color color)
@@ -111,7 +129,7 @@ namespace SonBirUmutDemo.UI
             theme.Panel(new Rect(180, 215, 920, 490), DemoGuiTheme.Gold);
             GUI.Label(new Rect(215, 233, 830, 22), "GAMEUP TÜRKİYE 2026   /   KÖYE DÖNÜŞ", theme.Small);
             GUI.Label(new Rect(215, 271, 830, 38), "Bir köy. Üç karar. Bir gelecek.", theme.Title);
-            GUI.Label(new Rect(215, 324, 830, 176), DemoStory.Introduction, theme.Body);
+            GUI.Label(new Rect(215, 324, 830, 176), game.UsesCrisisMode ? DemoStory.CrisisIntroduction : DemoStory.Introduction, theme.Body);
             GUI.Label(new Rect(215, 505, 830, 54), DemoStory.Controls, theme.Small);
             GUI.Label(new Rect(215, 568, 830, 43), DemoStory.BalanceNote, theme.Tiny);
             if (theme.Action(new Rect(430, 640, 420, 44), "Köyü araştırmaya başla  [Enter]"))
@@ -123,7 +141,7 @@ namespace SonBirUmutDemo.UI
             if (game.NoticeVisible)
                 return;
             theme.Panel(new Rect(250, 658, 780, 46), DemoGuiTheme.Green);
-            GUI.Label(new Rect(270, 670, 740, 26), game.CanInteract ? "[E]  " + DemoStory.PointName(game.Session.CurrentPoint.Id) + " — karar ver" : "WASD  Dolaş     •     E  Etkileşim     •     Üç noktayı sırayla araştır", theme.Body);
+            GUI.Label(new Rect(270, 670, 740, 26), game.CanInteract ? "[E]  " + DemoStory.PointName(game.Session.CurrentPoint.Id) + " — karar ver" : game.Run.Phase == GameRunPhase.CrisisManagement ? "Hazırlık tamam. Köyü incele; bakım görevleri Aşama 2'de eklenecek." : "WASD  Dolaş  •  Sol Shift  Koş  •  E  Etkileşim", theme.Body);
         }
 
         private void DrawStationMarker()
@@ -155,38 +173,56 @@ namespace SonBirUmutDemo.UI
             var point = game.Session.CurrentPoint;
             if (point == null)
                 return;
-            theme.Panel(new Rect(55, 205, 1170, 500), DemoGuiTheme.Gold);
-            GUI.Label(new Rect(75, 215, 1130, 30), DemoStory.Question(point.Id), theme.Heading);
-            GUI.Label(new Rect(75, 250, 1130, 32), DemoStory.Problem(point.Id), theme.Small);
-            for (int i = 0; i < point.Options.Count; i++)
+            theme.Panel(new Rect(205, 300, 870, 405), DemoGuiTheme.Gold);
+            GUI.Label(new Rect(225, 313, 760, 29), DemoStory.EventTitle(point.Id), theme.Heading);
+            GUI.Label(new Rect(225, 347, 830, 37), DemoStory.Problem(point.Id), theme.Small);
+            if (detailsOpen)
+            {
+                detailsScroll = GUI.BeginScrollView(new Rect(225, 390, 830, 260), detailsScroll, new Rect(0, 0, 800, 460));
+                for (int i = 0; i < point.Options.Count; i++)
+                {
+                    var option = point.Options[i];
+                    var preview = game.Session.GetPreview(point.Id, option.Id);
+                    GUI.Label(new Rect(0, i * 150, 790, 40), option.Title, theme.Body);
+                    GUI.Label(new Rect(0, i * 150 + 43, 790, 100), preview.CanChoose ?
+                        DecisionMessaging.ChoiceEffects(preview) + "\n" + DecisionMessaging.TurnEffects(preview) +
+                        "\n" + DecisionMessaging.NetEffects(preview) : preview.Reason, theme.Small);
+                }
+                GUI.EndScrollView();
+            }
+            else for (int i = 0; i < point.Options.Count; i++)
             {
                 var option = point.Options[i];
                 var preview = game.Session.GetPreview(point.Id, option.Id);
-                float x = 75 + i * 380;
-                Color accent = preview.CanChoose ? DemoGuiTheme.Green : DemoGuiTheme.Red;
-                DemoGuiTheme.Fill(new Rect(x, 286, 365, 352), DemoGuiTheme.Card);
-                DemoGuiTheme.Fill(new Rect(x, 286, 365, 4), accent);
-                GUI.Label(new Rect(x + 12, 298, 341, 49), option.Title, theme.Heading);
-                string tradeoffs = string.IsNullOrEmpty(option.Advantage) ? option.Description : "Kazanç: " + option.Advantage + "\nBedeli: " + option.Tradeoff + "\nSonrası: " + option.NextEffect;
-                GUI.Label(new Rect(x + 12, 350, 341, 94), tradeoffs, theme.Tiny);
-                string effects = preview.CanChoose ? DecisionMessaging.ChoiceEffects(preview) + "\n" + DecisionMessaging.TurnEffects(preview) + "\n" + DecisionMessaging.NetEffects(preview) : preview.Reason;
-                GUI.Label(new Rect(x + 12, 447, 341, 137), $"Maliyet: {preview.Cost} bütçe\n" + effects, theme.Tiny);
-                if (theme.Action(new Rect(x + 12, 593, 341, 34), preview.CanChoose ? "Bu kararı uygula" : "Kaynak yetersiz", preview.CanChoose))
+                float x = 220 + i * 285;
+                DemoGuiTheme.Fill(new Rect(x, 387, 270, 266), DemoGuiTheme.Card);
+                DemoGuiTheme.Fill(new Rect(x, 387, 270, 3), preview.CanChoose ? DemoGuiTheme.Green : DemoGuiTheme.Red);
+                GUI.Label(new Rect(x + 10, 397, 250, 42), option.Title, theme.ChoiceTitle);
+                GUI.Label(new Rect(x + 10, 440, 250, 46), "Kazanç: " + option.Advantage, theme.Small);
+                GUI.Label(new Rect(x + 10, 487, 250, 46), "Bedeli: " + option.Tradeoff, theme.Small);
+                GUI.Label(new Rect(x + 10, 534, 250, 22), $"Maliyet: {preview.Cost} bütçe", theme.Small);
+                if (preview.CanChoose)
                 {
-                    game.Choose(option.Id);
-                    return;
+                    var before = preview.Before; var after = preview.After;
+                    theme.EffectChip(new Rect(x + 10, 558, 120, 22), "Enerji", after.Energy - before.Energy);
+                    theme.EffectChip(new Rect(x + 140, 558, 120, 22), "Su", after.Water - before.Water);
+                    theme.EffectChip(new Rect(x + 10, 582, 120, 22), "Bitki", after.PlantHealth - before.PlantHealth);
+                    theme.EffectChip(new Rect(x + 140, 582, 120, 22), "Emisyon", after.Emissions - before.Emissions, true);
                 }
+                else GUI.Label(new Rect(x + 10, 558, 250, 46), preview.Reason, theme.Tiny);
+                if (theme.Action(new Rect(x + 10, 611, 250, 34), preview.CanChoose ? "Kararı uygula" : "Seçilemiyor", preview.CanChoose))
+                { game.Choose(option.Id); return; }
             }
-
-            GUI.Label(new Rect(75, 651, 830, 43), "Seçim, tur kullanımı ve kuraklık ayrıdır. Net değerler 0–100 sınırını içerir; bunlar örnek oyun puanlarıdır.", theme.Small);
-            if (theme.Action(new Rect(965, 654, 240, 37), "Vazgeç  [Esc]", quietStyle: true))
-                game.CloseCards();
+            GUI.Label(new Rect(225, 665, 390, 32), "Net etkiler tur/kuraklığı içerir. Oyun puanıdır.", theme.Tiny);
+            if (theme.Action(new Rect(625, 661, 225, 32), detailsOpen ? "Seçeneklere dön" : "Etki ayrıntısı", quietStyle: true))
+                detailsOpen = !detailsOpen;
+            if (theme.Action(new Rect(865, 661, 190, 32), "Vazgeç [Esc]", quietStyle: true)) game.CloseCards();
         }
 
         private void DrawEnding()
         {
-            Color accent = game.IsLegacy ? DemoGuiTheme.Green : game.Session.Ending.Category == EndingCategory.Rebirth ? DemoGuiTheme.Green : game.Session.Ending.Category == EndingCategory.PartialTransition ? DemoGuiTheme.Gold : DemoGuiTheme.Red;
-            string title = game.IsLegacy ? "Enerji prototipi tamamlandı" : game.Session.Ending.Title;
+            Color accent = game.IsLegacy ? DemoGuiTheme.Green : game.Result.Category == EndingCategory.Rebirth ? DemoGuiTheme.Green : game.Result.Category == EndingCategory.PartialTransition ? DemoGuiTheme.Gold : DemoGuiTheme.Red;
+            string title = game.IsLegacy ? "Enerji prototipi tamamlandı" : game.Result.Title;
             if (followCamera != null)
                 followCamera.SetResultPanelVisible(!overviewOnly);
             if (overviewOnly)
@@ -218,7 +254,7 @@ namespace SonBirUmutDemo.UI
                 GUI.Label(new Rect(730, 330, 515, 130), "Görsel köy ve tam demo için Tools menüsünden yeni sahne oluştur.", theme.Body);
             else
             {
-                finalScroll = GUI.BeginScrollView(new Rect(730, 322, 515, 284), finalScroll, new Rect(0, 0, 485, finalTab == 0 ? 470 : 530));
+                finalScroll = GUI.BeginScrollView(new Rect(730, 322, 515, 284), finalScroll, new Rect(0, 0, 485, finalTab == 0 ? 555 : 530));
                 if (finalTab == 0)
                     DrawVillageSummary();
                 else
@@ -234,13 +270,13 @@ namespace SonBirUmutDemo.UI
 
         private void DrawVillageSummary()
         {
-            var summary = game.Session.Summary;
-            GUI.Label(new Rect(0, 0, 480, 85), game.Session.Ending.Explanation, theme.Body);
-            SummaryBlock(94, "SU GÜVENLİĞİ", summary.DrinkingWater, DemoGuiTheme.Blue);
-            SummaryBlock(176, "TARIM", summary.Agriculture, DemoGuiTheme.Gold);
-            SummaryBlock(258, "DOĞAL YAŞAM", summary.Nature, DemoGuiTheme.Green);
-            GUI.Label(new Rect(0, 342, 480, 75), summary.RemainingRisk, theme.Body);
-            GUI.Label(new Rect(0, 421, 480, 48), EndingSummary.ProxyNote, theme.Small);
+            var summary = game.Result.Summary;
+            GUI.Label(new Rect(0, 0, 480, 130), game.Result.Explanation, theme.Body);
+            SummaryBlock(139, "SU GÜVENLİĞİ", summary.DrinkingWater, DemoGuiTheme.Blue);
+            SummaryBlock(221, "TARIM", summary.Agriculture, DemoGuiTheme.Gold);
+            SummaryBlock(303, "DOĞAL YAŞAM", summary.Nature, DemoGuiTheme.Green);
+            GUI.Label(new Rect(0, 387, 480, 105), summary.RemainingRisk, theme.Body);
+            GUI.Label(new Rect(0, 498, 480, 55), EndingSummary.ProxyNote, theme.Small);
         }
 
         private void SummaryBlock(float y, string title, string text, Color accent)
@@ -253,6 +289,8 @@ namespace SonBirUmutDemo.UI
         private void DrawDecisionSummary()
         {
             float y = 0;
+            if (game.Session.History.Count == 0)
+            { GUI.Label(new Rect(0, 0, 480, 55), "Henüz stratejik karar seçilmedi. Hazırlık tamamlanamadı.", theme.Body); return; }
             foreach (var record in game.Session.History)
             {
                 GUI.Label(new Rect(0, y, 480, 28), record.Option.Title, theme.Body);
@@ -261,8 +299,8 @@ namespace SonBirUmutDemo.UI
             }
 
             GUI.Label(new Rect(0, y + 8, 480, 28), "Öne çıkan iki karar", theme.Heading);
-            for (int i = 0; i < game.Session.Summary.KeyDecisions.Count; i++)
-                GUI.Label(new Rect(0, y + 45 + i * 83, 480, 78), game.Session.Summary.KeyDecisions[i], theme.Body);
+            for (int i = 0; i < game.Result.Summary.KeyDecisions.Count; i++)
+                GUI.Label(new Rect(0, y + 45 + i * 83, 480, 78), game.Result.Summary.KeyDecisions[i], theme.Body);
         }
 
         private void OnDestroy()

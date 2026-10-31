@@ -11,7 +11,10 @@ namespace SonBirUmutDemo.Core
             "Önümüzdeki haftalarda daha ağır bir kuraklık bekleniyor.\n\n" +
             "Ailemin ve komşularımızın geleceği için enerji, su ve doğal yaşam hakkında üç karar vermeliyim. " +
             "Ama bir sorunu çözmek, başka bir kaynağı tüketebilir.\n\n" + MainGoal;
-        public const string Controls = "WASD ile dolaş. İşaretli noktaya yaklaşınca E'ye bas. Üç karttan birini seç. Esc ile kartları kapatabilirsin.";
+        public const string Controls = "WASD ile dolaş, Sol Shift ile koş. İşaretli noktada E'ye bas. Üç karttan birini seç; Esc ile kapat. Kart açıkken hareket ve sayaç durur.";
+        public const string CrisisIntroduction = "Kuraklık köyün kaynaklarını zorluyor. Enerji, su ve tarım noktalarını sırayla araştır; üç stratejik karar ver.\n\n" +
+            "Bu deneysel altyapıda sayaç yalnız serbest dolaşırken işler. Üç kararın ardından kriz aşamasında köyü inceleyebilirsin. Süre bitince hazırlığının sonucu gösterilir.\n\n" +
+            "Bakım müdahaleleri ve acil arıza sonraki aşamada eklenecek. Kriz baskısı gerçek iklim ölçümü değildir.";
         public const string BalanceNote = "Değerler örnek oyun puanlarıdır. Kuraklık dışsal baskıdır; emisyon anlık sıcaklık artışı oluşturmaz.";
         public const string Closing = "Köy için attığın adımlar bir başlangıç. Başka kararlar, başka bir gelecek mümkün.";
 
@@ -21,6 +24,13 @@ namespace SonBirUmutDemo.Core
             if (id == DecisionCatalog.WaterStationId) return "2. Su deposu";
             if (id == DecisionCatalog.FarmStationId) return "3. Tarım ve doğal alan";
             return "Karar noktası";
+        }
+
+        public static string EventTitle(string id)
+        {
+            if (id == DecisionCatalog.EnergyStationId) return "Elektrik mi, kaynak mı?";
+            if (id == DecisionCatalog.WaterStationId) return "Depo tükeniyor";
+            return "Son su payı";
         }
 
         public static string Question(string id)
