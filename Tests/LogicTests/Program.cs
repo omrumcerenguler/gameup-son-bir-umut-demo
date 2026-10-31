@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using SonBirUmutDemo.Decisions;
 using SonBirUmutDemo.Simulation;
 
@@ -7,12 +10,12 @@ internal static class Program
     private static int passed;
     private static int failed;
 
-    private static int Main()
+    private static int Main(string[] args)
     {
         Run("Initial state", () => CheckState(ResourceState.Initial(), 100, 20, 40, 55, 0));
         Run("Solar outcome", () => CheckState(Choose(DecisionCatalog.Solar), 40, 55, 32, 41, 1));
         Run("Diesel outcome", () => CheckState(Choose(DecisionCatalog.Diesel), 75, 70, 29, 41, 18));
-        Run("Conservation outcome", () => CheckState(Choose(DecisionCatalog.Conservation), 90, 15, 40, 53, 0));
+        Run("Conservation outcome", () => CheckState(Choose(DecisionCatalog.Conservation), 100, 15, 40, 53, 0));
         Run("Unaffordable choice is atomic", () =>
         {
             var session = new GameSession(new ResourceState(59, 20, 40, 55, 0));
@@ -53,7 +56,7 @@ internal static class Program
             var session = new GameSession(definitions: new[] { DecisionCatalog.EnergyStation, second });
             Check(session.TryChoose(DecisionCatalog.EnergyStationId, DecisionCatalog.Conservation, out _));
             Check(session.TryChoose(second.Id, "save", out _));
-            Check(session.CompletedCount == 2 && session.State.Budget == 85 && session.State.Water == 52);
+            Check(session.CompletedCount == 2 && session.State.Budget == 95 && session.State.Water == 52);
         });
         Run("Resource bounds", () =>
         {
@@ -151,8 +154,197 @@ internal static class Program
                 Check(!session.TryChoose(DecisionCatalog.EnergyStationId, option.Id, out _));
             }
         });
+        Run("Decision order is enforced atomically", () =>
+        {
+            var session = new GameSession();
+            var original = session.State;
+            Check(!session.TryChoose(DecisionCatalog.WaterStationId, DecisionCatalog.Continue, out _));
+            Check(!session.TryChoose(DecisionCatalog.FarmStationId, DecisionCatalog.Store, out _));
+            Check(ReferenceEquals(original, session.State) && session.History.Count == 0);
+            Check(session.CurrentPoint.Id == DecisionCatalog.EnergyStationId && session.Ending == null);
+        });
+        Run("Pump output and running cost depend on energy", () =>
+        {
+            var high = new GameSession();
+            var low = new GameSession();
+            Select(high, DecisionCatalog.Solar);
+            Select(low, DecisionCatalog.Conservation);
+            var a = high.GetPreview(DecisionCatalog.WaterStationId, DecisionCatalog.Pump);
+            var b = low.GetPreview(DecisionCatalog.WaterStationId, DecisionCatalog.Pump);
+            Check(a.Cost == 25 && b.Cost == 30);
+            Check(a.After.Water == 74 && b.After.Water == 62);
+            Check(a.After.Water - a.Before.Water > b.After.Water - b.Before.Water);
+        });
+        Run("Insufficient energy blocks pumping without consuming resources", () =>
+        {
+            var session = new GameSession(new ResourceState(100, 0, 40, 55, 0));
+            Select(session, DecisionCatalog.Conservation);
+            var original = session.State;
+            Check(!session.TryChoose(DecisionCatalog.WaterStationId, DecisionCatalog.Pump, out var reason));
+            Check(reason.Contains("Enerji") && ReferenceEquals(original, session.State));
+        });
+        Run("Water investment budget shortage and recovery", () =>
+        {
+            var session = new GameSession(new ResourceState(30, 20, 40, 55, 0));
+            Select(session, DecisionCatalog.Diesel);
+            var original = session.State;
+            Check(!session.TryChoose(DecisionCatalog.WaterStationId, DecisionCatalog.Pump, out var reason));
+            Check(reason.Contains("Bütçe") && ReferenceEquals(original, session.State));
+            Select(session, DecisionCatalog.Continue);
+            Select(session, DecisionCatalog.Store);
+            Check(session.IsComplete);
+        });
+        Run("Irrigation requires available water", () =>
+        {
+            var session = new GameSession();
+            Select(session, DecisionCatalog.Solar);
+            Select(session, DecisionCatalog.Continue);
+            var original = session.State;
+            Check(!session.TryChoose(DecisionCatalog.FarmStationId, DecisionCatalog.Irrigate, out var reason));
+            Check(reason.Contains("Su yetersiz") && ReferenceEquals(original, session.State));
+            Select(session, DecisionCatalog.Store);
+            Check(session.IsComplete);
+        });
+        Run("Water efficiency persists into the farming turn", () =>
+        {
+            var session = new GameSession();
+            Select(session, DecisionCatalog.Solar);
+            Select(session, DecisionCatalog.Efficiency);
+            Check(session.State.Water == 46);
+            Select(session, DecisionCatalog.Protect);
+            CheckState(session.State, 20, 55, 42, 59, 0);
+        });
+        Run("Nature support scales with remaining water", () =>
+        {
+            var rules = new SimulationRules();
+            var protect = DecisionCatalog.FarmStation.Options[0];
+            var wet = rules.Preview(new ResourceState(100, 30, 80, 40, 0), protect);
+            var dry = rules.Preview(new ResourceState(100, 30, 10, 40, 0), protect);
+            Check(wet.After.PlantHealth == 60 && dry.After.PlantHealth == 31);
+        });
+        Run("Zero resources still allow a full playthrough", () =>
+        {
+            var session = new GameSession(new ResourceState(0, 0, 0, 0, 0));
+            Select(session, DecisionCatalog.Conservation);
+            Select(session, DecisionCatalog.Continue);
+            Select(session, DecisionCatalog.Store);
+            Check(session.IsComplete && session.Ending.Category == EndingCategory.LostFuture);
+        });
+        Run("Previews do not mutate or consume turns", () =>
+        {
+            var session = new GameSession();
+            var original = session.State;
+            for (int i = 0; i < 10; i++)
+                foreach (var option in session.CurrentPoint.Options) session.GetPreview(session.CurrentPoint.Id, option.Id);
+            Check(ReferenceEquals(original, session.State) && session.History.Count == 0 && session.CompletedCount == 0);
+        });
+        Run("Preview exactly matches each applied outcome", () =>
+        {
+            var session = new GameSession();
+            foreach (string option in new[] { DecisionCatalog.Solar, DecisionCatalog.Efficiency, DecisionCatalog.Protect })
+            {
+                var preview = session.GetPreview(session.CurrentPoint.Id, option);
+                Select(session, option);
+                Check(ReferenceEquals(preview.Before, session.History[session.History.Count - 1].Result.Before));
+                CheckState(session.State, preview.After.Budget, preview.After.Energy, preview.After.Water, preview.After.PlantHealth, preview.After.Emissions);
+            }
+        });
+        Run("Rebirth ending", () => Check(Play(DecisionCatalog.Solar, DecisionCatalog.Efficiency, DecisionCatalog.Protect).Ending.Category == EndingCategory.Rebirth));
+        Run("Partial transition ending", () => Check(Play(DecisionCatalog.Diesel, DecisionCatalog.Pump, DecisionCatalog.Irrigate).Ending.Category == EndingCategory.PartialTransition));
+        Run("Lost future ending", () => Check(Play(DecisionCatalog.Solar, DecisionCatalog.Continue, DecisionCatalog.Store).Ending.Category == EndingCategory.LostFuture));
+        Run("Ending considers energy emissions and resource buffer", () =>
+        {
+            Check(EndingResult.Evaluate(new ResourceState(10, 15, 35, 55, 12)).Category == EndingCategory.Rebirth);
+            Check(EndingResult.Evaluate(new ResourceState(10, 14, 35, 55, 12)).Category == EndingCategory.PartialTransition);
+            Check(EndingResult.Evaluate(new ResourceState(10, 15, 35, 55, 13)).Category == EndingCategory.PartialTransition);
+            Check(EndingResult.Evaluate(new ResourceState(0, 15, 35, 55, 12)).Category == EndingCategory.PartialTransition);
+            Check(EndingResult.Evaluate(new ResourceState(0, 15, 50, 55, 12)).Category == EndingCategory.Rebirth);
+        });
+        Run("Completion and history survive rejected fourth decisions", () =>
+        {
+            var session = Play(DecisionCatalog.Solar, DecisionCatalog.Efficiency, DecisionCatalog.Protect);
+            var original = session.State;
+            var ending = session.Ending;
+            Check(session.IsComplete && session.CurrentPoint == null && session.History.Count == 3);
+            Check(!session.TryChoose(DecisionCatalog.FarmStationId, DecisionCatalog.Store, out _));
+            Check(ReferenceEquals(original, session.State) && ReferenceEquals(ending, session.Ending));
+            Check(session.History[0].Option.Id == DecisionCatalog.Solar && session.History[2].Option.Id == DecisionCatalog.Protect);
+        });
+        Run("Restart after full ending has no leaked choices", () =>
+        {
+            var completed = Play(DecisionCatalog.Diesel, DecisionCatalog.Pump, DecisionCatalog.Store);
+            var fresh = new GameSession();
+            Check(completed.IsComplete && !fresh.IsComplete && fresh.Ending == null && fresh.History.Count == 0);
+            CheckState(fresh.State, 100, 20, 40, 55, 0);
+        });
+        Run("Empty decision registry is rejected", () => Throws<ArgumentException>(() => new GameSession(definitions: Array.Empty<DecisionPointDefinition>())));
+        Run("All 27 base sequences and no softlocks", () => TestMatrix(args));
         Console.WriteLine($"{passed} passed; {failed} failed.");
         return failed == 0 ? 0 : 1;
+    }
+
+
+    private static void Select(GameSession session, string option)
+    {
+        Check(session.CurrentPoint != null, "No current point");
+        Check(session.TryChoose(session.CurrentPoint.Id, option, out var reason), reason);
+    }
+
+    private static GameSession Play(params string[] options)
+    {
+        var session = new GameSession();
+        foreach (var option in options) Select(session, option);
+        return session;
+    }
+
+    private static void CheckHasOption(GameSession session)
+    {
+        foreach (var option in session.CurrentPoint.Options)
+            if (session.GetPreview(session.CurrentPoint.Id, option.Id).CanChoose) return;
+        throw new Exception("Softlock at " + session.CurrentPoint.Id);
+    }
+
+    private static void TestMatrix(string[] args)
+    {
+        int completed = 0, blocked = 0;
+        var endings = new HashSet<EndingCategory>();
+        var report = new StringBuilder("# 27 karar dizisi — saf C# test raporu\n\nUnity oynanış testi değildir. Değer sırası: bütçe / enerji / su / bitki / emisyon.\n\n| Enerji | Su | Tarım | Sonuç | Son değerler |\n| --- | --- | --- | --- | --- |\n");
+        foreach (var energy in DecisionCatalog.EnergyStation.Options)
+        foreach (var water in DecisionCatalog.WaterStation.Options)
+        foreach (var farm in DecisionCatalog.FarmStation.Options)
+        {
+            var session = new GameSession();
+            CheckHasOption(session);
+            Select(session, energy.Id);
+            CheckHasOption(session);
+            Select(session, water.Id);
+            CheckHasOption(session);
+            string point = session.CurrentPoint.Id;
+            var preview = session.GetPreview(point, farm.Id);
+            if (!preview.CanChoose)
+            {
+                Check(farm.Id == DecisionCatalog.Irrigate && water.Id == DecisionCatalog.Continue && energy.Id != DecisionCatalog.Conservation);
+                var original = session.State;
+                Check(!session.TryChoose(point, farm.Id, out _) && ReferenceEquals(original, session.State));
+                blocked++;
+                Select(session, DecisionCatalog.Store);
+                Check(session.IsComplete);
+                report.AppendLine($"| {energy.Id} | {water.Id} | {farm.Id} | Engelli: {preview.Reason} Depolama ile final mümkün. | — |");
+                continue;
+            }
+            Select(session, farm.Id);
+            Check(session.IsComplete && session.CompletedCount == 3 && session.Ending != null);
+            var state = session.State;
+            Check(state.Budget >= 0 && state.Energy >= 0 && state.Energy <= 100 && state.Water >= 0 && state.Water <= 100 && state.PlantHealth >= 0 && state.PlantHealth <= 100);
+            Check(!session.TryChoose(point, farm.Id, out _));
+            endings.Add(session.Ending.Category);
+            completed++;
+            report.AppendLine($"| {energy.Id} | {water.Id} | {farm.Id} | {session.Ending.Title} | {state.Budget} / {state.Energy} / {state.Water} / {state.PlantHealth} / {state.Emissions} |");
+        }
+        Check(completed == 25 && blocked == 2 && endings.Count == 3, $"Matrix: {completed} completed, {blocked} blocked, {endings.Count} endings");
+        report.AppendLine("\n25 dizi doğrudan finale ulaştı. Su yetersizliği nedeniyle engellenen 2 sulama dizisinde ücretsiz depolama seçilerek ilerleme doğrulandı. Üç final kategorisine de ulaşıldı.");
+        if (args.Length == 2 && args[0] == "--report") File.WriteAllText(args[1], report.ToString());
+        Console.WriteLine("MATRIX 27 checked: 25 completed, 2 blocked with a valid fallback; all 3 endings reached.");
     }
 
     private static ResourceState Choose(string id)
