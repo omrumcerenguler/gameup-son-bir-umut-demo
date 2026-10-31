@@ -1,3 +1,33 @@
+# Release Candidate — Windows Unity entegrasyonu
+
+Dal **feature/release-candidate**; korunan kaynak **feature/playtest-ux / 391d253c0eabbd9283580e7e52fa463d28105d5e**. Hedef Unity 6.3 LTS/6000.3.x, Windows, Built-in 3D veya URP. Bu Mac'te Unity Editor yoktur; Unity API derlemesi/oynanış/ses/EXE testi yapılmadı.
+
+1. **Önce çalışan dış Unity projesini ve yerel düzenlemeleri yedekle.** Kaynak depoyla gerçek Unity projesi ayrı şeylerdir.
+2. Temiz kaynak depoda aşağıdaki dalı al; yerel değişiklik varsa üzerine yazmadan koru:
+
+```sh
+git fetch origin
+git switch feature/release-candidate
+git pull --ff-only origin feature/release-candidate
+```
+
+3. `UnityAssets/SonBirUmutDemo` içeriğinin tamamını gerçek projenin `Assets/SonBirUmutDemo` klasörüne kopyala. **Scripts ve Editor birlikte**, yeni Audio/DemoAudioManager ile Simulation/ReleaseFlow, SoundPreferences, SoundSynthesis dahil. Klasörü, eski `.meta` GUID'lerini, Scenes veya Generated varlıklarını silme. Yeni dosyaların .meta'sını Editor üretir. Tests/docs/kişisel dosyaları Assets'e aktarma.
+4. **Active Input Handling: Input Manager (Old) veya Both**; gerekirse Editor yeniden başlatılır. New-only mevcut IMGUI fare akışı için uygun değildir. Yeni UI/audio paketi gerekmez; HDRP desteklenmez.
+5. Console import/derlemesi bitmeli; ilk kırmızı hatayı çözmeden ilerleme. Tools görünmüyorsa Editor klasörü kopyasını ve ilk derleme hatasını kontrol et.
+6. Play kapalı, Prefab düzenleme dışında ve açık sahneler temizken **Tools > GameUP > Create Release Candidate Scene**. Yeni yol `Assets/SonBirUmutDemo/Scenes/SonBirUmutReleaseCandidate.unity`, varlıklar `Generated/ReleaseCandidate...`; dolu yollar numaralanır. Eski sahneler/varlıklar ezilmez. Sahneyi kaydet/kapat/yeniden aç ve referansları kontrol et.
+7. Play → Ana Menü → Yeni Oyun → kısa yönlendirme → Başla/Enter. WASD,1.9×Shift, yakın E, arızada2sn E held. Esc önce kartı kapatır, serbest oyunda pause açar; alt menüde önce geri döner.
+8. **[RELEASE_CANDIDATE_TEST](RELEASE_CANDIDATE_TEST.md)** listesini sırayla tamamla: gerçek ses/mute/kalıcılık, pause saatleri, üç karar/beş bakım/en az dört,45/2arıza, üç final/üç ardışık oturum ve1280×720/1920×1080.
+9. Windows Build Profiles Scene List'te yeni **RC sahnesi ilk ve etkin** olsun. EXE'yi Editor dışında baştan sona dene; gerçek Çıkış yalnız standalone'da kapanır. **EXE + aynı isimli _Data + UnityPlayer.dll + bütün üretilen yan dosya/dizinleri** birlikte paketle.
+10. Tam test edilmiş Unity proje yedeğinde **Assets/Packages/ProjectSettings ve bütün gerekli dosya/klasör .meta** dosyalarını koru. Library/Temp/Logs/cache/build çıktıları gerekmez. Kabul belgesindeki ayrı klasöre çıkarıp yeniden açma kontrolünü uygula.
+
+Create Playtest Demo Scene ve önceki üç menü korunur; kaydedilmiş eski sahne otomatik RC olmaz. Yeni menü/pause/ses yalnız RC bayraklı sahnede çalışır. Karar ekonomisi, 240aktif sn, harita ve görev/arıza dengesi değişmedi.157 saf C# test grubu geçti; bu, yukarıdaki Unity/Windows kabulü değildir.
+
+[RC uygulama ayrıntıları](RELEASE_CANDIDATE.md) · [Test kaydı](TEST_RESULTS.md)
+
+---
+
+Aşağıdaki metin **korunan Aşama 3 kurulumu içindir**; oradaki Playtest menüsü yeni RC menü/ses katmanını etkinleştirmez. Güncel RC kurulumu yukarıdadır.
+
 # Aşama 3 — Windows Unity entegrasyonu
 
 Yeni dal **feature/playtest-ux**; korunan Aşama 2 yedeği **feature/live-village-demo / 1912d94**. Hedef Unity 6.3 LTS (6000.3.x), Windows, Built-in 3D veya URP. Bu Mac'te Unity Editor yoktur; yeni sürüm derlenmedi/oynanmadı.

@@ -1,48 +1,51 @@
 # Son Bir Umut: Kuraklıktan Önce — GAMEUP Türkiye 2026
 
-Unity 6.3 LTS / C# / Windows için düşük poligonlu izometrik köy demosu. **Aşama 3 dalı: feature/playtest-ux**. Hakan'ın kullanıcı tarafından aktarılan Aşama 2 geri bildirimi temel alınmıştır. Çalışan yedek `feature/live-village-demo` / `1912d943819e6e115192f8d335981f64aed44e1f` korunur. Yeni sürüm bu Mac'te Unity Editor ile test edilmedi.
+**KRİZ NÖBETİ** · Unity 6.3 LTS / C# / Windows · Dal: `feature/release-candidate`.
+
+Release Candidate, korunan `feature/playtest-ux` / `391d253c0eabbd9283580e7e52fa463d28105d5e` üzerine eklenmiştir. Bu depo kaynak teslimidir; Mac'te Unity Editor yoktur. **Unity API derlemesi, gerçek oynanış, ses ve Windows build henüz doğrulanmadı.**
 
 ## Bu sürüm
 
-- İnce tek HUD, beş kompakt kaynak göstergesi, süre/baskı ve bir kısa hedef. Uzakta sürekli etkileşim metni yok; bildirimler kısa.
-- Üç anlaşılır karar kartı, büyük düğme, kısa fayda/bedel ve gerçek önizlemeden tur sonu etkileri. Hesap dökümü isteğe bağlı ayrıntıda.
-- 32×28 harita: alan %33.3 arttı; daha geniş yollar, üç renkli bölge, ağaç kümeleri, kanal/rezervuar ve kenar ayrıntıları.
-- Yeni sahnede 1.9× sprint (3.5 → 6.65), yumuşak hız/dönüş ve mevcut CharacterController/kamera.
-- Toplam beş bakım varyasyonu, aynı anda en fazla iki açık görev; en az dört bakım ve tek arızanın değerlendirilmesiyle kriz başarısı hedefi. Tekrar ödül yok.
-- 45 sn arıza, 2 sn E basılı onarım; net bar/saniye ve son12 sn artan vurgu. Tamirde sızıntı durur, bakımda onay görünür; güneş çalışma ışığı yalnız Solar seçilmişse yanar.
-- Baskıdan daha belirgin uzak pus/solgunluk; yakın oyuncu/yol/istasyon için korunan görüş alanı. Emisyon ve fiziksel hava kirliliğiyle aynı değişken değildir.
+- Mevcut köyün geniş izometrik görünümünde ana menü: Yeni Oyun, Nasıl Oynanır, Ayarlar ve Çıkış.
+- Esc ile gerçek kullanıcı duraklatması; Devam Et, Yeniden Başlat, Ayarlar, Ana Menüye Dön. Kart açıkken Esc önce kartı kapatır. Kullanıcı pause'u, native pause ve focus bağımsızdır; sayaç/baskı/arıza/ödül durur, onarım iptal olur.
+- Altı özgün kısa, kodla üretilen ses efekti; gerçek master ses/mute, yalnız ses tercihleri için PlayerPrefs. Tam oyun kaydı veya yükleme düğmesi yoktur.
+- Kısa final sunumu; Köyü İzle, Yeniden Oyna ve Ana Menü. Kaynak, tesis, görev, onarım, atmosfer, kamera ve HUD yeni oturumda sıfırlanır; ses tercihi korunur.
+- Korunan oynanış: 32×28 low-poly köy, WASD/1.9×Shift, üç karar, beş bakım/en az dört, tek su arızası/45 sn pencere/2 sn E basılı onarım, 240 aktif sn, kriz baskısı ve üç genel final.
 
-240 aktif saniye korunur. Giriş/kart/odak dışı süre durur; serbest dolaşım/onarımda işler. Üç stratejik karar, güncel kriz kaynaklarıyla final ve yeniden oynama korunur. Ana menü, duraklatma menüsü veya ses sistemi eklenmedi. Değerler örnek oyun puanlarıdır; sis hazırlığın metaforudur, iklim değişikliği ortadan kalkmış sayılmaz.
+Oyun dengesi, karar ekonomisi ve sürdürülebilirlik eşikleri değiştirilmedi. Değerler örnek oyun puanlarıdır; pus hazırlığın metaforudur, iklim değişikliğinin ortadan kalktığı iddia edilmez. P0/P1 kaynak özellikleri uygulandı; isteğe bağlı P2 geçiş efektleri eklenmedi. Windows teslim onayı ekip testi bekler.
 
 ## Hakan için ilk adım
 
-**Çalışan Unity projesini yedekle.** Temiz kaynak depoda `feature/playtest-ux` dalını al. `UnityAssets/SonBirUmutDemo` içeriğini mevcut `Assets/SonBirUmutDemo` üzerine, eski `.meta`, Scenes ve Generated dosyalarını silmeden kopyala. Scripts ve Editor birlikte, yeni dosyalar dahil olmalı. Old veya Both input, Built-in 3D veya URP kullan.
+**Önce çalışan Unity projesini yedekle.** Temiz kaynak depoda `feature/release-candidate` dalını al. `UnityAssets/SonBirUmutDemo` içeriğini dış Unity projesindeki `Assets/SonBirUmutDemo` üzerine, klasörü ve eski `.meta`/Scenes/Generated dosyalarını silmeden kopyala. Yeni Audio ve Simulation dosyaları dahil Scripts ve Editor birlikte aktarılmalı. Built-in 3D veya URP, Active Input Handling **Old veya Both** kullan.
 
-Console derlemesi bitince **Tools > GameUP > Create Playtest Demo Scene**. Yeni sahne `Assets/SonBirUmutDemo/Scenes/SonBirUmutPlaytestDemo.unity`, varlıklar `Generated/PlaytestDemo...`; dolu yollar numaralanır. Mevcut sahneler ezilmez. Tek oyun sahnesidir; eski kaydedilmiş sahne kendiliğinden büyümez veya beş görev almaz.
+Console derlemesi bitince **Tools > GameUP > Create Release Candidate Scene**. Yeni sahne `Assets/SonBirUmutDemo/Scenes/SonBirUmutReleaseCandidate.unity`, varlıklar `Generated/ReleaseCandidate...`; dolu yollar numaralanır. Eski sahneler ezilmez. Kaydet/kapat/yeniden aç, Play ile ana menüden başla.
 
 | Menü | Kaynak profil |
 | --- | --- |
-| Create Playtest Demo Scene | Aşama 3: yeni harita, beş bakım/en az dört, 1.9 sprint |
+| Create Release Candidate Scene | Playtest oynanışı + yeni menü/pause/ses/final akışı |
+| Create Playtest Demo Scene | Korunan Aşama 3: beş bakım/en az dört, 1.9 sprint |
 | Create Crisis Demo Scene | Korunan üç bakım/en az iki, eski harita, 1.6 sprint |
 | Create Crisis Foundation Scene | Süre/baskı temeli; görev/arıza yok |
 | Create Demo Scene | Eski üç stratejik karar → final |
 
-Bu daldaki ortak HUD/atmosfer kaynakları eski sahnelerde de değişir; birebir Aşama 2 yedeği kaynak dalın 1912d94 commit'indedir.
+Yeni menü/pause/ses yalnız RC sahnesinde etkinleşir. Ortak giriş metni artık profilin gerçek görev sayısını kullanır. Önceki dallar korunur; mevcut kaydedilmiş sahne kendiliğinden RC'ye dönüşmez.
 
-[Hakan'ın Aşama 3 test listesi](docs/PLAYTEST_UNITY_TEST.md) · [Kurulum](docs/INTEGRATION.md) · [UX/harita/mekanik ayrıntıları](docs/PLAYTEST_UX.md)
+[Hakan'ın RC kabul ve teslim listesi](docs/RELEASE_CANDIDATE_TEST.md) · [Kurulum](docs/INTEGRATION.md) · [RC uygulama ayrıntıları ve dosyalar](docs/RELEASE_CANDIDATE.md)
 
 ## Doğrulama
 
-Mevcut .NET 8/9 SDK ile, harici test paketi gerekmeden:
+Mevcut SDK ile, harici test paketi veya yeni kurulum olmadan:
 
 ```sh
-dotnet run --project Tests/LogicTests/LogicTests.csproj --configuration Release -- --playtest-report docs/PLAYTEST_BALANCE.md
+dotnet run --project Tests/LogicTests/LogicTests.csproj --configuration Release
 ```
 
-**136 test grubu geçti, 0 başarısız**: önceki 116 korundu, 20 yeni grup eklendi. Eski ve yeni modların 27'şer stratejik dizisi geçti. Yeni beş görevli örnek rota 195 aktif sn'de bitiyor; üç enerji yoluyla kriz başarısı ve üç genel final kategorisi korunuyor. **Bu gerçek Unity hareket/okuma süresi ölçümü değildir.** 3–4 dakika hedefi ekip testinde ölçülmeli; hızlı rota daha erken, kart okuma dahil toplam süre daha uzun olabilir.
+**157 test grubu geçti, 0 başarısız**: önceki 136 korundu, 21 yeni grup eklendi. Menü/oturum/pause/onarım/focus/tekrar/ses modeli, RC akışı üzerinden 27 strateji ve üç genel final test edildi. **41 C# dosyası ×5 Editor/player input sembol birleşimi** Roslyn sözdizimi kontrolünden hatasız geçti; bu Unity API/tür derlemesi değildir.
 
-[27 yeni oturumun sayısal raporu](docs/PLAYTEST_BALANCE.md) · [Gerçek test kaydı](docs/TEST_RESULTS.md) · [Mimari](docs/ARCHITECTURE.md)
+[Gerçek test kaydı ve sınırları](docs/TEST_RESULTS.md) · [Mimari](docs/ARCHITECTURE.md) · [Korunan 27 rota/denge](docs/PLAYTEST_BALANCE.md)
 
-Unity API derlemesi, fiziksel erişim, tuş/menzil, render/fog, 1280×720/1920×1080 UI, sahne referansları ve Windows build henüz doğrulanmadı. Kişisel belgeler/görseller, gizli bilgiler, build/cache çıktıları Git'e eklenmez; eski dallara merge/force push yapılmaz.
+Gerçek GUI tıklaması/klavye odağı, sesin duyulması ve PlayerPrefs kalıcılığı, sahne referansları/render, 1280×720/1920×1080 ve Windows EXE açılış/çıkışı ekip tarafından doğrulanmalı. 195 aktif sn simüle rota gerçek oyuncu süresi değildir. Build Profiles Scene List'te **RC sahnesi ilk ve etkin** olmalı; teslimde EXE ile _Data/UnityPlayer.dll ve bütün üretilen yan dosyalar birlikte korunmalı. Tam Unity proje arşivi için Assets/Packages/ProjectSettings ve bütün gerekli .meta dosyalarını al; ayrıntılar kabul listesindedir.
 
-Tarihsel kaynaklar: [Aşama 2 test planı](docs/FINAL_UNITY_TEST.md), [Aşama 2 denge](docs/CRISIS_BALANCE.md), [Stratejik kurallar](docs/DECISIONS.md), [Görsel polish](docs/VISUAL_STAGE2.md).
+Kişisel belgeler/görseller, gizli bilgiler ve build/cache çıktıları Git'e eklenmez. Main veya eski dallara merge/force push yapılmaz.
+
+Tarihsel belgeler: [Aşama 3 UX](docs/PLAYTEST_UX.md), [Aşama 3 test planı](docs/PLAYTEST_UNITY_TEST.md), [Aşama 2](docs/FINAL_UNITY_TEST.md), [Stratejik kurallar](docs/DECISIONS.md).

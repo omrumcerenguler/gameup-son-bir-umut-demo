@@ -1,3 +1,26 @@
+# Mimari — Release Candidate
+
+Dal `feature/release-candidate`, korunan kaynak `feature/playtest-ux / 391d253c0eabbd9283580e7e52fa463d28105d5e`. Oynanış profili hâlâ `GameMode.PlaytestDemo`; yeni bir ekonomik simülasyon veya sahne yöneticisi eklenmez. RC yalnız yeni sahnede serileştirilmiş bayrakla açılır. Eski dört sahne menüsü/profil korunur.
+
+| Katman | Sorumluluk |
+| --- | --- |
+| ReleaseFlow (saf C#) | Ana menü/oynanış/pause/alt menü/final; komut geçerliliği, Esc önceliği ve temiz oturum fabrikası |
+| GameRunState.UserPaused | Native pause/focus/karttan bağımsız kilit; Tick, seçim, bakım/ödül engeli ve onarım iptali |
+| SoundPreferences / SoundSynthesis (saf C#) | Sonlu 0–1 ses/mute ve altı özgün kısa PCM efekti |
+| DemoGameController | Tek klavye/IMGUI koordinasyonu, kare başına tek menü komutu, mevcut etkileşim sahibi, yeni Run'da sunum sıfırlama |
+| DemoAudioManager | Tek 2D AudioSource, runtime AudioClip, gerçek ses/mute uygulaması, yalnız ses için iki PlayerPrefs anahtarı |
+| DemoHud / DemoStory / DemoGuiTheme | Mevcut IMGUI stiliyle menü, pause, kısa yönerge, ses ayarı ve okunabilir final; menü arkasında normal HUD yok |
+| WorldView / StationFeedback / CrisisAtmosphere / kamera / marker | Oturum değişiminde açık yenileme, başlangıç ve final görselleri; hiçbir simülasyon hesabı üretmez |
+| DemoSceneBuilder mode4 | Benzersiz ReleaseCandidate sahnesi/Generated klasörü, Playtest geometrisi ve kalıcı ses/görsel referanslar |
+
+Ana menü temiz Intro Run tutar; modal Tick ile zaman ilerlemez. Yeni Oyun/Restart/Replay yeni GameRunState/GameSession üretir; Başla ayrı tek seferlik Start geçişidir. Kullanıcı pause'u `Time.timeScale` veya native pause'u değiştirmez. Dış odak/native bayraklar yeni Run'a taşınır; oyun verisi sıfırlanırken ses tercihi korunur. Final yalnız Run'ın güncel sonucunu sunar; karar/sonuç formülleri değişmez.
+
+[RC durum akışı, sıfırlama ve ses ayrıntıları](RELEASE_CANDIDATE.md) · [Gerçek testler](TEST_RESULTS.md) · [Bekleyen Unity kabul testi](RELEASE_CANDIDATE_TEST.md)
+
+---
+
+Aşağıdaki bölümler **Aşama 3 ve önceki mimari kayıtlarıdır**. Aşama 3 oynanış temeli korunur; güncel RC menü/ses/duraklatma katmanı yukarıdadır.
+
 # Mimari — Aşama 3 Playtest UX
 
 Dal `feature/playtest-ux`, korunan referans `1912d94`. Aşağıdaki Aşama 2 katmanları üzerine küçük ekler yapılır; karar/kaynak/final eşikleri yeniden yazılmaz.

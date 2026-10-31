@@ -1,3 +1,17 @@
+# Güncel kabul testi — Release Candidate
+
+**Dal: feature/release-candidate. Kaynak referans: 391d253.**
+
+Hakan'ın güncel, henüz işaretlenmemiş test planı: **[docs/RELEASE_CANDIDATE_TEST.md](docs/RELEASE_CANDIDATE_TEST.md)**.
+
+İlk adım çalışan Unity projesini yedeklemektir. Scripts ve Editor birlikte aktarılmalı; eski .meta/Scenes/Generated korunmalı. Yeni sahne: **Tools > GameUP > Create Release Candidate Scene**.157 saf C# test grubu geçti; Unity API derlemesi, gerçek menü tıklaması/ses/prefs/sahne ve Windows EXE bu Mac'te denenmedi.
+
+Öncelik ana menü→Yeni Oyun→oynanış→Esc pause→restart/menu→final/replay, gerçek ses/mute ve üç ardışık temiz oturumdur. Build Profiles Scene List'te RC ilk/etkin olmalı; EXE ve bütün yan dosyalar birlikte teslim edilmeli. Tam Unity proje yedeği Assets/Packages/ProjectSettings ve .meta içermeli. Ayrıntılı adımlar güncel plandadır.
+
+---
+
+Aşağıdaki listeler **tarihsel Aşama 3 ve önceki profil testleridir**. Yeni RC menü/ses akışını kapsamazlar.
+
 # Son Bir Umut — Unity test kontrol listesi
 
 **Aşama3 güncel liste:** [PLAYTEST_UNITY_TEST](docs/PLAYTEST_UNITY_TEST.md). Yeni sürüm Unity'de doğrulanmadı; aşağıdaki Aşama2/1/polish kutuları tarihsel regresyon kaydıdır.

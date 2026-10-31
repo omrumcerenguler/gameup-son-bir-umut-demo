@@ -1,3 +1,32 @@
+# Doğrulama — Release Candidate
+
+Dal `feature/release-candidate`; korunan başlangıç `391d253c0eabbd9283580e7e52fa463d28105d5e`. Mac'te Unity Editor yoktur. Yeni SDK, Unity veya paket kurulmadı.
+
+## Gerçekte çalıştırılanlar
+
+- Başlangıç **136 test grubu geçti, 0 başarısız**; eski test dosyaları ve beklentileri değişmedi.
+- Yeni 21 grupla toplam **157 geçti, 0 başarısız**. Mevcut .NET9.0.303 / net8.0 / C#9, warnings-as-errors; restore/paket indirmeden çalıştı.
+- Ana menü/temiz Intro/tek Start, kullanıcı pause'unda sayaç/baskı/arıza/ödül kilidi ve onarım iptali, kart/Esc önceliği, ayarlar geri dönüşü, native/focus bağımsızlığı, menü/reset/replay/ardışık oturumlar geçti.
+- Beş görev/en az dört ve 45 sn / 2 sn kuralları korunuyor. RC menü akışı üzerinden **27 stratejik dizi ve üç genel final** geçti; önceki modların 27'şer kombinasyonu da korundu. Mevcut195aktif sn örnek rota gerçek hareket/okuma süresi değildir.
+- Ses düzeyi0–1/sınır/NaN/Infinity, mute/seçilen düzey, altı kısa PCM dizisinin uzunluk/sonluluk/genlik/zarf kontrolleri geçti. Bunlar işitme veya Unity AudioClip testi değildir.
+- **41 Unity C# dosyası ×5 Editor/player input sembol birleşimi** Roslyn C#9 parser kontrolü:0 sözdizimi hatası. Unity API/tür kontrolü veya Unity derlemesi değildir.
+
+Çalıştırılan komut (rapor üretip mevcut belgeyi değiştirmez):
+
+```sh
+DOTNET_CLI_HOME=/private/tmp/sonbirumut-dotnet DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_GENERATE_ASPNET_CERTIFICATE=false dotnet run --project Tests/LogicTests/LogicTests.csproj --configuration Release --no-restore -p:UseSharedCompilation=false
+```
+
+## Bekleyen gerçek kabul ve teknik riskler
+
+**Unity API derlemesi, sahne referanslarının kaydet/yeniden açılması, gerçek GUI Layout/Repaint/tıklama/klavye odağı, sesin duyulması/mix/cihaz, PlayerPrefs disk kalıcılığı, kamera/fog/dünya sıfırlama, fizik/menzil, iki çözünürlük ve Windows build/EXE çıkışı test edilmedi.** Kare başına tek menü komutu ve GUI focus temizliği kaynakta uygulanmıştır; gerçek Unity olay sırası ekip testi bekler. Ses clip üretimi başarısızsa oyun sessiz devam eder; clip hazır olması donanımın ses verdiğini kanıtlamaz. Editor/EXE tercih depoları farklı olabilir.
+
+Kod incelemesinde ilk ana menü kamerasının OnEnable ile daralmaması ve finalde son kare kaynak/atmosferinin eski görüntüde donmaması düzeltildi. Render doğrulaması değildir. P0/P1 kaynak özellikleri uygulandı, Windows teslim onayı bekliyor. İsteğe bağlı P2 geçiş efektleri eklenmedi. [Hakan'ın henüz işaretlenmemiş kabul/teslim listesi](RELEASE_CANDIDATE_TEST.md) bütün senaryoları içerir.
+
+---
+
+Aşağıdaki bölümler **tarihsel doğrulama kayıtlarıdır**. Güncel RC toplamı157/0; eski136/116 sayıları kendi aşamalarına aittir.
+
 # Doğrulama — Aşama 3 Playtest UX
 
 Dal `feature/playtest-ux`, başlangıç `1912d943819e6e115192f8d335981f64aed44e1f`. Yeni sürüm bu Mac'te Unity Editor'da derlenmedi/oynanmadı. Hakan'ın Aşama 2 geri bildirimi kullanıcı aktarımıdır.
