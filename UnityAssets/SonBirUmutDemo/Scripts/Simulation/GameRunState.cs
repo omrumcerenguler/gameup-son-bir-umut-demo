@@ -4,13 +4,14 @@ using SonBirUmutDemo.Decisions;
 
 namespace SonBirUmutDemo.Simulation
 {
-    public enum GameMode { LegacyDecisions, CrisisFoundation, CrisisDemo, PlaytestDemo }
+    public enum GameMode { LegacyDecisions, CrisisFoundation, CrisisDemo, PlaytestDemo, FinalPacing }
     public enum GameRunPhase { Intro, Preparation, CrisisManagement, Ending }
 
     public sealed class GameRunState
     {
         private readonly GameRunSettings settings;
         private readonly ResourceState initial;
+        private readonly int taskSeed;
         private readonly DecisionPointDefinition[] definitions;
         private readonly SessionTimer timer;
         private readonly CrisisPressure pressure;
@@ -26,7 +27,8 @@ namespace SonBirUmutDemo.Simulation
         public bool MovementLocked => Phase == GameRunPhase.Intro || IsEnded || userPaused;
         public bool UsesCrisisMode => Mode != GameMode.LegacyDecisions;
         public bool UsesCrisisDemo => Mode == GameMode.CrisisDemo || UsesPlaytestMode;
-        public bool UsesPlaytestMode => Mode == GameMode.PlaytestDemo;
+        public bool UsesPlaytestMode => Mode == GameMode.PlaytestDemo || UsesTaskNodes;
+        public bool UsesTaskNodes => Mode == GameMode.FinalPacing;
         public CrisisProgress Crisis { get; private set; }
         public CrisisRules CrisisRules => crisisRules;
         public ResourceState CurrentResources => crisisResources ?? Session.State;
@@ -35,10 +37,10 @@ namespace SonBirUmutDemo.Simulation
         public double PressureRiseRate => settings.RiseRate(CurrentResources);
 
         public GameRunState(GameMode mode = GameMode.LegacyDecisions, GameRunSettings settings = null,
-            ResourceState initial = null, IEnumerable<DecisionPointDefinition> definitions = null, CrisisRules crisisRules = null)
+            ResourceState initial = null, IEnumerable<DecisionPointDefinition> definitions = null, CrisisRules crisisRules = null, int taskSeed = 0)
         {
             if (!Enum.IsDefined(typeof(GameMode), mode)) throw new ArgumentOutOfRangeException(nameof(mode));
-            Mode = mode;
+            Mode = mode; this.taskSeed=taskSeed;
             this.settings = settings ?? new GameRunSettings();
             this.crisisRules = crisisRules ?? new CrisisRules();
             this.initial = initial ?? ResourceState.Initial();
@@ -52,7 +54,7 @@ namespace SonBirUmutDemo.Simulation
         {
             Session = new GameSession(initial, definitions: definitions);
             timer.Reset(); pressure.Reset();
-            crisisResources = null; Crisis = UsesCrisisDemo ? new CrisisProgress(crisisRules, UsesPlaytestMode) : null;
+            crisisResources = null; Crisis = UsesCrisisDemo ? new CrisisProgress(crisisRules, UsesPlaytestMode, UsesTaskNodes, taskSeed) : null;
             Phase = GameRunPhase.Intro; Result = null;
             hasFocus = true; applicationPaused = userPaused = discardNextDelta = false;
         }
@@ -116,12 +118,14 @@ namespace SonBirUmutDemo.Simulation
                 if (eligible && untilHigh <= 1e-9) eligible = false;
                 if (!eligible) Crisis.StableSeconds = 0;
                 double step = Math.Min(pending, incident.NextBoundary(repairHeld, repairInRange));
+                step = Math.Min(step,Crisis.NextDispatchIn);
                 if (eligible) step = Math.Min(step, Math.Min(untilHigh, crisisRules.StableDuration - Crisis.StableSeconds));
                 double used = timer.Advance(step, true);
                 pressure.Change(used * rate);
                 if (eligible) Crisis.StableSeconds += used;
                 var before = incident.Status;
                 incident.Advance(used, repairHeld, repairInRange);
+                Crisis.AdvanceSchedule(used);
                 if (before == EmergencyStatus.Active && incident.Status == EmergencyStatus.Repaired)
                     pressure.Change(-CrisisRules.RepairRelief);
                 else if (before == EmergencyStatus.Active && incident.Status == EmergencyStatus.Expired)
@@ -138,7 +142,20 @@ namespace SonBirUmutDemo.Simulation
 
         public bool TryCompleteMaintenance(string stationId, out string message)
         {
-            var task = Crisis?.AtStation(stationId);
+            if(UsesTaskNodes) { message="Bakım kendi görev noktasında yapılmalı."; return false; }
+            return CompleteMaintenance(Crisis?.AtStation(stationId),out message);
+        }
+
+        // Location identity is checked in the model, physical range by the single runtime controller.
+        public bool TryCompleteTask(string taskId,string locationId,bool inRange,bool modalOpen,out string message)
+        {
+            var task=Crisis?.AtLocation(locationId);
+            if(!UsesTaskNodes || task==null || task.Id!=taskId || !inRange || modalOpen)
+            { message="Doğru bakım noktasına yaklaş."; return false; }
+            return CompleteMaintenance(task,out message);
+        }
+        private bool CompleteMaintenance(MaintenanceTask task,out string message)
+        {
             if (!UsesCrisisDemo || Phase != GameRunPhase.CrisisManagement || !hasFocus || applicationPaused || userPaused ||
                 task == null || Crisis.Emergency.Status == EmergencyStatus.Active || !task.Complete())
             { message = "Bu bakım şu anda uygulanamaz veya zaten tamamlandı."; return false; }

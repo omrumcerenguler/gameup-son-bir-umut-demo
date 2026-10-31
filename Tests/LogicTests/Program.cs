@@ -422,8 +422,10 @@ internal static class Program
         CrisisDemoTests.Register(Run);
         PlaytestUxTests.Register(Run);
         ReleaseFlowTests.Register(Run);
+        FinalPacingTests.Register(Run);
         if (failed == 0 && args.Length == 2 && args[0] == "--playtest-report") PlaytestUxTests.SimulateAll(args[1]);
         if (failed == 0 && args.Length == 2 && args[0] == "--crisis-report") CrisisDemoTests.SimulateAll(args[1]);
+        if (failed == 0 && args.Length == 2 && args[0] == "--pacing-report") PacingRouteSimulation.WriteReport(args[1]);
         Console.WriteLine($"{passed} passed; {failed} failed.");
         return failed == 0 ? 0 : 1;
     }

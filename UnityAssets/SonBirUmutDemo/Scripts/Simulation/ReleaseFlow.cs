@@ -27,8 +27,8 @@ namespace SonBirUmutDemo.Simulation
         private GameRunState FreshRun()
         {
             var run = createRun();
-            if (run == null || run.Mode != GameMode.PlaytestDemo || run.Phase != GameRunPhase.Intro)
-                throw new ArgumentException("Release flow needs a fresh PlaytestDemo run.");
+            if (run == null || (run.Mode != GameMode.PlaytestDemo && run.Mode != GameMode.FinalPacing) || run.Phase != GameRunPhase.Intro)
+                throw new ArgumentException("Release flow needs a fresh PlaytestDemo or FinalPacing run.");
             run.SetFocus(focused); run.SetApplicationPaused(nativePaused);
             return run;
         }
