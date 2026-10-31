@@ -1,3 +1,27 @@
+# Mimari — Final Pacing
+
+Dal `feature/final-pacing`; korunan RC kaynak `5eeb35e7dad7343e2591f1d3b03870ad47d84305`.
+
+| Katman | Yeni sorumluluk |
+| --- | --- |
+| FinalPacingCatalog / PacingTaskDefinition / TaskPosition | UnityEngine bağımsız 10 konum, kimlik/bölge/etki; 54 dengeli altılı set ve yerel rota sırası |
+| MaintenanceTask / CrisisProgress | Yeni profilde StationId yerine LocationId, seçilmiş 6 görev, en fazla 2 aktif, çağrı saati/yaşı ve en az 4 şartı |
+| GameRunState.FinalPacing | Eski faz ve baskı/arıza hesabını korur; çağrı sınırlarında Tick bölünür, TaskId+LocationId/menzil/modal doğrulamasıyla tek bakım ödülü |
+| ReleaseFlow | Mevcut PlaytestDemo yanında FinalPacing oturum fabrikasını kabul eder; menü/pause/fresh run akışı değişmez |
+| MaintenanceTaskNode | Kalıcı bağımsız fiziksel kök, gerçek 1.65 m menzil, yalnız aktif/tamamlanmış sunumu |
+| DemoGameController | On node referansı/kimlik/konum doğrulaması, tek E sahibi, en yakın uygun node ve reset |
+| DemoPacingBuilder / DemoSceneBuilder mode5 | Yeni benzersiz sahne, on küçük çarpışmasız obje; eski beş menü korunur |
+| DemoHud / DemoStory | Dinamik 6/4 anlatımı, kısa node hedefi/açık süre/yön işareti, son 60/20 sn uyarısı |
+| FinalPacingTests / PacingRouteSimulation | 21 yeni grup, 54 set ve model engel rotaları/üç oyuncu profili/27 strateji |
+
+AtStation eski modeller içindir; FinalPacing bakımını yanlış ana istasyondan tamamlayamaz. Acil arıza hâlâ sabit su istasyonunu kullanır. Eski Playtest/RC seçili profili 5 görev/4 minimum olarak korunur; yeni bayrak olmadan10node davranışı açılmaz. Sonuç/kaynak ekonomisi yeniden yazılmaz.
+
+[Konum tablosu, veri/süre/ödül kuralları ve riskler](FINAL_PACING.md) · [Rota tahmini](FINAL_PACING_BALANCE.md) · [Gerçek Unity kabulü](FINAL_PACING_UNITY_TEST.md)
+
+---
+
+Aşağıdakiler **RC ve önceki aşamaların tarihsel kayıtlarıdır**; güncel Final Pacing katmanı yukarıdadır. Eski RC kaynakları ayrı dalda korunur.
+
 # Mimari — Release Candidate
 
 Dal `feature/release-candidate`, korunan kaynak `feature/playtest-ux / 391d253c0eabbd9283580e7e52fa463d28105d5e`. Oynanış profili hâlâ `GameMode.PlaytestDemo`; yeni bir ekonomik simülasyon veya sahne yöneticisi eklenmez. RC yalnız yeni sahnede serileştirilmiş bayrakla açılır. Eski dört sahne menüsü/profil korunur.

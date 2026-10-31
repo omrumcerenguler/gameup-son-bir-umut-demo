@@ -1,3 +1,20 @@
+# Final Pacing — güncel Windows kurulumu
+
+1. **Önce çalışan Unity projesini ve yerel düzenlemeleri yedekle.** RC kaynak dalı 5eeb35e korunur; yeni çalışma `feature/final-pacing`.
+2. Temiz kaynak depoda `git fetch origin`, `git switch feature/final-pacing`, `git pull --ff-only origin feature/final-pacing`; tam commit'i kaydet.
+3. UnityAssets/SonBirUmutDemo içeriğinin tamamını gerçek Unity projesinin Assets/SonBirUmutDemo klasörüne aktar. **Scripts ve Editor birlikte**; FinalPacingCatalog, MaintenanceTaskNode ve DemoPacingBuilder dahil. Eski .meta/Scenes/Generated silinmez. Tests/docs/kişisel belgeleri Assets'e kopyalama.
+4. Unity 6.3 LTS, Built-in 3D/URP; Input Handling **Old veya Both**. Console derlemesi tamamlanmalı. Hata varsa ilk kırmızı hatayı kaydet; bu Mac'te Unity API derlemesi yapılmadı.
+5. Play kapalı/Prefab dışında/açık sahneler temizken **Tools > GameUP > Create Final Pacing Scene**. Benzersiz Scenes/SonBirUmutFinalPacing.unity ve Generated/FinalPacing...; kaydet/kapat/yeniden açıp referansları kontrol et. Görev node'larını katalogdan bağımsız taşımak başlangıç doğrulamasında hata verir.
+6. Play→Ana Menü→Yeni Oyun→Başla. WASD/Shift 1.9×; kararlar üç ana istasyonda, bakımlar on ayrı node'da yakın E. Seçili6 görevden en az 4; aynı anda en fazla 2. Acil sabit su noktasında 45 sn / 2 sn held; Esc/pause/ses ayarları korunur.
+7. [FINAL_PACING_UNITY_TEST](FINAL_PACING_UNITY_TEST.md) listesini uygula; özellikle on fiziksel erişim, hedefler arasında hareket, gerçek zaman baskısı ve tekrar oynama. [Model rota raporunu](FINAL_PACING_BALANCE.md) gerçek süre ölçümü diye raporlama.
+8. Windows Build Profiles Scene List'te **Final Pacing ilk ve etkin**. EXE'yi Editor dışında dene; EXE/_Data/UnityPlayer.dll ve bütün yan dosyaları birlikte tut. Tam Unity proje yedeğinde Assets/Packages/ProjectSettings ve gerekli bütün .meta dosyalarını koru; [ayrıntılı teslim rehberi](RELEASE_CANDIDATE_TEST.md).
+
+Eski Create Release Candidate Scene 5/4 profilini, Playtest ve diğer üç menü kendi davranışını korur. Eski sahne otomatik yeni node almaz. Yeni render/input/audio paketi veya SDK kurulmadı.178 saf C# test grubu geçti; fizik/GUI/ses/Windows kabulü ekip testi bekler.
+
+---
+
+Aşağıdaki talimatlar **korunan RC ve önceki sahnelerin kurulumu içindir**. Yeni Final Pacing için yukarıdaki ayrı menü kullanılmalıdır.
+
 # Release Candidate — Windows Unity entegrasyonu
 
 Dal **feature/release-candidate**; korunan kaynak **feature/playtest-ux / 391d253c0eabbd9283580e7e52fa463d28105d5e**. Hedef Unity 6.3 LTS/6000.3.x, Windows, Built-in 3D veya URP. Bu Mac'te Unity Editor yoktur; Unity API derlemesi/oynanış/ses/EXE testi yapılmadı.

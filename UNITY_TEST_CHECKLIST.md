@@ -1,3 +1,15 @@
+# Güncel kabul — Final Pacing
+
+Dal **feature/final-pacing**; korunan RC commit'i 5eeb35e. **[Hakan'ın güncel kısa Unity listesi](docs/FINAL_PACING_UNITY_TEST.md)** henüz işaretlenmemiştir.
+
+İlk adım çalışan gerçek Unity projesini yedeklemektir. Scripts/Editor birlikte aktarılır; eski .meta/Scenes/Generated korunur. Menü: **Tools > GameUP > Create Final Pacing Scene**.
+
+10 ayrı konum, seçili 6/en fazla 2 aktif/en az 4; gerçek erişim/koşma/E,45/2 arıza, 240 aktif sn ve son 60/20 sn, başarılı/başarısız final, restart/menu/ayar/ses ve Windows EXE test edilmeli.178 saf C# grup geçti; bu gerçek Unity testi değildir. [Tahmini rota/süre raporu](docs/FINAL_PACING_BALANCE.md) · [Dosyalar ve tasarım](docs/FINAL_PACING.md).
+
+---
+
+Aşağıdaki listeler **korunan RC ve önceki profillerin tarihsel planlarıdır**; yeni on node için yukarıdaki liste kullanılmalıdır.
+
 # Güncel kabul testi — Release Candidate
 
 **Dal: feature/release-candidate. Kaynak referans: 391d253.**

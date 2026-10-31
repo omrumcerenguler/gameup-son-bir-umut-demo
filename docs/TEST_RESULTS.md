@@ -1,3 +1,30 @@
+# Doğrulama — Final Pacing
+
+Dal `feature/final-pacing`; korunan başlangıç `5eeb35e7dad7343e2591f1d3b03870ad47d84305`. Mac'te Unity Editor yoktur; yeni SDK/paket kurulmadı.
+
+- Başlangıçta önceki 157 grup aynı beklentilerle geçti. Yeni 21 grup ile **178 geçti, 0 başarısız**; mevcut .NET9.0.303 / net8.0 / C#9 / warnings-as-errors / no-restore.
+- On benzersiz TaskId/LocationId/konum ve54 farklı6'lı set, her bölgeden2, en fazla 2 aktif/en az 4, çağrı zamanı/sırası/yaşı, yanlış konum/menzil/modal/çift ödül ve kaynak sınırları test edildi.
+- Menü/kart/acil/strateji/bakım önceliği, pause/focus/saat/onarım iptali, geçerli timeout, reset/restart/final→replay→main ve eski RC5/4 profili korundu.
+- 54 set ×3 enerji seçeneğinde yeni oyuncu rotası başarıyla tamamlandı. Normal profilde54'er sette155–175 aktif sn; hızlı 87–90sn; geciken örneklerde240sn sonunda geçerli kısmi sonuç.27 stratejik dizi üç genel finale ulaştı; yetersiz sulamada2 mevcut depolama alternatifi uygulandı. [Üretilen rota ve sonuç tabloları](FINAL_PACING_BALANCE.md).
+- Rota modeli0.5m dört yönlü grafikte kaynaklardan tahmin edilen şişirilmiş engelleri kaçınır; yol mesafesi,3.5m/sn yürüyüş,1.9×sprint, yön bulma/etkileşim/tepki payları ve arıza/çağrı saatleri birlikte işlenir. **Fizik, gerçek yolculuk veya oyuncu süresi testi değildir.**
+- **44 Unity C# dosyası ×5 Editor/player input sembol birleşimi**, Roslyn C#9 sözdizimi taraması:0 hata. Unity API/tür derlemesi değildir.
+
+Çalıştırılan komut (denge belgesini gerçek simülasyondan üretir):
+
+```sh
+DOTNET_CLI_HOME=/private/tmp/sonbirumut-dotnet DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_GENERATE_ASPNET_CERTIFICATE=false dotnet run --project Tests/LogicTests/LogicTests.csproj --configuration Release --no-restore -p:UseSharedCompilation=false -- --pacing-report docs/FINAL_PACING_BALANCE.md
+```
+
+## Bekleyenler ve gerçek riskler
+
+Unity6.3API derlemesi,10 node'un gerçek collider/harita erişimi, kamera/görüş ve UI font/taşma, node hedefi değişiminde yön bulma, gerçek tempo, yeni sahne referanslarının kaydedilip açılması, ses/prefs, native focus/pause/GUI olay sırası ve Windows build/EXE test edilmedi. Düzlem engel modeli bütün collider'ları temsil etmez; tahmin garanti değildir. İlk iki işi çok hızlı bitiren oyuncu yeni çağrı için kısa bekleyebilir; bu durum gerçek oynanışta değerlendirilmeli. Ayrı sert görev son tarihi yoktur.
+
+[Hakan'ın henüz işaretlenmemiş kısa kabul listesi](FINAL_PACING_UNITY_TEST.md). Yeni özellik yalnız Final Pacing sahnesinde etkinleşir; gerçek test geçmiş gibi raporlanmaz.
+
+---
+
+Aşağıdakiler **RC ve önceki aşamaların tarihsel kayıtlarıdır**. Güncel toplam178/0, korunan RC başlangıcı157/0'dır.
+
 # Doğrulama — Release Candidate
 
 Dal `feature/release-candidate`; korunan başlangıç `391d253c0eabbd9283580e7e52fa463d28105d5e`. Mac'te Unity Editor yoktur. Yeni SDK, Unity veya paket kurulmadı.
