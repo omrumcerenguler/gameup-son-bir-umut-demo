@@ -1,11 +1,11 @@
 # Son Bir Umut — Unity test kontrol listesi
 
-**Durum: Yeni tam demo için aşağıdaki Unity kontrolleri henüz yapılmadı.** Mac üzerinde Unity Editor bulunmaz. Kutuları Hakan veya Enes yalnızca testi gerçekten çalıştırınca işaretlemelidir. Saf C# testlerinin geçmesi bu kutuları tamamlamaz.
+**Durum: Yeni polish sürümü için aşağıdaki Unity kontrolleri henüz yapılmadı.** Mac üzerinde Unity Editor bulunmaz. Kutuları Hakan veya Enes yalnızca testi gerçekten çalıştırınca işaretlemelidir. Saf C# testlerinin geçmesi bu kutuları tamamlamaz.
 
 | Test kaydı | Değer |
 | --- | --- |
 | Test eden / tarih | |
-| Branch / commit | feature/complete-demo / |
+| Branch / commit | feature/polish-backup-demo / |
 | Unity tam sürümü (6000.3.x) | |
 | Windows sürümü / pipeline | |
 | Input Handling | Both veya Old / |
@@ -55,6 +55,22 @@
 - [ ] New-only modunda araç açıklama gösterip duruyor; eski sahnede açık Console uyarısı var.
 - [ ] Kart metinleri 1280×720 ve 1920×1080'de okunaklı; kırpılma yok.
 
+## Polish: hikâye ve kararların anlaşılabilirliği
+
+- [ ] Başlık Son Bir Umut: Kuraklıktan Önce; ana hedef tüm ekranlarda açık.
+- [ ] İlerleme, sıradaki nokta ve kritik kaynak durumu sürekli görülüyor.
+- [ ] Problem cümlesi ve Kazanç / Bedeli / Sonrası alanları okunuyor.
+- [ ] Güneş sonrası 40 / 55 / 32 / 41 / 0; doğrudan bitki ve emisyon etkisi sıfır.
+- [ ] Tur su -8, su koşulu bitki -8, kuraklık bitki -6 ayrı; net bitki -14 açık.
+- [ ] 0/100 sınırındaki net değişim bileşenlerle karıştırılmıyor.
+- [ ] Seçim bildirimi değişen nesneyi kapatmıyor; ×/Esc ile hemen, 10 saniyede otomatik kapanıyor.
+- [ ] Bildirim açıkken hareket ve sonraki E etkileşimi çalışıyor; final düğmesini örtmüyor.
+- [ ] Güneş → pompa → sulama, 10 / 55 / 46 / 73 / 0 ile Yeniden Doğuş; koruma yolu farklı kaynak dağılımıyla da başarılı.
+- [ ] Final stok, tarım, doğal yaşam, iki karar ve süren risk bakımından anlaşılır.
+- [ ] Emisyon/enerji riski olan final enerji + su kararını; diğer finaller su + tarım kararını öne çıkarıyor.
+- [ ] Final açıklamaları su kalitesi veya bağımsız ürün verimi ölçümü iddiası taşımıyor.
+- [ ] Yeni arayüz 1280×720 ve 1920×1080'de kırpılmıyor; yeniden oynama bildirim ve özeti de sıfırlıyor.
+
 ## Üç karar ve bağımlılıklar
 
 - [ ] Enerji → su → tarım sırası korunuyor; erken su/tarım kartı açılamıyor.
@@ -79,16 +95,16 @@
 ## Final ve yeniden oynama
 
 - [ ] Güneş → verimlilik → koruma: 20 / 55 / 42 / 59 / 0, Yeniden Doğuş.
-- [ ] Dizel → pompa → sulama: 35 / 70 / 43 / 73 / 18, Eksik Dönüşüm.
-- [ ] Güneş → mevcut düzen → depola: 40 / 55 / 17 / 8 / 1, Kaybedilen Gelecek.
-- [ ] Final yalnız üçüncü karardan sonra açılıyor; üç karar özeti ve net etkiler okunuyor.
+- [ ] Dizel → pompa → sulama: 45 / 70 / 43 / 73 / 18, Eksik Dönüşüm.
+- [ ] Güneş → mevcut düzen → depola: 40 / 55 / 17 / 8 / 0, Kaybedilen Gelecek.
+- [ ] Final yalnız üçüncü karardan sonra açılıyor; su/tarım/doğa, öne çıkan iki karar ve süren risk okunuyor.
 - [ ] Kamera uzaklaşıp yükseliyor; köy sonuç panelinin solunda izlenebiliyor, açı dönmüyor.
 - [ ] Final açıkken karakter kontrolü kapalı; tekrar karar uygulanamıyor.
 - [ ] Yeniden Oyna; kaynakları 100 / 20 / 40 / 55 / 0, ilerlemeyi 0/3 ve karakteri başlangıca döndürüyor.
 - [ ] Panel/jeneratör ve diğer seçim modelleri kapanıyor; su, tarla ve ağaçlar ilk duruma dönüyor.
 - [ ] Kamera normal takip ve zoom değerlerine, hız sıfıra dönüyor; giriş yeniden başlatılabiliyor.
 - [ ] En az üç ardışık farklı oynanışta önceki seçim veya görsel sızıntısı yok.
-- [ ] Hikâye babanın rahatsızlığına teşhis, iklim kaynaklı neden veya otomatik iyileşme göstermiyor.
+- [ ] Giriş kısa köye dönüş ve yaklaşan kuraklık anlatısı; hastalık veya NPC görevi yok.
 
 ## Windows teslimi
 

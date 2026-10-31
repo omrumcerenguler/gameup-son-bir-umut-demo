@@ -2,7 +2,7 @@
 
 ## Durum ve dal
 
-Bu sürüm **feature/complete-demo** dalındadır. `main` önceki tek istasyonlu prototipte bırakıldı; otomatik merge yapılmaz. Mac üzerinde Unity yoktur. Yeni hareket ve tam demo Unity'de doğrulanmadı; saf C# testleri **39/39** geçti.
+Bu sürüm **feature/polish-backup-demo** dalındadır. `main` ve kaynak `feature/complete-demo` değiştirilmez; otomatik merge yapılmaz. Mac üzerinde Unity yoktur. Kullanıcının aktarımına göre Hakan kaynak complete-demo dalını üç kararla Eksik Dönüşüm finaline kadar oynadı. Bu polish sürümü Unity'de henüz doğrulanmadı; saf C# testleri **54/54** geçti.
 
 ## 1. Kaynakları güvenle al
 
@@ -10,11 +10,11 @@ Bu sürüm **feature/complete-demo** dalındadır. `main` önceki tek istasyonlu
 
 ```sh
 git fetch origin
-git switch feature/complete-demo
-git pull --ff-only origin feature/complete-demo
+git switch feature/polish-backup-demo
+git pull --ff-only origin feature/polish-backup-demo
 ```
 
-İlk klonlamada `git clone --branch feature/complete-demo git@github.com:omrumcerenguler/gameup-son-bir-umut-demo.git` kullanılabilir. Bu Windows'taki ekip kurulumu içindir; mevcut Mac çalışma klasöründe yeni klon oluşturulmaz.
+İlk klonlamada `git clone --branch feature/polish-backup-demo git@github.com:omrumcerenguler/gameup-son-bir-umut-demo.git` kullanılabilir. Bu Windows'taki ekip kurulumu içindir; mevcut Mac çalışma klasöründe yeni klon oluşturulmaz.
 
 1. Unity Hub'da **Unity 6.3 LTS (6000.3.x)** kullan; tam patch sürümünü test kaydına yaz.
 2. Mevcut **Universal 3D (URP)** veya **3D Built-in** test projesini kullan. Yeni proje gerekiyorsa bu iki şablondan biriyle depodan ayrı konumda oluştur. HDRP desteklenmez. UnityAssets klasörü doğrudan proje değildir.
@@ -34,7 +34,9 @@ Input sembollerini elle tanımlama. Yeni backend'de güncelleme modu **Process E
 
 Console'u aç (**Window > General > Console**); import/derleme bitene kadar bekle. İlk kırmızı hata başka bir scriptte de olsa önce onu çöz. Bu Mac'te gerçek Unity derlemesi yapılmadı.
 
-## 3. Yeni tam demo sahnesi
+## 3. Mevcut sahneyi kullan veya yeni tam demo sahnesi oluştur
+
+Mevcut üç noktalı CompleteDemo sahnesi güncel scriptlerle kullanılabilir; bu aşamada Scene Builder, modeller ve referans alanları değişmedi. Yeniden üretmek zorunlu değildir. Yeni sahne istersen:
 
 1. Play'i durdur, Prefab düzenleme modundan çık. Açık sahnelerde kaydedilmemiş değişiklik varsa kendin kaydet veya geri al; araç bunları kaydetmez veya atmaz.
 2. **Tools > GameUP > Create Demo Scene** seç.
@@ -61,8 +63,8 @@ Aşağıdaki saf C# sonuçlarını Unity'de karşılaştır (sıra: bütçe / en
 | Enerji → Su → Tarım | Son değerler | Beklenen final |
 | --- | --- | --- |
 | Güneş → Verimlilik → Doğal alanı koru | 20 / 55 / 42 / 59 / 0 | Yeniden Doğuş |
-| Dizel → Pompa → Sulama | 35 / 70 / 43 / 73 / 18 | Eksik Dönüşüm |
-| Güneş → Mevcut düzen → Depola | 40 / 55 / 17 / 8 / 1 | Kaybedilen Gelecek |
+| Dizel → Pompa → Sulama | 45 / 70 / 43 / 73 / 18 | Eksik Dönüşüm |
+| Güneş → Mevcut düzen → Depola | 40 / 55 / 17 / 8 / 0 | Kaybedilen Gelecek |
 
 Ek kontroller:
 
@@ -71,11 +73,22 @@ Ek kontroller:
 - Aynı noktaya dönmek ikinci seçim veya ikinci maliyet üretmemeli.
 - Panel/jeneratör/tasarruf, pompa/vana/uyarı ve koruma/sulama/depolama grupları seçime göre açılmalı.
 - Su çubuğu kaynakla değişmeli; bitki sağlığı ≥55 yeşil, 30–54 sarı, daha azı kuru görünmeli. Tarlanın rengi de değişmeli.
-- Üçüncü kararda final başlığı ve üç kararın net etkisi görünmeli. Kamera yumuşakça uzaklaşıp/yükselip köyü sol tarafta göstermeli; yeni harita yüklenmemeli.
+- Üçüncü kararda final başlığı, su/tarım/doğa özeti, öne çıkan iki karar ve süren risk görünmeli. Kamera yumuşakça uzaklaşıp/yükselip köyü sol tarafta göstermeli; yeni harita yüklenmemeli.
 - Finalde karakter durmalı. Yeniden Oyna; tüm kaynak, görsel, ilerleme, kamera, oyuncu ve hız durumunu sıfırlayıp girişe dönmeli. Birkaç farklı diziyle arka arkaya dene.
 - İlk kez oynayan ekip üyesinin süresini ölç. **3–5 dakika hedeftir; henüz ölçülmedi.** Gerekiyorsa metin ve hareket hissi için geri bildirim yaz; yapay bekleme eklenmedi.
 
-Formüller [DECISIONS](DECISIONS.md), 27 dizi [DECISION_MATRIX](DECISION_MATRIX.md) içindedir. Bu puanlar bilimsel ölçüm değildir. Jeneratör anlık sıcaklık artışı oluşturmaz; hikâye tıbbi neden/iyileşme iddiası içermez.
+Formüller [DECISIONS](DECISIONS.md), 27 dizi [DECISION_MATRIX](DECISION_MATRIX.md) içindedir. Bu puanlar bilimsel ölçüm değildir. Jeneratör anlık sıcaklık artışı oluşturmaz; giriş yaklaşan kuraklığa odaklanır; hastalık veya NPC görevi içermez.
+
+## Bu aşamanın öncelikli anlaşılabilirlik kontrolü
+
+- Yeni başlık **Son Bir Umut: Kuraklıktan Önce**; kısa köye dönüş anlatımı, hastalık anlatımı yok.
+- Ana hedef, 0/3–3/3 ilerleme, sıradaki nokta ve kritik kaynak uyarısı kart/final dahil görünür kalmalı.
+- Her kararın problem cümlesi; her kartın Kazanç / Bedeli / Sonrası bölümleri okunmalı.
+- İlk güneş seçimi **40 / 55 / 32 / 41 / 0**: seçim bitki **0**, emisyon **0**; tur su kullanımı **-8**, su koşulu bitki **-8**, kuraklık bitki **-6**. Bitkideki net **-14** güneş hasarı olarak sunulmamalı.
+- Alt soldaki bildirimde seçilen eylem, bütçe, ayrı bileşenler ve net sonuç görünmeli. **×** veya **Esc** hemen kapatmalı, 10 saniyede kendiliğinden kapanmalı; hareketi veya E ile sonraki etkileşimi kilitlememeli. Merkezdeki değişen nesneyi örtmediğini kontrol et.
+- Sulama şimdi 5 bütçe ve 20 su harcar. **Güneş → pompa → sulama: 10 / 55 / 46 / 73 / 0, Yeniden Doğuş** olmalı. Koruma yoluyla su/bitki ödünleşimini karşılaştır.
+- Finalde stok, tarım/doğa ortak göstergesi ve karar gerekçeleri okunmalı. Su kalitesinin veya ayrı ürün veriminin ölçüldüğü izlenimi oluşmamalı.
+- 1280×720 ve 1920×1080'de kart, bildirim ve final metinlerinin kırpılmadığını dene. Yeni arayüz bu Mac'te render edilmedi.
 
 ## 6. Eski prototip ve sahne güvenliği
 
@@ -106,4 +119,4 @@ Test kaydı: commit, tam Unity sürümü, pipeline, input modu, Windows sürüm�
 
 Mevcut .NET 8/9 ile `dotnet run --project Tests/LogicTests/LogicTests.csproj --configuration Release -- --report docs/DECISION_MATRIX.md` çalışır. Harici NuGet paketi yoktur. Sonuçlar [TEST_RESULTS](TEST_RESULTS.md) içinde; bu testler Unity input/fizik testi değildir.
 
-Düzeltmeleri feature/complete-demo dalına, açık dosya yollarıyla ve staged içerik kontrolüyle commit et. `git add .`, `git add -A`, `git add -f`, force push veya otomatik main merge kullanma. Yerel kişisel belgeleri ve ekran görüntülerini değiştirme/ekleme. Test bin/obj, Unity Library/Temp, SDK ve build çıktıları izlenmez.
+Düzeltmeleri feature/polish-backup-demo dalına, açık dosya yollarıyla ve staged içerik kontrolüyle commit et. `git add .`, `git add -A`, `git add -f`, force push veya otomatik main merge kullanma. Yerel kişisel belgeleri ve ekran görüntülerini değiştirme/ekleme. Test bin/obj, Unity Library/Temp, SDK ve build çıktıları izlenmez.

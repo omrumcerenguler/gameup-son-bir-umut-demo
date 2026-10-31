@@ -1,8 +1,8 @@
-# Mimari — tamamlanabilir demo
+# Mimari — anlaşılır kararlar / polish
 
 ## Sınırlar ve durum
 
-Unity 6.3 LTS / Windows hedefi. Tek primitive harita, üç karar ve üç final vardır. Gerçek Unity projesi, sahne veya `.meta` bu Mac üzerinde üretilmez. `UnityAssets/SonBirUmutDemo` kaynakların asıl konumudur; Windows test projesine kopyalanır. Editor/oynanış doğrulaması Hakan veya Enes'tedir.
+Unity 6.3 LTS / Windows hedefi. Tek primitive harita, üç karar ve üç final vardır. Gerçek Unity projesi, sahne veya `.meta` bu Mac üzerinde üretilmez. `UnityAssets/SonBirUmutDemo` kaynakların asıl konumudur; Windows test projesine kopyalanır. Kaynak complete-demo dalının oynanışı kullanıcı aktarımıyla doğrulandı; yeni polish arayüzünün Editor/oynanış doğrulaması Hakan veya Enes'tedir.
 
 ## Sorumluluklar
 
@@ -11,10 +11,13 @@ Unity 6.3 LTS / Windows hedefi. Tek primitive harita, üç karar ve üç final v
 | `ResourceState` | Değiştirilemeyen kaynak anlık durumu ve sınırları |
 | `DecisionCatalog` | Üç nokta, dokuz seçenek, maliyetler ve etki türleri |
 | `SimulationRules` | Su tüketimi, pompa, bitki desteği, kuraklık ve uygulanabilirlik hesabı |
+| `TurnBreakdown` | Seçim, tur su kullanımı, su koşulu, kuraklık ve sınır düzeltmelerinin ayrımı |
+| `DecisionMessaging` | Hesap kayıtlarından kart, bildirim ve kritik kaynak açıklaması |
+| `EndingSummary` | Mevcut durum/karar ID'lerinden su, tarım, doğa, iki karar ve risk açıklaması |
 | `DecisionPreview`, `DecisionRecord` | Net etkiler ve önceki/sonraki durumla seçim geçmişi |
 | `GameSession` | Enerji → su → tarım sırası, tek uygulama, oturum ve final |
 | `EndingResult` | Birden fazla kaynağa dayalı üç sonuç kategorisi ve açıklaması |
-| `DemoGameController` | Giriş anlatımı, oynama/kart/final akışı ve Unity referansları |
+| `DemoGameController` | Giriş anlatımı, oynama/kart/final akışı, kapatılabilir bildirim ve Unity referansları |
 | `DemoStory` | Merkezi, kolay değiştirilebilir giriş, hedef ve kapanış metni |
 | `DemoInput` | Koşullu eski/yeni klavye API'si; Both/Old IMGUI gereksinimi |
 | `DemoPlayerMotor` | Korunan CharacterController; yatay hız ve Y dönüşü yumuşatması |
@@ -32,7 +35,7 @@ Unity 6.3 LTS / Windows hedefi. Tek primitive harita, üç karar ve üç final v
 1. Sahne oluşturucu mevcut köyü yeni bir sahne olarak kurar; enerji istasyonu korunur, su/tarım noktaları eklenir.
 2. Oturum başlangıç değerleriyle açılır; giriş metni açıkken hareket kilitlidir. Enter/Başla keşfi başlatır.
 3. Yalnızca sıradaki noktanın menzilinde E kartları açar. Kart açıkken yatay hız aynı karede sıfırlanır; yerçekimi sürer.
-4. Her kart `GameSession.GetPreview` üzerinden gerçek maliyeti ve tur sonu net etkilerini okur. Karşılanamayan seçenek açıklamayla devre dışıdır.
+4. Her kart `GameSession.GetPreview` üzerinden gerçek maliyeti, ayrı seçim/tur/kuraklık bileşenlerini ve tur sonu net etkilerini okur. Karşılanamayan seçenek açıklamayla devre dışıdır.
 5. `TryChoose` aynı hesapla doğrular; reddedilen seçim hiçbir durum veya geçmişi değiştirmez. Kabul edilen seçim tam bir tur ilerletir.
 6. Görsel gruplar ve `DemoWorldView` yeni durumu gösterir. Emisyon bitkiye veya sıcaklığa anlık etki etmez.
 7. Üçüncü karardan sonra `EndingResult` hesaplanır; hareket kilitlenir. Kamera aynı açıda uzaklaşıp köyü sonuç panelinin solunda çerçeveler.
@@ -52,6 +55,10 @@ Araç `SonBirUmutCompleteDemo.unity` ve `Generated/CompleteDemo...` için benzer
 
 `EnergyStation` sınıfı ve eski serileştirilmiş `player`, `station`, kamera `target`, hareket `speed` alanları korunur. Eski sahnelerde yeni `completeDemo` alanı false olduğundan tek noktalı akış sürer. Üç noktalı akış yalnızca yeni sahne oluşturucunun `ConfigureCompleteDemo` çağrısıyla açılır. Birebir eski denge ve kod `main` dalındadır; mevcut feature dalında tasarruf ücretsizdir.
 
+## Bu aşamada korunanlar
+
+CharacterController, kamera, Input adaptörü, EnergyStation/DecisionStation, DemoWorldView, Scene Builder ve EndingResult eşik dosyaları değiştirilmedi. Yeni harita veya model yoktur. Giriş metni ve kart ödünleşimleri merkezidir. İki sayısal değişiklik güneş emisyonu 0 ve sulama bütçesi 5'tir; ayrıntı [POLISH_DESIGN](POLISH_DESIGN.md) içindedir.
+
 ## Açık doğrulamalar
 
-C# mantığı otomatik test edildi; Unity API tür denetimi, Editor derlemesi, input/fizik, görsel kadraj, eski sahne uyumu, 3–5 dakika hedefi ve Windows build henüz test edilmedi. [Test listesi](../UNITY_TEST_CHECKLIST.md) bu ayrımı korur. Hikâye tıbbi nedensellik veya iyileşme sistemi içermez.
+C# mantığı otomatik test edildi; Unity API tür denetimi, Editor derlemesi, input/fizik, görsel kadraj, eski sahne uyumu, 3–5 dakika hedefi ve Windows build henüz test edilmedi. [Test listesi](../UNITY_TEST_CHECKLIST.md) bu ayrımı korur. Yeni giriş hastalık veya ayrı hikâye görevi içermez.
