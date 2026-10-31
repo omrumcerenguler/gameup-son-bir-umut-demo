@@ -30,19 +30,21 @@ namespace SonBirUmutDemo.World
             { shownRun = game.Run; visualPressure = (float)game.Run.CrisisPressure / 100; }
             visualPressure = Mathf.MoveTowards(visualPressure, (float)game.Run.CrisisPressure / 100,
                 transitionSpeed * Time.unscaledDeltaTime);
-            float p = Mathf.Clamp01(visualPressure);
-            sun.color = Color.Lerp(oldSunColor, new Color(.83f, .86f, .89f), p * .65f);
-            sun.intensity = oldIntensity * Mathf.Lerp(1f, .85f, p);
-            RenderSettings.ambientLight = Color.Lerp(oldAmbient, new Color(.54f, .58f, .61f), p * .65f);
-            view.backgroundColor = Color.Lerp(oldBackground, new Color(.57f, .63f, .65f), p * .65f);
+            var profile = new AtmosphereProfile(visualPressure * 100,
+                Vector3.Distance(view.transform.position, game.PlayerPosition));
+            float p = (float)profile.Haze;
+            sun.color = Color.Lerp(oldSunColor, new Color(.83f, .86f, .89f), p * .8f);
+            sun.intensity = oldIntensity * Mathf.Lerp(1f, .78f, p);
+            RenderSettings.ambientLight = Color.Lerp(oldAmbient, new Color(.54f, .58f, .61f), p * .8f);
+            view.backgroundColor = Color.Lerp(oldBackground, new Color(.57f, .63f, .65f), p * .8f);
             if (useBasicFog && supportsFog)
             {
                 RenderSettings.fog = true;
                 RenderSettings.fogMode = FogMode.Linear;
                 RenderSettings.fogColor = view.backgroundColor;
-                // Keep the player (~22 units from follow camera), roads and markers clear.
-                RenderSettings.fogStartDistance = Mathf.Lerp(38, 24, p);
-                RenderSettings.fogEndDistance = Mathf.Lerp(100, 75, p);
+                // Protect player/near roads even during follow lag and the final overview.
+                RenderSettings.fogStartDistance = (float)profile.FogStart;
+                RenderSettings.fogEndDistance = (float)profile.FogEnd;
             }
             else RestoreFog(); // Light/ambient/background fallback; no pipeline asset changes.
         }

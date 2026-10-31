@@ -73,10 +73,10 @@ namespace SonBirUmutDemo.Editor
             Cube("Yan pencere", house, new Vector3(-1.53f, 1.5f, 0), new Vector3(.1f, .7f, .7f), glass);
         }
 
-        public Renderer Tree(Transform parent, Vector3 position, Material foliage, out GameObject dryBranches)
+        public Renderer Tree(Transform parent, Vector3 position, Material foliage, out GameObject dryBranches, bool solid = true)
         {
             var root = Group("Çokgen ağaç - sağlık görünümü", parent, position);
-            Cube("Gövde", root, new Vector3(0, 1, 0), new Vector3(.4f, 2, .4f), timber, true);
+            Cube("Gövde", root, new Vector3(0, 1, 0), new Vector3(.4f, 2, .4f), timber, solid);
             var crown = Shape("Yaprak tacı", root, new Vector3(0, 2.45f, 0), new Vector3(2.8f, 2.6f, 2.5f), canopy, foliage);
             var dry = Group("Kurumuş dallar", root, Vector3.zero);
             foreach (float side in new[]
@@ -96,15 +96,18 @@ namespace SonBirUmutDemo.Editor
             return crown.GetComponent<Renderer>();
         }
 
-        public void VillageDetails(Transform environment)
+        public void VillageDetails(Transform environment, bool expanded = false)
         {
             var root = Group("Köy detayları", environment, Vector3.zero);
-            Path(root, new Vector3(-9, 0, -8), new Vector3(1, 0, -4), 1.4f);
-            Path(root, new Vector3(1, 0, -4), new Vector3(3, 0, -2), 1.5f);
-            Path(root, new Vector3(1, 0, -2), new Vector3(-2, 0, 3), 1.3f);
-            Path(root, new Vector3(2, 0, -4), new Vector3(6, 0, -7.5f), 1.3f);
+            if (!expanded)
+            {
+                Path(root, new Vector3(-9, 0, -8), new Vector3(1, 0, -4), 1.4f);
+                Path(root, new Vector3(1, 0, -4), new Vector3(3, 0, -2), 1.5f);
+                Path(root, new Vector3(1, 0, -2), new Vector3(-2, 0, 3), 1.3f);
+                Path(root, new Vector3(2, 0, -4), new Vector3(6, 0, -7.5f), 1.3f);
+            }
             for (int i = 0; i < 9; i++)
-                Fence(root, new Vector3(-12 + i * 3, 0, 10.7f));
+                Fence(root, new Vector3(-12 + i * 3, 0, expanded ? 12.7f : 10.7f));
             for (int i = 0; i < 6; i++)
             {
                 var rock = Shape("Kenar kayası", root, new Vector3(-12.4f + i * 4.6f, .28f, -10.4f), new Vector3(.9f, .65f, .75f), head, stone);

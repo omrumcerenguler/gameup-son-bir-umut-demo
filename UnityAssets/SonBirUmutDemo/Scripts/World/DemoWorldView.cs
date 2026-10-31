@@ -33,6 +33,10 @@ namespace SonBirUmutDemo.World
         private GameObject dryPondCracks;
         [SerializeField]
         private DemoGameController game;
+        [SerializeField] private Renderer[] ground;
+        [SerializeField] private Transform[] channels;
+        [SerializeField] private Vector3[] channelScales;
+        private float crisisTint;
         private MaterialPropertyBlock colors;
         private GameSession seenSession;
         private float plantView, waterView, targetPlants, targetWater;
@@ -59,6 +63,13 @@ namespace SonBirUmutDemo.World
             dryPondCracks = cracks;
         }
 
+        public void ConfigureTerrain(Renderer[] soil, Transform[] waterChannels)
+        {
+            ground = soil; channels = waterChannels;
+            channelScales = new Vector3[channels.Length];
+            for (int i = 0; i < channels.Length; i++) channelScales[i] = channels[i].localScale;
+        }
+
         public void SetGame(DemoGameController owner) => game = owner;
         public void Apply(ResourceState state)
         {
@@ -72,6 +83,7 @@ namespace SonBirUmutDemo.World
             {
                 plantView = targetPlants;
                 waterView = targetWater;
+                crisisTint = TargetTint();
                 RenderState();
             }
 
@@ -79,10 +91,13 @@ namespace SonBirUmutDemo.World
             initialized = true;
         }
 
+        private float TargetTint() => game != null && game.UsesPlaytestMode ? Mathf.Clamp01(((float)game.Run.CrisisPressure - 60) / 40) : 0;
         private void Update()
         {
-            if (!initialized || (Mathf.Approximately(plantView, targetPlants) && Mathf.Approximately(waterView, targetWater)))
-                return;
+            if (!initialized) return;
+            float tint = Mathf.MoveTowards(crisisTint, TargetTint(), Time.deltaTime * .3f);
+            if (Mathf.Approximately(plantView, targetPlants) && Mathf.Approximately(waterView, targetWater) && Mathf.Approximately(tint, crisisTint)) return;
+            crisisTint = tint;
             plantView = Mathf.MoveTowards(plantView, targetPlants, Time.deltaTime * 45f);
             waterView = Mathf.MoveTowards(waterView, targetWater, Time.deltaTime * 45f);
             RenderState();
@@ -92,7 +107,7 @@ namespace SonBirUmutDemo.World
         {
             bool dry = plantView < 30;
             Color foliage = plantView >= 55 ? new Color(.23f, .58f, .25f) : plantView >= 30 ? new Color(.75f, .57f, .20f) : new Color(.40f, .27f, .16f);
-            Paint(treeCrowns, foliage);
+            Paint(treeCrowns, Color.Lerp(foliage, new Color(.53f, .49f, .38f), crisisTint * .45f));
             if (dryBranches != null && dryBranches.Length > 0)
             {
                 foreach (var branches in dryBranches)
@@ -104,7 +119,18 @@ namespace SonBirUmutDemo.World
                             crown.gameObject.SetActive(!dry);
             }
 
-            Paint(crops, Color.Lerp(new Color(.40f, .24f, .12f), new Color(.25f, .65f, .23f), plantView / 100f));
+            Color cropColor = Color.Lerp(new Color(.40f, .24f, .12f), new Color(.25f, .65f, .23f), plantView / 100f);
+            Paint(crops, Color.Lerp(cropColor, new Color(.55f, .48f, .32f), crisisTint * .45f));
+            Paint(ground, Color.Lerp(Color.Lerp(new Color(.66f, .53f, .31f), new Color(.49f, .55f, .31f), plantView / 100),
+                new Color(.62f, .56f, .43f), crisisTint * .5f));
+            if (channels != null && channelScales != null)
+                for (int i = 0; i < channels.Length && i < channelScales.Length; i++)
+                    if (channels[i] != null)
+                    {
+                        channels[i].gameObject.SetActive(waterView > .01f);
+                        Vector3 size = channelScales[i]; size.x *= Mathf.Lerp(.1f, 1, waterView / 100);
+                        channels[i].localScale = size;
+                    }
             Paint(fieldSoil, Color.Lerp(new Color(.66f, .48f, .28f), new Color(.32f, .29f, .16f), plantView / 100f));
             if (cropRoots != null && cropScales != null)
                 for (int i = 0; i < cropRoots.Length && i < cropScales.Length; i++)

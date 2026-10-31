@@ -28,10 +28,14 @@ namespace SonBirUmutDemo.Editor
         [MenuItem("Tools/GameUP/Create Crisis Demo Scene")]
         public static void CreateCrisisDemoScene() => BuildScene(2);
 
+        [MenuItem("Tools/GameUP/Create Playtest Demo Scene")]
+        public static void CreatePlaytestDemoScene() => BuildScene(3);
+
         private static void BuildScene(int mode)
         {
             bool crisisFoundation = mode != 0;
-            bool crisisDemo = mode == 2;
+            bool crisisDemo = mode >= 2;
+            bool playtest = mode == 3;
             if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling)
                 return;
             if (!DemoInput.SupportsRuntimeUi)
@@ -70,10 +74,10 @@ namespace SonBirUmutDemo.Editor
             EnsureFolder(Root, "Scenes");
             EnsureFolder(Root, "Generated");
             string materialsFolder = AssetDatabase.GenerateUniqueAssetPath(Root + "/Generated/" +
-                (crisisDemo ? "CrisisDemo" : crisisFoundation ? "CrisisFoundation" : "VisualDemo"));
+                (playtest ? "PlaytestDemo" : crisisDemo ? "CrisisDemo" : crisisFoundation ? "CrisisFoundation" : "VisualDemo"));
             AssetDatabase.CreateFolder(Root + "/Generated", System.IO.Path.GetFileName(materialsFolder));
             string scenePath = AssetDatabase.GenerateUniqueAssetPath(Root + "/Scenes/" +
-                (crisisDemo ? "SonBirUmutCrisisDemo.unity" : crisisFoundation ? "SonBirUmutCrisisFoundation.unity" : "SonBirUmutVisualDemo.unity"));
+                (playtest ? "SonBirUmutPlaytestDemo.unity" : crisisDemo ? "SonBirUmutCrisisDemo.unity" : crisisFoundation ? "SonBirUmutCrisisFoundation.unity" : "SonBirUmutVisualDemo.unity"));
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var art = new DemoVisualBuilder(shader, materialsFolder);
             var terrain = Material("DrySoil", new Color(0.66f, 0.53f, 0.31f), shader, materialsFolder);
@@ -87,12 +91,12 @@ namespace SonBirUmutDemo.Editor
             Transform environment = new GameObject("Kırsal harita - Son Bir Umut").transform;
             var treeCrowns = new List<Renderer>();
             var dryTrees = new List<GameObject>();
-            Primitive("Zemin", PrimitiveType.Cube, environment, new Vector3(0, -0.25f, 0), new Vector3(28, 0.5f, 24), terrain);
-            // Invisible boundaries keep the character on the small map.
-            Boundary(environment, new Vector3(-14, 1, 0), new Vector3(0.3f, 3, 24));
-            Boundary(environment, new Vector3(14, 1, 0), new Vector3(0.3f, 3, 24));
-            Boundary(environment, new Vector3(0, 1, -12), new Vector3(28, 3, 0.3f));
-            Boundary(environment, new Vector3(0, 1, 12), new Vector3(28, 3, 0.3f));
+            float mapWidth = playtest ? 32 : 28, mapDepth = playtest ? 28 : 24;
+            var ground = Primitive("Zemin", PrimitiveType.Cube, environment, new Vector3(0, -.25f, 0), new Vector3(mapWidth, .5f, mapDepth), terrain);
+            Boundary(environment, new Vector3(-mapWidth / 2, 1, 0), new Vector3(.3f, 3, mapDepth));
+            Boundary(environment, new Vector3(mapWidth / 2, 1, 0), new Vector3(.3f, 3, mapDepth));
+            Boundary(environment, new Vector3(0, 1, -mapDepth / 2), new Vector3(mapWidth, 3, .3f));
+            Boundary(environment, new Vector3(0, 1, mapDepth / 2), new Vector3(mapWidth, 3, .3f));
             foreach (Vector3 position in new[]
             {
                 new Vector3(-7, 0, 3),
@@ -105,32 +109,37 @@ namespace SonBirUmutDemo.Editor
                 art.House(environment, position);
             }
 
-            foreach (Vector3 position in new[]
-            {
-                new Vector3(-10, 0, 8),
-                new Vector3(-10, 0, -8),
-                new Vector3(9, 0, -8),
-                new Vector3(10, 0, -3),
-                new Vector3(0, 0, 8)
-            }
-
-            )
+            var treePositions = playtest ? new[] {
+                new Vector3(-13,0,7), new Vector3(-10,0,-8), new Vector3(13,0,-11),
+                new Vector3(13,0,-3), new Vector3(1,0,11)
+            } : new[] {
+                new Vector3(-10,0,8), new Vector3(-10,0,-8), new Vector3(9,0,-8),
+                new Vector3(10,0,-3), new Vector3(0,0,8)
+            };
+            foreach (var position in treePositions)
             {
                 treeCrowns.Add(art.Tree(environment, position, leaves, out var dryTree));
                 dryTrees.Add(dryTree);
             }
-
             var waterPoint = CreateWaterStation(environment, metal, water, green, yellow, out var waterGauge);
             var farmPoint = CreateFarmStation(environment, terrain, wood, leaves, water, green, art, out var crops, out var cropRoots, out var fieldSoil);
-            art.VillageDetails(environment);
+            art.VillageDetails(environment, playtest);
+            DemoPlaytestBuilder playtestArt = playtest ? new DemoPlaytestBuilder(shader, materialsFolder) : null;
+            Transform[] channels = playtest ? playtestArt.Enrich(environment, art, leaves, treeCrowns, dryTrees) : null;
+            if (playtest)
+            {
+                waterPoint.transform.localPosition = new Vector3(-8, 0, 8);
+                farmPoint.transform.localPosition = new Vector3(8, 0, -7);
+            }
             var pond = CreatePond(environment, terrain, water, wood, out var cracks);
             var world = environment.gameObject.AddComponent<DemoWorldView>();
             world.Configure(treeCrowns.ToArray(), crops, waterGauge);
             world.ConfigurePresentation(dryTrees.ToArray(), cropRoots, new[] { fieldSoil }, pond, cracks);
+            if (playtest) world.ConfigureTerrain(new[] { ground.GetComponent<Renderer>() }, channels);
             world.Apply(ResourceState.Initial());
             var stationObject = new GameObject("01 - ENERJİ İSTASYONU");
             stationObject.transform.SetParent(environment, false);
-            stationObject.transform.localPosition = new Vector3(3, 0, 0);
+            stationObject.transform.localPosition = playtest ? new Vector3(8, 0, 1) : new Vector3(3, 0, 0);
             var station = stationObject.AddComponent<EnergyStation>();
             Primitive("İstasyon kaidesi", PrimitiveType.Cube, stationObject.transform, new Vector3(0, 0.15f, 0), new Vector3(3, 0.3f, 2), metal);
             Primitive("Kontrol kutusu", PrimitiveType.Cube, stationObject.transform, new Vector3(0, 0.85f, 0.35f), new Vector3(0.8f, 1.1f, 0.5f), yellow);
@@ -203,8 +212,16 @@ namespace SonBirUmutDemo.Editor
                     CreateCrisisMarker(game, waterPoint.transform, DecisionCatalog.WaterStationId, yellow, emergencyRed),
                     CreateCrisisMarker(game, farmPoint.transform, DecisionCatalog.FarmStationId, yellow, emergencyRed)
                 };
-                game.ConfigureCrisisDemo(markers);
+                if (playtest) game.ConfigurePlaytest(markers);
+                else game.ConfigureCrisisDemo(markers);
             }
+            if (playtest)
+            {
+                playtestArt.Feedback(game, station.transform, DecisionCatalog.EnergyStationId, panels);
+                playtestArt.Feedback(game, waterPoint.transform, DecisionCatalog.WaterStationId, null);
+                playtestArt.Feedback(game, farmPoint.transform, DecisionCatalog.FarmStationId, null);
+            }
+            motor.ConfigureSprint(playtest ? 1.9f : 1.6f);
             motor.Configure(game, cameraObject.transform);
             characterVisual.SetGame(game);
             world.SetGame(game);
