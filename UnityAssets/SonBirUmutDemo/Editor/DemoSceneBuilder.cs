@@ -20,13 +20,18 @@ namespace SonBirUmutDemo.Editor
     {
         private const string Root = "Assets/SonBirUmutDemo";
         [MenuItem("Tools/GameUP/Create Demo Scene")]
-        public static void CreateDemoScene() => BuildScene(false);
+        public static void CreateDemoScene() => BuildScene(0);
 
         [MenuItem("Tools/GameUP/Create Crisis Foundation Scene")]
-        public static void CreateCrisisFoundationScene() => BuildScene(true);
+        public static void CreateCrisisFoundationScene() => BuildScene(1);
 
-        private static void BuildScene(bool crisisFoundation)
+        [MenuItem("Tools/GameUP/Create Crisis Demo Scene")]
+        public static void CreateCrisisDemoScene() => BuildScene(2);
+
+        private static void BuildScene(int mode)
         {
+            bool crisisFoundation = mode != 0;
+            bool crisisDemo = mode == 2;
             if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling)
                 return;
             if (!DemoInput.SupportsRuntimeUi)
@@ -65,10 +70,10 @@ namespace SonBirUmutDemo.Editor
             EnsureFolder(Root, "Scenes");
             EnsureFolder(Root, "Generated");
             string materialsFolder = AssetDatabase.GenerateUniqueAssetPath(Root + "/Generated/" +
-                (crisisFoundation ? "CrisisFoundation" : "VisualDemo"));
+                (crisisDemo ? "CrisisDemo" : crisisFoundation ? "CrisisFoundation" : "VisualDemo"));
             AssetDatabase.CreateFolder(Root + "/Generated", System.IO.Path.GetFileName(materialsFolder));
             string scenePath = AssetDatabase.GenerateUniqueAssetPath(Root + "/Scenes/" +
-                (crisisFoundation ? "SonBirUmutCrisisFoundation.unity" : "SonBirUmutVisualDemo.unity"));
+                (crisisDemo ? "SonBirUmutCrisisDemo.unity" : crisisFoundation ? "SonBirUmutCrisisFoundation.unity" : "SonBirUmutVisualDemo.unity"));
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var art = new DemoVisualBuilder(shader, materialsFolder);
             var terrain = Material("DrySoil", new Color(0.66f, 0.53f, 0.31f), shader, materialsFolder);
@@ -190,6 +195,16 @@ namespace SonBirUmutDemo.Editor
                 game.ConfigureCrisisFoundation();
                 gameObject.AddComponent<DemoCrisisAtmosphere>().Configure(game, light, camera);
             }
+            if (crisisDemo)
+            {
+                var emergencyRed = Material("EmergencyRed", new Color(.94f, .25f, .12f), shader, materialsFolder);
+                var markers = new[] {
+                    CreateCrisisMarker(game, station.transform, DecisionCatalog.EnergyStationId, yellow, emergencyRed),
+                    CreateCrisisMarker(game, waterPoint.transform, DecisionCatalog.WaterStationId, yellow, emergencyRed),
+                    CreateCrisisMarker(game, farmPoint.transform, DecisionCatalog.FarmStationId, yellow, emergencyRed)
+                };
+                game.ConfigureCrisisDemo(markers);
+            }
             motor.Configure(game, cameraObject.transform);
             characterVisual.SetGame(game);
             world.SetGame(game);
@@ -197,8 +212,35 @@ namespace SonBirUmutDemo.Editor
             if (!EditorSceneManager.SaveScene(scene, scenePath))
                 throw new InvalidOperationException("Demo sahnesi kaydedilemedi. Console ve dosya izinlerini kontrol edin.");
             Selection.activeGameObject = playerObject;
-            Debug.Log((crisisFoundation ? "Kriz Nöbeti altyapı" : "Üç karar görsel") + " demo sahnesi oluşturuldu: " +
+            Debug.Log((crisisDemo ? "Kriz Nöbeti" : crisisFoundation ? "Kriz Nöbeti altyapı" : "Üç karar görsel") + " demo sahnesi oluşturuldu: " +
                 scenePath + ". Game görünümünü açıp Play'e basın. Unity çalışma testi henüz yapılmalıdır.");
+        }
+
+        private static CrisisStationMarker CreateCrisisMarker(DemoGameController game, Transform station,
+            string id, Material yellow, Material red)
+        {
+            // These are siblings of all option groups. ShowChoice cannot deactivate them.
+            var maintenance = Group("Bakım işareti - daima aktif istasyon kökü", station);
+            Primitive("Bakım zemin halkası", PrimitiveType.Cylinder, maintenance,
+                new Vector3(0, .045f, -2.2f), new Vector3(1.2f, .035f, 1.2f), yellow, false);
+            var diamond = Primitive("Bakım elması", PrimitiveType.Cube, maintenance,
+                new Vector3(0, 3.2f, 0), Vector3.one * .38f, yellow, false);
+            diamond.transform.localRotation = Quaternion.Euler(0, 0, 45);
+            GameObject emergency = null;
+            if (id == DecisionCatalog.WaterStationId)
+            {
+                var group = Group("ACİL su hattı işareti - seçeneklerden bağımsız", station);
+                Primitive("Arıza uyarı çizgisi", PrimitiveType.Cube, group,
+                    new Vector3(0, 3.3f, 0), new Vector3(.22f, .85f, .22f), red, false);
+                Primitive("Arıza uyarı noktası", PrimitiveType.Sphere, group,
+                    new Vector3(0, 2.68f, 0), Vector3.one * .24f, red, false);
+                Primitive("Onarım alanı", PrimitiveType.Cylinder, group,
+                    new Vector3(0, .055f, -2.2f), new Vector3(1.5f, .04f, 1.5f), red, false);
+                emergency = group.gameObject;
+            }
+            var marker = station.gameObject.AddComponent<CrisisStationMarker>();
+            marker.Configure(game, id, maintenance.gameObject, emergency);
+            return marker;
         }
 
         private static DecisionStation CreateWaterStation(Transform environment, Material metal, Material water, Material green, Material yellow, out Transform gauge)

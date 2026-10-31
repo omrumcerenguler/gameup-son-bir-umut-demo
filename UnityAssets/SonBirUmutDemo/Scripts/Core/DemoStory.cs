@@ -12,11 +12,22 @@ namespace SonBirUmutDemo.Core
             "Ailemin ve komşularımızın geleceği için enerji, su ve doğal yaşam hakkında üç karar vermeliyim. " +
             "Ama bir sorunu çözmek, başka bir kaynağı tüketebilir.\n\n" + MainGoal;
         public const string Controls = "WASD ile dolaş, Sol Shift ile koş. İşaretli noktada E'ye bas. Üç karttan birini seç; Esc ile kapat. Kart açıkken hareket ve sayaç durur.";
-        public const string CrisisIntroduction = "Kuraklık köyün kaynaklarını zorluyor. Enerji, su ve tarım noktalarını sırayla araştır; üç stratejik karar ver.\n\n" +
-            "Bu deneysel altyapıda sayaç yalnız serbest dolaşırken işler. Üç kararın ardından kriz aşamasında köyü inceleyebilirsin. Süre bitince hazırlığının sonucu gösterilir.\n\n" +
-            "Bakım müdahaleleri ve acil arıza sonraki aşamada eklenecek. Kriz baskısı gerçek iklim ölçümü değildir.";
+        public const string CrisisIntroduction = "İklim değişikliği yağış düzenini bozuyor; kuraklık köyün su ve yaşam kaynaklarını zorluyor.\n\n" +
+            "Üç karar ver, köyün altyapısını onar ve kriz baskısını düşürerek kuraklığa hazırlan. Önce sarı işaretli enerji istasyonuna git; E ile karar ver. Sonra su ve tarım noktalarını araştır.\n\n" +
+            "Üç bakım noktasını denetle; acil su hattı arızasında depoya koş ve E'yi basılı tut. En az iki bakım ve arıza değerlendirmesinden sonra baskıyı HUD'daki sınırın altında belirtilen süre koru.";
+        public const string FoundationIntroduction = "Köyün kuraklığa hazırlığı için enerji, su ve tarım hakkında üç karar ver. " +
+            "Bu temel sahnede aktif nöbet süresi ve kriz baskısını izleyebilirsin. Kart açıkken sayaç durur. Süre sonunda mevcut hazırlığın değerlendirilir.";
+        public const string CrisisControls = "WASD yürü • Sol Shift koş • E karar/bakım • Arızada E basılı tut. " +
+            "Bırakmak veya uzaklaşmak onarımı sıfırlar; onarım sırasında sayaç işler.";
         public const string BalanceNote = "Değerler örnek oyun puanlarıdır. Kuraklık dışsal baskıdır; emisyon anlık sıcaklık artışı oluşturmaz.";
         public const string Closing = "Köy için attığın adımlar bir başlangıç. Başka kararlar, başka bir gelecek mümkün.";
+
+        public static string ShortPointName(string id)
+        {
+            if (id == DecisionCatalog.EnergyStationId) return "Enerji istasyonu";
+            if (id == DecisionCatalog.WaterStationId) return "Su deposu";
+            return "Tarım alanı";
+        }
 
         public static string PointName(string id)
         {

@@ -1,4 +1,5 @@
 using SonBirUmutDemo.Core;
+using SonBirUmutDemo.Decisions;
 using SonBirUmutDemo.Player;
 using SonBirUmutDemo.Simulation;
 using UnityEngine;
@@ -76,6 +77,7 @@ namespace SonBirUmutDemo.UI
                 else
                 {
                     DrawStationMarker();
+                    DrawCrisisActivity();
                     DrawHint();
                 }
 
@@ -90,7 +92,7 @@ namespace SonBirUmutDemo.UI
 
         private void DrawStatus()
         {
-            var state = game.Session.State;
+            var state = game.CurrentResources;
             theme.Panel(new Rect(15, 12, 1250, 153), DemoGuiTheme.Green);
             GUI.Label(new Rect(30, 21, 900, 32), (game.UsesCrisisMode ? "Son Bir Umut: Kriz Nöbeti" : DemoStory.Title), theme.Title);
             if (game.UsesCrisisMode)
@@ -100,7 +102,8 @@ namespace SonBirUmutDemo.UI
                 GUI.Label(new Rect(285, 56, 280, 25), $"KRİZ BASKISI  {game.Run.CrisisPressure:0}/100", theme.Body);
                 DemoGuiTheme.Bar(new Rect(575, 64, 170, 5), (float)game.Run.CrisisPressure / 100, DemoGuiTheme.Gold);
                 GUI.Label(new Rect(760, 56, 245, 25), game.IntroOpen ? "Hazırlan" : game.IsComplete ? "Nöbet bitti" :
-                    game.Run.Phase == GameRunPhase.CrisisManagement ? "Kriz aşaması" : "Stratejik hazırlık", theme.Small);
+                    game.Run.Phase == GameRunPhase.CrisisManagement ? (game.UsesCrisisDemo ?
+                        $"Bakım {game.Run.Crisis.CompletedCount}/3 • {game.Run.Crisis.StableSeconds:0}/{game.Run.CrisisRules.StableDuration:0} sn" : "Kriz aşaması") : "Stratejik hazırlık", theme.Small);
             }
             else GUI.Label(new Rect(30, 56, 900, 25), DemoStory.MainGoal, theme.Small);
             GUI.Label(new Rect(1020, 25, 215, 25), $"HAZIRLIK  {game.Session.CompletedCount}/{game.Session.PointCount}", theme.Body);
@@ -129,9 +132,11 @@ namespace SonBirUmutDemo.UI
             theme.Panel(new Rect(180, 215, 920, 490), DemoGuiTheme.Gold);
             GUI.Label(new Rect(215, 233, 830, 22), "GAMEUP TÜRKİYE 2026   /   KÖYE DÖNÜŞ", theme.Small);
             GUI.Label(new Rect(215, 271, 830, 38), "Bir köy. Üç karar. Bir gelecek.", theme.Title);
-            GUI.Label(new Rect(215, 324, 830, 176), game.UsesCrisisMode ? DemoStory.CrisisIntroduction : DemoStory.Introduction, theme.Body);
-            GUI.Label(new Rect(215, 505, 830, 54), DemoStory.Controls, theme.Small);
-            GUI.Label(new Rect(215, 568, 830, 43), DemoStory.BalanceNote, theme.Tiny);
+            GUI.Label(new Rect(215, 324, 830, 176), game.UsesCrisisDemo ? DemoStory.CrisisIntroduction : game.UsesCrisisMode ? DemoStory.FoundationIntroduction : DemoStory.Introduction, theme.Body);
+            GUI.Label(new Rect(215, 505, 830, 54), (game.UsesCrisisDemo ? DemoStory.CrisisControls : DemoStory.Controls), theme.Small);
+            GUI.Label(new Rect(215, 568, 830, 62), game.UsesCrisisDemo ?
+                $"Hedef: baskı ≤{game.Run.CrisisRules.StableThreshold:0}, istikrar {game.Run.CrisisRules.StableDuration:0} sn; onarım {game.Run.CrisisRules.RepairDuration:0.0} sn.\n" +
+                DemoStory.BalanceNote : DemoStory.BalanceNote, theme.Tiny);
             if (theme.Action(new Rect(430, 640, 420, 44), "Köyü araştırmaya başla  [Enter]"))
                 game.StartGame();
         }
@@ -141,23 +146,37 @@ namespace SonBirUmutDemo.UI
             if (game.NoticeVisible)
                 return;
             theme.Panel(new Rect(250, 658, 780, 46), DemoGuiTheme.Green);
-            GUI.Label(new Rect(270, 670, 740, 26), game.CanInteract ? "[E]  " + DemoStory.PointName(game.Session.CurrentPoint.Id) + " — karar ver" : game.Run.Phase == GameRunPhase.CrisisManagement ? "Hazırlık tamam. Köyü incele; bakım görevleri Aşama 2'de eklenecek." : "WASD  Dolaş  •  Sol Shift  Koş  •  E  Etkileşim", theme.Body);
+            GUI.Label(new Rect(270, 665, 740, 37), game.InteractionHint, theme.Body);
+        }
+
+        private void DrawCrisisActivity()
+        {
+            if (!game.EmergencyActive) return;
+            var incident = game.Run.Crisis.Emergency;
+            theme.Panel(new Rect(250, 562, 780, 85), DemoGuiTheme.Red);
+            GUI.Label(new Rect(270, 574, 740, 24), $"SU HATTINDA ARIZA!  Müdahale için {incident.RemainingSeconds:0.0} sn", theme.Heading);
+            GUI.Label(new Rect(270, 606, 740, 24), $"Su deposuna koş • E basılı onarım: {incident.RepairSeconds:0.0}/{game.Run.CrisisRules.RepairDuration:0.0} sn", theme.Small);
+            DemoGuiTheme.Bar(new Rect(270, 634, 740, 5), (float)incident.RepairFraction, DemoGuiTheme.Blue);
         }
 
         private void DrawStationMarker()
         {
-            int index = game.Session.CompletedCount;
-            if (view == null || stationMarkers == null || index >= stationMarkers.Length || stationMarkers[index] == null)
+            string id = game.TargetStationId;
+            if (id == null) return;
+            int index = id == DecisionCatalog.EnergyStationId ? 0 : id == DecisionCatalog.WaterStationId ? 1 : 2;
+            if (view == null || stationMarkers == null || index >= stationMarkers.Length || stationMarkers[index] == null || scale <= 0)
                 return;
-            Vector3 screen = view.WorldToScreenPoint(stationMarkers[index].position + Vector3.up * 3.2f);
-            if (screen.z <= 0 || scale <= 0)
-                return;
-            float x = (screen.x - canvasOffset.x) / scale;
-            float y = (Screen.height - screen.y - canvasOffset.y) / scale;
-            if (x < 130 || x > 1150 || y < 225 || y > 580)
-                return;
-            theme.Panel(new Rect(x - 125, y - 16, 250, 39), DemoGuiTheme.Gold);
-            GUI.Label(new Rect(x - 114, y - 8, 228, 26), (game.CanInteract ? "[E]  " : "") + DemoStory.PointName(game.Session.CurrentPoint.Id), theme.Small);
+            Vector3 screen = view.WorldToScreenPoint(stationMarkers[index].position + Vector3.up * 3.5f);
+            float rawX = (screen.x - canvasOffset.x) / scale;
+            float rawY = (Screen.height - screen.y - canvasOffset.y) / scale;
+            if (screen.z <= 0) { rawX = 1280 - rawX; rawY = 720 - rawY; }
+            float x = Mathf.Clamp(rawX, 145, 1135);
+            float y = Mathf.Clamp(rawY, 235, game.EmergencyActive ? 530 : 570);
+            bool offscreen = screen.z <= 0 || x != rawX || y != rawY;
+            Color color = game.EmergencyActive ? DemoGuiTheme.Red : DemoGuiTheme.Gold;
+            theme.Panel(new Rect(x - 130, y - 16, 260, 39), color);
+            string prefix = offscreen ? "Yön: " : game.EmergencyActive ? "ACİL: " : "";
+            GUI.Label(new Rect(x - 120, y - 8, 240, 26), prefix + DemoStory.ShortPointName(id), theme.Small);
         }
 
         private void DrawNotification()
@@ -254,7 +273,7 @@ namespace SonBirUmutDemo.UI
                 GUI.Label(new Rect(730, 330, 515, 130), "Görsel köy ve tam demo için Tools menüsünden yeni sahne oluştur.", theme.Body);
             else
             {
-                finalScroll = GUI.BeginScrollView(new Rect(730, 322, 515, 284), finalScroll, new Rect(0, 0, 485, finalTab == 0 ? 555 : 530));
+                finalScroll = GUI.BeginScrollView(new Rect(730, 322, 515, 284), finalScroll, new Rect(0, 0, 485, game.UsesCrisisDemo ? 800 : finalTab == 0 ? 555 : 530));
                 if (finalTab == 0)
                     DrawVillageSummary();
                 else
@@ -271,12 +290,15 @@ namespace SonBirUmutDemo.UI
         private void DrawVillageSummary()
         {
             var summary = game.Result.Summary;
-            GUI.Label(new Rect(0, 0, 480, 130), game.Result.Explanation, theme.Body);
-            SummaryBlock(139, "SU GÜVENLİĞİ", summary.DrinkingWater, DemoGuiTheme.Blue);
-            SummaryBlock(221, "TARIM", summary.Agriculture, DemoGuiTheme.Gold);
-            SummaryBlock(303, "DOĞAL YAŞAM", summary.Nature, DemoGuiTheme.Green);
-            GUI.Label(new Rect(0, 387, 480, 105), summary.RemainingRisk, theme.Body);
-            GUI.Label(new Rect(0, 498, 480, 55), EndingSummary.ProxyNote, theme.Small);
+            float offset = game.UsesCrisisDemo ? 210 : 0;
+            if (game.UsesCrisisDemo)
+                GUI.Label(new Rect(0, 0, 480, 108), game.Result.ManagementSummary, theme.Body);
+            GUI.Label(new Rect(0, game.UsesCrisisDemo ? 115 : 0, 480, game.UsesCrisisDemo ? 225 : 130), game.Result.Explanation, theme.Body);
+            SummaryBlock(139 + offset, "SU GÜVENLİĞİ", summary.DrinkingWater, DemoGuiTheme.Blue);
+            SummaryBlock(221 + offset, "TARIM", summary.Agriculture, DemoGuiTheme.Gold);
+            SummaryBlock(303 + offset, "DOĞAL YAŞAM", summary.Nature, DemoGuiTheme.Green);
+            GUI.Label(new Rect(0, 387 + offset, 480, 105), summary.RemainingRisk, theme.Body);
+            GUI.Label(new Rect(0, 498 + offset, 480, 75), EndingSummary.ProxyNote, theme.Small);
         }
 
         private void SummaryBlock(float y, string title, string text, Color accent)
@@ -301,6 +323,18 @@ namespace SonBirUmutDemo.UI
             GUI.Label(new Rect(0, y + 8, 480, 28), "Öne çıkan iki karar", theme.Heading);
             for (int i = 0; i < game.Result.Summary.KeyDecisions.Count; i++)
                 GUI.Label(new Rect(0, y + 45 + i * 83, 480, 78), game.Result.Summary.KeyDecisions[i], theme.Body);
+            if (game.UsesCrisisDemo)
+            {
+                float taskY = y + 220;
+                GUI.Label(new Rect(0, taskY, 480, 28), "Altyapı müdahaleleri", theme.Heading);
+                foreach (var task in game.Run.Crisis.Tasks)
+                {
+                    taskY += 40;
+                    GUI.Label(new Rect(0, taskY, 480, 38), task.Title + " — " +
+                        (task.Status == MaintenanceStatus.Completed ? "tamamlandı" : "eksik"), theme.Small);
+                }
+                GUI.Label(new Rect(0, taskY + 50, 480, 100), "Kaynak özeti bakım/arıza sonrası güncel durumu kullanır. Yukarıdaki üç kararın net etkileri yalnız stratejik turlara aittir.", theme.Small);
+            }
         }
 
         private void OnDestroy()
