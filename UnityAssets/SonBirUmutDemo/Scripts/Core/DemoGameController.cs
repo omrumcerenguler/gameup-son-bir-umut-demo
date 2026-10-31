@@ -30,7 +30,7 @@ namespace SonBirUmutDemo.Core
         public string ResultMessage { get; private set; } = "";
         public string Objective => Session == null || IsComplete ? "Kararlar tamamlandı." :
             DemoStory.PointName(Session.CurrentPoint.Id) + " noktasını araştır.";
-        public string Feedback => Time.unscaledTime < messageUntil ? ResultMessage : Objective;
+        public bool NoticeVisible => !IntroOpen && !CardsOpen && Time.unscaledTime < messageUntil && !string.IsNullOrEmpty(ResultMessage);
         public bool CanInteract
         {
             get
@@ -86,16 +86,23 @@ namespace SonBirUmutDemo.Core
         {
             if (IntroOpen) { if (DemoInput.StartPressed) StartGame(); return; }
             if (CardsOpen && DemoInput.CancelPressed) CloseCards();
+            else if (!CardsOpen && DemoInput.CancelPressed) DismissNotice();
             else if (!CardsOpen && CanInteract && DemoInput.InteractPressed) CardsOpen = true;
         }
 
         public void StartGame()
         {
             IntroOpen = false;
-            ShowMessage(Objective);
+            DismissNotice();
         }
 
         public void CloseCards() => CardsOpen = false;
+
+        public void DismissNotice()
+        {
+            ResultMessage = "";
+            messageUntil = 0;
+        }
 
         public void Choose(string optionId)
         {
@@ -108,13 +115,13 @@ namespace SonBirUmutDemo.Core
             CardsOpen = false;
             if (world != null) world.Apply(Session.State);
             if (followCamera != null) followCamera.SetOverview(completeDemo && IsComplete);
-            ShowMessage(message);
+            ShowMessage(DecisionMessaging.SelectionFeedback(Session.History[Session.History.Count - 1]));
         }
 
         private void ShowMessage(string message)
         {
             ResultMessage = message;
-            messageUntil = Time.unscaledTime + 6f;
+            messageUntil = Time.unscaledTime + 10f;
         }
 
         public void Restart()
@@ -128,7 +135,7 @@ namespace SonBirUmutDemo.Core
             player.ResetPosition(spawn, spawnRotation);
             if (world != null) world.Apply(Session.State);
             if (followCamera != null) followCamera.ResetView();
-            ShowMessage(Objective);
+            DismissNotice();
         }
     }
 }

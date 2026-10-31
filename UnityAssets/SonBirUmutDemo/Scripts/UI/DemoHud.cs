@@ -11,6 +11,7 @@ namespace SonBirUmutDemo.UI
         private GUIStyle cardTitle;
         private GUIStyle textStyle;
         private GUIStyle smallStyle;
+        private GUIStyle detailStyle;
         private GUIStyle buttonStyle;
         public void Configure(DemoGameController owner) => game = owner;
 
@@ -22,7 +23,8 @@ namespace SonBirUmutDemo.UI
                 titleStyle = new GUIStyle(GUI.skin.label) { fontSize = 25, fontStyle = FontStyle.Bold, wordWrap = true };
                 cardTitle = new GUIStyle(titleStyle) { fontSize = 21 };
                 textStyle = new GUIStyle(GUI.skin.label) { fontSize = 18, wordWrap = true };
-                smallStyle = new GUIStyle(textStyle) { fontSize = 16 };
+                smallStyle = new GUIStyle(textStyle) { fontSize = 15 };
+                detailStyle = new GUIStyle(textStyle) { fontSize = 14 };
                 buttonStyle = new GUIStyle(GUI.skin.button) { fontSize = 18, wordWrap = true };
             }
             Matrix4x4 previous = GUI.matrix;
@@ -36,6 +38,7 @@ namespace SonBirUmutDemo.UI
                 else if (game.CardsOpen) DrawCards();
                 else if (game.IsComplete) DrawEnding();
                 else DrawHint();
+                if (game.NoticeVisible) DrawNotification();
             }
             finally { GUI.matrix = previous; }
         }
@@ -43,16 +46,18 @@ namespace SonBirUmutDemo.UI
         private void DrawStatus()
         {
             var state = game.Session.State;
-            GUI.Box(new Rect(15, 12, 1250, 125), GUIContent.none);
-            GUI.Label(new Rect(30, 18, 1200, 34), DemoStory.Title + $"  |  Kararlar {game.Session.CompletedCount}/{game.Session.PointCount}", titleStyle);
-            GUI.Label(new Rect(30, 58, 1200, 28), $"Bütçe: {state.Budget}   Enerji: {state.Energy}   Su: {state.Water}   Bitki: {state.PlantHealth}   Emisyon: {state.Emissions}", textStyle);
-            GUI.Label(new Rect(30, 94, 1200, 32), game.IntroOpen ? "Köyün geleceği için üç karar." : game.Objective, textStyle);
+            GUI.Box(new Rect(15, 12, 1250, 151), GUIContent.none);
+            GUI.Label(new Rect(30, 18, 1200, 32), DemoStory.Title + $"  |  Kararlar {game.Session.CompletedCount}/{game.Session.PointCount}", titleStyle);
+            GUI.Label(new Rect(30, 53, 1200, 24), "Hedef: " + DemoStory.MainGoal, textStyle);
+            GUI.Label(new Rect(30, 80, 1200, 25), $"Bütçe: {state.Budget}   Enerji: {state.Energy}   Su: {state.Water}   Bitki: {state.PlantHealth}   Emisyon: {state.Emissions}", textStyle);
+            GUI.Label(new Rect(30, 108, 1200, 22), game.IsComplete ? "Kuraklık dönemi: sonuçları incele." : "Sıradaki: " + game.Objective, smallStyle);
+            GUI.Label(new Rect(30, 131, 1200, 27), DecisionMessaging.CriticalResources(state, !game.IsComplete), smallStyle);
         }
 
         private void DrawIntro()
         {
-            GUI.Box(new Rect(180, 155, 920, 535), GUIContent.none);
-            GUI.Label(new Rect(210, 175, 860, 40), "Köye dönüş", titleStyle);
+            GUI.Box(new Rect(180, 173, 920, 517), GUIContent.none);
+            GUI.Label(new Rect(210, 185, 860, 40), "Köye dönüş", titleStyle);
             GUI.Label(new Rect(210, 230, 860, 230), DemoStory.Introduction, textStyle);
             GUI.Label(new Rect(210, 465, 860, 65), DemoStory.Controls, textStyle);
             GUI.Label(new Rect(210, 540, 860, 65), DemoStory.BalanceNote, smallStyle);
@@ -61,65 +66,72 @@ namespace SonBirUmutDemo.UI
 
         private void DrawHint()
         {
-            GUI.Box(new Rect(200, 610, 880, 95), GUIContent.none);
+            if (game.NoticeVisible) return;
+            GUI.Box(new Rect(200, 660, 880, 45), GUIContent.none);
             string hint = game.CanInteract ? "[E] " + DemoStory.PointName(game.Session.CurrentPoint.Id) + " — karar ver" : "WASD: dolaş  |  E: etkileşim";
-            GUI.Label(new Rect(220, 620, 840, 28), hint, textStyle);
-            GUI.Label(new Rect(220, 653, 840, 42), game.Feedback, smallStyle);
+            GUI.Label(new Rect(220, 668, 840, 30), hint, textStyle);
+        }
+
+        private void DrawNotification()
+        {
+            // Only the bottom-left strip is occupied; the changed station stays visible at screen center.
+            GUI.Box(new Rect(15, 600, 690, 105), GUIContent.none);
+            GUI.Label(new Rect(27, 607, 633, 92), game.ResultMessage, detailStyle);
+            if (GUI.Button(new Rect(668, 606, 27, 27), "×")) game.DismissNotice();
         }
 
         private void DrawCards()
         {
             var point = game.Session.CurrentPoint;
             if (point == null) return;
-            GUI.Box(new Rect(55, 150, 1170, 555), GUIContent.none);
-            GUI.Label(new Rect(75, 162, 1130, 40), DemoStory.Question(point.Id), titleStyle);
-            GUI.Label(new Rect(75, 210, 1130, 43), "Net etkiler aşağıdaki kaynaklara ve kuraklık turuna göre hesaplanır. Her karar yalnızca bir kez uygulanır.", smallStyle);
+            GUI.Box(new Rect(55, 173, 1170, 532), GUIContent.none);
+            GUI.Label(new Rect(75, 180, 1130, 33), DemoStory.Question(point.Id), cardTitle);
+            GUI.Label(new Rect(75, 216, 1130, 38), DemoStory.Problem(point.Id), smallStyle);
             for (int i = 0; i < point.Options.Count; i++)
             {
                 var option = point.Options[i];
                 var preview = game.Session.GetPreview(point.Id, option.Id);
                 float x = 75 + i * 380;
-                GUI.Box(new Rect(x, 262, 365, 355), GUIContent.none);
-                GUI.Label(new Rect(x + 12, 272, 341, 78), option.Title, cardTitle);
-                GUI.Label(new Rect(x + 12, 352, 341, 90), option.Description, smallStyle);
-                string effects = preview.CanChoose ? NetEffects(preview) : preview.Reason;
-                GUI.Label(new Rect(x + 12, 446, 341, 90), $"Maliyet: {preview.Cost} bütçe\n" + effects, smallStyle);
+                GUI.Box(new Rect(x, 260, 365, 384), GUIContent.none);
+                GUI.Label(new Rect(x + 12, 270, 341, 49), option.Title, cardTitle);
+                string tradeoffs = string.IsNullOrEmpty(option.Advantage) ? option.Description :
+                    "Kazanç: " + option.Advantage + "\nBedeli: " + option.Tradeoff + "\nSonrası: " + option.NextEffect;
+                GUI.Label(new Rect(x + 12, 322, 341, 111), tradeoffs, detailStyle);
+                string effects = preview.CanChoose ? DecisionMessaging.ChoiceEffects(preview) + "\n" +
+                    DecisionMessaging.TurnEffects(preview) + "\n" + DecisionMessaging.NetEffects(preview) : preview.Reason;
+                GUI.Label(new Rect(x + 12, 435, 341, 155), $"Maliyet: {preview.Cost} bütçe\n" + effects, detailStyle);
                 bool wasEnabled = GUI.enabled;
                 GUI.enabled = preview.CanChoose;
-                bool clicked = GUI.Button(new Rect(x + 12, 561, 341, 42), preview.CanChoose ? "Seç" : "Uygulanamaz", buttonStyle);
+                bool clicked = GUI.Button(new Rect(x + 12, 597, 341, 36), preview.CanChoose ? "Seç" : "Uygulanamaz", buttonStyle);
                 GUI.enabled = wasEnabled;
                 if (clicked) { game.Choose(option.Id); return; }
             }
-            GUI.Label(new Rect(75, 635, 830, 54), DemoStory.BalanceNote, smallStyle);
-            if (GUI.Button(new Rect(965, 640, 240, 44), "Vazgeç [Esc]", buttonStyle)) game.CloseCards();
+            GUI.Label(new Rect(75, 653, 830, 43), "Seçim, tur kullanımı ve kuraklık ayrıdır. Net etkiler 0–100 sınırlarını içerir. Bunlar örnek oyun puanlarıdır.", smallStyle);
+            if (GUI.Button(new Rect(965, 656, 240, 36), "Vazgeç [Esc]", buttonStyle)) game.CloseCards();
         }
 
         private void DrawEnding()
         {
-            // Right panel leaves most of the village visible during the smooth camera overview.
-            GUI.Box(new Rect(720, 150, 545, 555), GUIContent.none);
+            // Preserve the camera/world view on the left; summarize consequences on the right.
+            GUI.Box(new Rect(720, 173, 545, 532), GUIContent.none);
             string title = game.IsLegacy ? "Enerji prototipi tamamlandı" : game.Session.Ending.Title;
-            GUI.Label(new Rect(740, 165, 505, 65), title, titleStyle);
-            string explanation = game.IsLegacy ? "Tam demo için Tools menüsünden yeni sahne oluştur." : game.Session.Ending.Explanation;
-            GUI.Label(new Rect(740, 235, 505, 100), explanation, smallStyle);
-            float y = 343;
-            foreach (var record in game.Session.History)
+            GUI.Label(new Rect(740, 184, 505, 40), title, titleStyle);
+            string explanation = game.IsLegacy ? "Tam demo için Tools menüsünden yeni sahne oluştur." :
+                "Kuraklık dönemi: " + game.Session.Ending.Explanation;
+            GUI.Label(new Rect(740, 230, 505, 65), explanation, detailStyle);
+            if (!game.IsLegacy)
             {
-                GUI.Label(new Rect(740, y, 505, 30), record.Option.Title, smallStyle);
-                GUI.Label(new Rect(740, y + 28, 505, 47), "Bütçe " + Signed(record.Result.After.Budget - record.Result.Before.Budget) + " | " + NetEffects(record.Result), smallStyle);
-                y += 82;
+                var summary = game.Session.Summary;
+                GUI.Label(new Rect(740, 302, 505, 43), summary.DrinkingWater, detailStyle);
+                GUI.Label(new Rect(740, 348, 505, 43), "Tarım: " + summary.Agriculture, detailStyle);
+                GUI.Label(new Rect(740, 394, 505, 43), "Doğal yaşam: " + summary.Nature, detailStyle);
+                GUI.Label(new Rect(740, 441, 505, 23), "Öne çıkan iki karar", smallStyle);
+                for (int i = 0; i < summary.KeyDecisions.Count && i < 2; i++)
+                    GUI.Label(new Rect(740, 466 + i * 45, 505, 43), summary.KeyDecisions[i], detailStyle);
+                GUI.Label(new Rect(740, 558, 505, 53), summary.RemainingRisk, detailStyle);
+                GUI.Label(new Rect(740, 613, 505, 39), EndingSummary.ProxyNote, detailStyle);
             }
-            GUI.Label(new Rect(740, 591, 505, 45), DemoStory.Closing, smallStyle);
-            if (GUI.Button(new Rect(845, 648, 300, 42), "Yeniden Oyna", buttonStyle)) game.Restart();
+            if (GUI.Button(new Rect(845, 660, 300, 34), "Yeniden Oyna", buttonStyle)) game.Restart();
         }
-
-        private static string NetEffects(DecisionPreview preview)
-        {
-            var a = preview.Before;
-            var b = preview.After;
-            return $"Enerji {Signed(b.Energy - a.Energy)} | Su {Signed(b.Water - a.Water)} | Bitki {Signed(b.PlantHealth - a.PlantHealth)} | Emisyon {Signed(b.Emissions - a.Emissions)}";
-        }
-
-        private static string Signed(int value) => value >= 0 ? "+" + value : value.ToString();
     }
 }

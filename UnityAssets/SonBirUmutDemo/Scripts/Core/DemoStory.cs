@@ -2,14 +2,15 @@ using SonBirUmutDemo.Decisions;
 
 namespace SonBirUmutDemo.Core
 {
-    // Edit narrative here; no diagnosis, causal medical claim or automatic cure is modeled.
+    // Central narrative only; no NPC, illness or separate story quest.
     public static class DemoStory
     {
-        public const string Title = "Son Bir Umut";
-        public const string Introduction = "Ailemin yaşadığı köye döndüğümde suyun azaldığını, toprağın kuruduğunu gördüm. " +
-            "Babam da bir süredir rahatsız; nedenini henüz bilmiyoruz. Onun için duyduğum kaygı, köyde neler değiştiğini anlama isteğimi artırıyor.\n\n" +
-            "Artan sıcaklıklar ve kuraklık köyün su kaynaklarını zorluyor. Önce enerji istasyonunu, sonra su deposunu ve son olarak tarlayla doğal alanı araştır. " +
-            "Sınırlı kaynaklarla vereceğin üç karar birbirini etkileyecek.";
+        public const string Title = "Son Bir Umut: Kuraklıktan Önce";
+        public const string MainGoal = "Kuraklık gelmeden köyün temel ihtiyaçlarını koru.";
+        public const string Introduction = "Yıllar sonra köyüme döndüm. Yağışlar azalmış, su deposu boşalmaya başlamış. " +
+            "Önümüzdeki haftalarda daha ağır bir kuraklık bekleniyor.\n\n" +
+            "Ailemin ve komşularımızın geleceği için enerji, su ve doğal yaşam hakkında üç karar vermeliyim. " +
+            "Ama bir sorunu çözmek, başka bir kaynağı tüketebilir.\n\n" + MainGoal;
         public const string Controls = "WASD ile dolaş. İşaretli noktaya yaklaşınca E'ye bas. Üç karttan birini seç. Esc ile kartları kapatabilirsin.";
         public const string BalanceNote = "Değerler örnek oyun puanlarıdır. Kuraklık dışsal baskıdır; emisyon anlık sıcaklık artışı oluşturmaz.";
         public const string Closing = "Köy için attığın adımlar bir başlangıç. Başka kararlar, başka bir gelecek mümkün.";
@@ -27,6 +28,13 @@ namespace SonBirUmutDemo.Core
             if (id == DecisionCatalog.EnergyStationId) return "Köyün enerjisini nasıl sağlayacaksın?";
             if (id == DecisionCatalog.WaterStationId) return "Enerjiyi ve bütçeyi su için nasıl kullanacaksın?";
             return "Kalan suyla hangi geleceğe öncelik vereceksin?";
+        }
+
+        public static string Problem(string id)
+        {
+            if (id == DecisionCatalog.EnergyStationId) return "Su pompaları enerjiye ihtiyaç duyuyor; kapasiteyi artırırken bütçeyi, suyu ve emisyonu da düşünmelisin.";
+            if (id == DecisionCatalog.WaterStationId) return "Depo azalıyor; mevcut enerji ve bütçeyle tarıma yetecek suyu nasıl koruyacaksın?";
+            return "Kalan su hem bugünün ürünlerine hem kurak dönemin rezervine gerekiyor; hangi ihtiyaca öncelik vereceksin?";
         }
     }
 }
