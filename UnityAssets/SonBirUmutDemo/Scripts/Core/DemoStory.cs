@@ -22,6 +22,37 @@ namespace SonBirUmutDemo.Core
         public const string BalanceNote = "Değerler örnek oyun puanlarıdır. Kuraklık dışsal baskıdır; emisyon anlık sıcaklık artışı oluşturmaz.";
         public const string Closing = "Köy için attığın adımlar bir başlangıç. Başka kararlar, başka bir gelecek mümkün.";
 
+        public static string CardBenefit(string id)
+        {
+            switch (id)
+            {
+                case DecisionCatalog.Solar: return "Temiz enerji kapasitesi +35";
+                case DecisionCatalog.Diesel: return "Güçlü enerji kapasitesi +50";
+                case DecisionCatalog.Conservation: return "8 suyu korur, yatırım istemez";
+                case DecisionCatalog.Pump: return "Enerjin kadar su kazan (en çok 50)";
+                case DecisionCatalog.Efficiency: return "18 su kazan, tüketimi yarıya indir";
+                case DecisionCatalog.Continue: return "Bütçeyi sonraki karara sakla";
+                case DecisionCatalog.Protect: return "Suya bağlı doğal yaşam desteği";
+                case DecisionCatalog.Irrigate: return "Bitkilere hızlı sulama desteği";
+                default: return "Kurak dönem için suyu koru";
+            }
+        }
+        public static string CardCost(string id)
+        {
+            switch (id)
+            {
+                case DecisionCatalog.Solar: return "Yüksek ilk yatırım";
+                case DecisionCatalog.Diesel: return "3 su, emisyon +18";
+                case DecisionCatalog.Conservation: return "Enerji kapasitesi -5";
+                case DecisionCatalog.Pump: return "En az 10 enerji gerekir";
+                case DecisionCatalog.Efficiency: return "Pompadan az su kazanımı";
+                case DecisionCatalog.Continue: return "Kaçaklardan 5 su kaybı";
+                case DecisionCatalog.Protect: return "Yeni su üretmez";
+                case DecisionCatalog.Irrigate: return "20 su harcar";
+                default: return "Sulamayı erteler";
+            }
+        }
+
         public static string ShortPointName(string id)
         {
             if (id == DecisionCatalog.EnergyStationId) return "Enerji istasyonu";

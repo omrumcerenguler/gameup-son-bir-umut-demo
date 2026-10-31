@@ -88,6 +88,14 @@ namespace SonBirUmutDemo.UI
             return click;
         }
 
+        public void ResourceMeter(Rect area, string name, int value, Color accent, bool emissions = false)
+        {
+            Color color = emissions ? (value > 12 ? Red : Muted) : value < 20 ? Red : accent;
+            Fill(new Rect(area.x, area.y + 3, 4, 19), color);
+            GUI.Label(new Rect(area.x + 11, area.y, area.width - 11, 25), name + " " + value, Small);
+            Bar(new Rect(area.x + 11, area.y + 28, area.width - 18, 3), value / 100f, color);
+        }
+
         public void EffectChip(Rect area, string name, int delta, bool emissions = false)
         {
             bool beneficial = emissions ? delta < 0 : delta > 0;

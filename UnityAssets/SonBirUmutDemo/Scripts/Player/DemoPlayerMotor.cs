@@ -10,7 +10,7 @@ namespace SonBirUmutDemo.Player
         [SerializeField] private DemoGameController game;
         [SerializeField] private Transform cameraTransform;
         [SerializeField, Min(0.1f)] private float speed = 3.5f;
-        [SerializeField, Min(1f)] private float sprintMultiplier = 1.6f;
+        [SerializeField, Min(1f)] private float sprintMultiplier = 1.9f;
         [SerializeField, Min(0.1f)] private float acceleration = 12f;
         [SerializeField, Min(0.1f)] private float deceleration = 16f;
         [SerializeField, Min(1f)] private float turnSpeed = 600f;
@@ -22,6 +22,12 @@ namespace SonBirUmutDemo.Player
         {
             game = owner;
             cameraTransform = view;
+        }
+
+        public void ConfigureSprint(float multiplier)
+        {
+            MovementPolicy.TargetSpeed(speed, true, false, multiplier);
+            sprintMultiplier = multiplier;
         }
 
         private void Awake() => controller = GetComponent<CharacterController>();

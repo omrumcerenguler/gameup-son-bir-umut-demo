@@ -88,6 +88,12 @@ internal static class PlaytestUxTests
                 Check(state.Crisis.Emergency.Status==EmergencyStatus.Active);
                 state.Tick(1d/frequency,false,true,true); Check(state.Crisis.Emergency.Status==EmergencyStatus.Repaired);
                 Near(state.RemainingSeconds,226,.00001);
+                var missed=Prepared(); missed.Tick(12,false); int water=missed.CurrentResources.Water;
+                for(int i=0;i<45*frequency-1;i++)missed.Tick(1d/frequency,false);
+                Check(missed.Crisis.Emergency.Status==EmergencyStatus.Active);
+                missed.Tick(1d/frequency,false); Check(missed.Crisis.Emergency.Status==EmergencyStatus.Expired);
+                Check(missed.CurrentResources.Water==water-6);
+                missed.Tick(1,false); Check(missed.CurrentResources.Water==water-6);
             });
         }
         run("UX: cards, explicit simulation pause and focus protect both clocks", () => {

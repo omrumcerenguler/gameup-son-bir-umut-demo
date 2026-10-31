@@ -21,6 +21,7 @@ namespace SonBirUmutDemo.Core
         [SerializeField] private IsometricFollowCamera followCamera;
         [SerializeField, HideInInspector] private bool crisisMode;
         [SerializeField, HideInInspector] private bool crisisDemo;
+        [SerializeField, HideInInspector] private bool playtestMode;
         [SerializeField] private CrisisStationMarker[] crisisMarkers;
         [Header("Crisis Demo — game balance")]
         [SerializeField, Range(0, 100)] private float stableThreshold = 35;
@@ -43,6 +44,11 @@ namespace SonBirUmutDemo.Core
         private bool applicationHasFocus = true;
         public GameRunState Run { get; private set; }
         public GameSession Session => Run?.Session;
+        public bool UsesPlaytestMode => Run != null && Run.UsesPlaytestMode;
+        public Vector3 PlayerPosition => player != null ? player.transform.position : Vector3.zero;
+        public bool SimulationPaused => IntroOpen || CardsOpen || IsComplete || !applicationHasFocus || applicationPaused;
+        public bool HasInteraction => CanInteract || (EmergencyActive && IsStationInRange(DecisionCatalog.WaterStationId)) ||
+            (UsesCrisisDemo && Run.Phase == GameRunPhase.CrisisManagement && !EmergencyActive && NearestTask(true) != null);
         public RunOutcome Result => Run?.Result;
         public ResourceState CurrentResources => Run?.CurrentResources;
         public bool UsesCrisisDemo => Run != null && Run.UsesCrisisDemo;
@@ -54,6 +60,7 @@ namespace SonBirUmutDemo.Core
         public bool IsComplete => Run != null && Run.IsEnded;
         public bool MovementLocked => Run == null || Run.MovementLocked || CardsOpen || !applicationHasFocus || applicationPaused;
         public string ResultMessage { get; private set; } = "";
+        public string ShortNotice { get; private set; } = "";
         public string TargetStationId
         {
             get
@@ -73,15 +80,15 @@ namespace SonBirUmutDemo.Core
             {
                 if (Run == null || IsComplete) return "Nöbet tamamlandı.";
                 if (Run.Phase != GameRunPhase.CrisisManagement)
-                    return DemoStory.PointName(Session.CurrentPoint.Id) + " noktasına git; [E] ile karar ver.";
+                    return "Karar: " + DemoStory.ShortPointName(Session.CurrentPoint.Id);
                 if (!UsesCrisisDemo) return "Hazırlık tamamlandı; köyün durumunu izle.";
-                if (EmergencyActive) return "ACİL: Su hattı arızası! Su deposuna koş; yakında E'yi basılı tut.";
+                if (EmergencyActive) return "ACİL: Su deposuna ulaş ve hattı onar.";
                 var task = NearestTask(false);
-                if (task != null) return task.Title + " — " + DemoStory.ShortPointName(task.StationId) + " [E]";
-                if (!Run.Crisis.Emergency.IsResolved) return "Altyapı denetlendi; su hattındaki acil çağrıya hazır ol.";
+                if (task != null) return task.Title + " · " + DemoStory.ShortPointName(task.StationId);
+                if (!Run.Crisis.Emergency.IsResolved) return "Su hattındaki çağrıya hazır ol.";
                 if (Run.CrisisPressure > Run.CrisisRules.StableThreshold)
-                    return "Müdahaleler tamam; baskı yüksek. Nöbet sonunda hazırlığın değerlendirilecek.";
-                return $"Baskıyı {Run.CrisisRules.StableThreshold:0} veya altında tut: {Run.Crisis.StableSeconds:0.0}/{Run.CrisisRules.StableDuration:0} sn.";
+                    return "Müdahaleler tamam · Nöbet sonunu bekle.";
+                return $"İstikrarı koru · {Run.Crisis.StableSeconds:0}/{Run.CrisisRules.StableDuration:0} sn";
             }
         }
         public string InteractionHint
@@ -89,16 +96,14 @@ namespace SonBirUmutDemo.Core
             get
             {
                 if (EmergencyActive) return IsStationInRange(DecisionCatalog.WaterStationId) ?
-                    "[E basılı] Su hattını onar • Bırakmak veya uzaklaşmak ilerlemeyi sıfırlar" : "ACİL: Su deposuna git • Sol Shift ile koş";
-                if (CanInteract) return "[E] " + DemoStory.PointName(Session.CurrentPoint.Id) + " — karar ver";
+                    "[E basılı] Onar" : "";
+                if (CanInteract) return "[E] Karar ver";
                 var task = UsesCrisisDemo && Run.Phase == GameRunPhase.CrisisManagement ? NearestTask(true) : null;
                 if (task != null) return "[E] " + task.Title;
-                if (UsesCrisisDemo && Run.Phase == GameRunPhase.CrisisManagement)
-                    return Run.Crisis.Emergency.Status == EmergencyStatus.Waiting ? "Su hattındaki acil çağrıya hazır ol • İşareti izle" : "Kalan süreyi ve istikrarı izle • Köyü inceleyebilirsin";
-                return "WASD Dolaş • Sol Shift Koş • E Etkileşim";
+                return "";
             }
         }
-        public bool NoticeVisible => !IntroOpen && !CardsOpen && !EmergencyActive && Time.unscaledTime < messageUntil && !string.IsNullOrEmpty(ResultMessage);
+        public bool NoticeVisible => !IsComplete && !IntroOpen && !CardsOpen && !EmergencyActive && Time.unscaledTime < messageUntil && !string.IsNullOrEmpty(ResultMessage);
 
         private MaintenanceTask NearestTask(bool requireRange)
         {
@@ -138,7 +143,7 @@ namespace SonBirUmutDemo.Core
 
         public void Configure(DemoPlayerMotor motor, EnergyStation energyStation)
         {
-            player = motor; station = energyStation; completeDemo = false; crisisMode = false; crisisDemo = false;
+            player = motor; station = energyStation; completeDemo = false; crisisMode = false; crisisDemo = false; playtestMode = false;
         }
 
         public void ConfigureCompleteDemo(DemoPlayerMotor motor, EnergyStation energyStation,
@@ -153,12 +158,17 @@ namespace SonBirUmutDemo.Core
         public void ConfigureCrisisFoundation()
         {
             if (!completeDemo) throw new InvalidOperationException("Kriz sahnesi üç karar noktası gerektirir.");
-            crisisMode = true; crisisDemo = false;
+            crisisMode = true; crisisDemo = false; playtestMode = false;
         }
 
         public void ConfigureCrisisDemo(CrisisStationMarker[] markers)
         {
             ConfigureCrisisFoundation(); crisisDemo = true; crisisMarkers = markers;
+        }
+
+        public void ConfigurePlaytest(CrisisStationMarker[] markers)
+        {
+            ConfigureCrisisDemo(markers); playtestMode = true;
         }
 
         private void Awake()
@@ -206,7 +216,7 @@ namespace SonBirUmutDemo.Core
             else if (owner == InteractionKind.StrategicDecision && DemoInput.InteractPressed) CardsOpen = true;
             else if (owner == InteractionKind.Maintenance && DemoInput.InteractPressed)
             {
-                if (Run.TryCompleteMaintenance(task.StationId, out var message)) ShowMessage(message);
+                if (Run.TryCompleteMaintenance(task.StationId, out var message)) ShowMessage(message, task.Title + " tamamlandı", 3f);
             }
             if (!CardsOpen && DemoInput.CancelPressed) DismissNotice();
             Run.Tick(Time.unscaledDeltaTime, CardsOpen, repairHeld, repairInRange);
@@ -214,8 +224,8 @@ namespace SonBirUmutDemo.Core
             if (UsesCrisisDemo && beforeIncident != Run.Crisis.Emergency.Status)
             {
                 if (Run.Crisis.Emergency.Status == EmergencyStatus.Active) DismissNotice();
-                else if (Run.Crisis.Emergency.Status == EmergencyStatus.Repaired) ShowMessage("Su hattı onarıldı. Kriz baskısı -18; bakım için E'yi bırakıp yeniden bas.");
-                else if (Run.Crisis.Emergency.Status == EmergencyStatus.Expired) ShowMessage("Arızaya geç kalındı: su -6, baskı +8. Bakımlara devam edebilirsin.");
+                else if (Run.Crisis.Emergency.Status == EmergencyStatus.Repaired) ShowMessage("Su hattı onarıldı. Kriz baskısı -18; bakım için E'yi bırakıp yeniden bas.", "Su hattı onarıldı", 4f);
+                else if (Run.Crisis.Emergency.Status == EmergencyStatus.Expired) ShowMessage("Arızaya geç kalındı: su -6, baskı +8. Bakımlara devam edebilirsin.", "Rezerv kaybı · Bakıma devam et", 4f);
             }
             if (!wasEnded && IsComplete)
             {
@@ -235,7 +245,7 @@ namespace SonBirUmutDemo.Core
 
         public void StartGame() { if (Run != null && Run.Start()) DismissNotice(); }
         public void CloseCards() => CardsOpen = false;
-        public void DismissNotice() { ResultMessage = ""; messageUntil = 0; }
+        public void DismissNotice() { ResultMessage = ShortNotice = ""; messageUntil = 0; }
 
         public void Choose(string optionId)
         {
@@ -248,14 +258,15 @@ namespace SonBirUmutDemo.Core
             CardsOpen = false;
             if (world != null) world.Apply(CurrentResources);
             if (followCamera != null) followCamera.SetOverview(completeDemo && IsComplete);
-            ShowMessage(DecisionMessaging.SelectionFeedback(Session.History[Session.History.Count - 1]));
+            ShowMessage(DecisionMessaging.SelectionFeedback(Session.History[Session.History.Count - 1]), "Karar uygulandı", 3f);
         }
 
-        private void ShowMessage(string message) { ResultMessage = message; messageUntil = Time.unscaledTime + 10f; }
+        private void ShowMessage(string message, string shortMessage = null, float duration = 4f)
+        { ResultMessage = message; ShortNotice = shortMessage ?? "İşlem uygulanamadı"; messageUntil = Time.unscaledTime + duration; }
 
         public void Restart()
         {
-            Run = new GameRunState(crisisDemo ? GameMode.CrisisDemo : crisisMode ? GameMode.CrisisFoundation : GameMode.LegacyDecisions,
+            Run = new GameRunState(playtestMode ? GameMode.PlaytestDemo : crisisDemo ? GameMode.CrisisDemo : crisisMode ? GameMode.CrisisFoundation : GameMode.LegacyDecisions,
                 new GameRunSettings(durationSeconds, initialPressure, baseRise, waterRiskRise,
                     plantRiskRise, energyRiskRise, maximumRisePerSecond),
                 definitions: completeDemo ? DecisionCatalog.All : new[] { DecisionCatalog.EnergyStation },
