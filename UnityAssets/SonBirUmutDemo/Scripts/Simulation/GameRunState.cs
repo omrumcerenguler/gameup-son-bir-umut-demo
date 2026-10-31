@@ -16,13 +16,14 @@ namespace SonBirUmutDemo.Simulation
         private readonly CrisisPressure pressure;
         private readonly CrisisRules crisisRules;
         private ResourceState crisisResources;
-        private bool hasFocus = true, applicationPaused, discardNextDelta;
+        private bool hasFocus = true, applicationPaused, userPaused, discardNextDelta;
+        public bool UserPaused => userPaused;
         public GameMode Mode { get; }
         public GameSession Session { get; private set; }
         public GameRunPhase Phase { get; private set; }
         public RunOutcome Result { get; private set; }
         public bool IsEnded => Phase == GameRunPhase.Ending;
-        public bool MovementLocked => Phase == GameRunPhase.Intro || IsEnded;
+        public bool MovementLocked => Phase == GameRunPhase.Intro || IsEnded || userPaused;
         public bool UsesCrisisMode => Mode != GameMode.LegacyDecisions;
         public bool UsesCrisisDemo => Mode == GameMode.CrisisDemo || UsesPlaytestMode;
         public bool UsesPlaytestMode => Mode == GameMode.PlaytestDemo;
@@ -53,12 +54,12 @@ namespace SonBirUmutDemo.Simulation
             timer.Reset(); pressure.Reset();
             crisisResources = null; Crisis = UsesCrisisDemo ? new CrisisProgress(crisisRules, UsesPlaytestMode) : null;
             Phase = GameRunPhase.Intro; Result = null;
-            hasFocus = true; applicationPaused = discardNextDelta = false;
+            hasFocus = true; applicationPaused = userPaused = discardNextDelta = false;
         }
 
         public bool Start()
         {
-            if (Phase != GameRunPhase.Intro) return false;
+            if (Phase != GameRunPhase.Intro || userPaused) return false;
             Phase = GameRunPhase.Preparation;
             return true;
         }
@@ -77,11 +78,19 @@ namespace SonBirUmutDemo.Simulation
             if (!IsEnded) Crisis?.Emergency.CancelRepair();
         }
 
+        // User menu pause is independent of native suspension and focus loss.
+        public void SetUserPaused(bool paused)
+        {
+            if (userPaused == paused) return;
+            userPaused = paused; discardNextDelta = true;
+            if (!IsEnded) Crisis?.Emergency.CancelRepair();
+        }
+
         public void Tick(double seconds, bool cardsOpen, bool repairHeld = false, bool repairInRange = false)
         {
             RunNumbers.NonNegative(seconds, nameof(seconds));
             if (!UsesCrisisMode || IsEnded) return;
-            if (Phase == GameRunPhase.Intro || cardsOpen || !hasFocus || applicationPaused)
+            if (Phase == GameRunPhase.Intro || cardsOpen || !hasFocus || applicationPaused || userPaused)
             { Crisis?.Emergency.CancelRepair(); return; }
             if (discardNextDelta) { discardNextDelta = false; Crisis?.Emergency.CancelRepair(); return; }
             if (!repairHeld || !repairInRange) Crisis?.Emergency.CancelRepair();
@@ -130,7 +139,7 @@ namespace SonBirUmutDemo.Simulation
         public bool TryCompleteMaintenance(string stationId, out string message)
         {
             var task = Crisis?.AtStation(stationId);
-            if (!UsesCrisisDemo || Phase != GameRunPhase.CrisisManagement || !hasFocus || applicationPaused ||
+            if (!UsesCrisisDemo || Phase != GameRunPhase.CrisisManagement || !hasFocus || applicationPaused || userPaused ||
                 task == null || Crisis.Emergency.Status == EmergencyStatus.Active || !task.Complete())
             { message = "Bu bakım şu anda uygulanamaz veya zaten tamamlandı."; return false; }
             Crisis.Promote();
@@ -151,7 +160,7 @@ namespace SonBirUmutDemo.Simulation
 
         public bool TryChoose(string pointId, string optionId, out string message)
         {
-            if (Phase != GameRunPhase.Preparation)
+            if (Phase != GameRunPhase.Preparation || userPaused)
             {
                 message = "Stratejik kararlar yalnız hazırlık aşamasında verilebilir.";
                 return false;
@@ -173,7 +182,7 @@ namespace SonBirUmutDemo.Simulation
         public bool TryReducePressure(double amount)
         {
             RunNumbers.NonNegative(amount, nameof(amount));
-            if (!UsesCrisisMode || UsesCrisisDemo || Phase != GameRunPhase.CrisisManagement) return false;
+            if (!UsesCrisisMode || UsesCrisisDemo || Phase != GameRunPhase.CrisisManagement || userPaused) return false;
             pressure.Change(-amount);
             return true;
         }
