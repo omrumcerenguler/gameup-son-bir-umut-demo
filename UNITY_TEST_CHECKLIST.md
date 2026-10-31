@@ -1,5 +1,26 @@
 # Son Bir Umut — Unity test kontrol listesi
 
+**Güncel Aşama 2/2:** Hakan önce [FINAL_UNITY_TEST](docs/FINAL_UNITY_TEST.md) planını uygulamalı. Bu yeni sürüm Unity'de henüz test edilmedi; aşağıdaki Aşama 1/polish kutuları da geçmişten aktarılıp otomatik işaretlenmez.
+
+## Aşama 2/2 — yeni kriz demosu (bekliyor)
+
+- [ ] Çalışan proje/.meta yedeklendi, güncel Scripts ve Editor birlikte alındı; Old/Both ve Unity 6.3 LTS derlemesi kontrol edildi.
+- [ ] Create Crisis Demo Scene ayrı benzersiz sahne/Generated klasörü üretti; üç kalıcı marker ve referanslar kaydet/yeniden aç sonrasında korunuyor.
+- [ ] Üç strateji sonrası üç bakım farklı sırada bir kez uygulanıyor; ikinci E tekrar kaynak/baskı ödülü vermiyor.
+- [ ] Pompa seçilmediğinde de su bakım/arıza işareti aktif ve erişilebilir; diğer seçenek görselleri korunuyor.
+- [ ] Tek arıza: kırmızı uyarı/işaret; 2 sn E held; bırakma/uzaklaşma/odak kaybı sıfırlar. Onarımda sayaç işler, E aynı karede başka iş yapmaz.
+- [ ] Arıza bilerek kaçırıldı: bir kez -6 su/+8 baskı, oyun sürüyor, süre sonunda geçerli final var.
+- [ ] Güncel HUD/dünya/final bakım/arıza kaynaklarını kullanıyor; stratejik üç karar geçmişi değişmiyor.
+- [ ] En az iki bakım ve arıza değerlendirmesi ile ≤35 baskıda 10 aktif sn erken başarı; tek görev yetmiyor. Kriz başarısı ve uzun vadeli kategori ayrı.
+- [ ] İyi/orta/kötü strateji; 0/1/2 karar, eksik bakım, aktif arıza süre sonları; iki replay ve final kilidi denendi.
+- [ ] Yönlendirme, bildirim, güncel hedef ve 1280×720/1920×1080 final/scroll okunuyor; atmosfer/Use Basic Fog alternatifi görünür.
+- [ ] Eski Demo ve Foundation menüleri kendi eski akışlarını koruyor; sahne/material üzerine yazılmıyor.
+- [ ] Build Profiles/Scene List'te yeni CrisisDemo başlangıç; Windows EXE, _Data ve yan dosyalar birlikte; Editor dışında test edildi.
+- [ ] Gerçek aktif/duvar saati süresi, commit, patch, pipeline/input, Console/Player.log kaydedildi.
+
+Aşağıdaki liste Aşama 1/polish regresyonudur; güncel kriz demosunda bakım/arıza beklemeyen satırlar yalnız Foundation modu içindir.
+
+
 **Durum: Kriz Nöbeti Aşama 1/2 ve korunan görsel temel için aşağıdaki Unity kontrolleri henüz yapılmadı.** Mac üzerinde Unity Editor bulunmaz. Kutuları Hakan veya Enes yalnızca testi gerçekten çalıştırınca işaretlemelidir. Saf C# testlerinin geçmesi bu kutuları tamamlamaz.
 
 | Test kaydı | Değer |

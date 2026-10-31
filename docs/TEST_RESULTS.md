@@ -1,3 +1,37 @@
+# Doğrulama kaydı — Kriz Nöbeti Aşama 2/2
+
+Dal: `feature/live-village-demo`; başlangıç `f60b0b1c822be158e894905593f753a3d553b64c`. Bu Mac'te Unity Editor yoktur.
+
+## Bu aşamada gerçekten çalıştırılanlar
+
+- Başlangıç regresyonu: **80 test geçti, 0 başarısız**. Önceki testlerin beklentileri ve RunStateTests değiştirilmedi.
+- Yeni 36 grupla toplam **116 geçti, 0 başarısız**. Mevcut .NET 9.0.303 / net8.0 / C# 9, warnings-as-errors. Yeni SDK/paket kurulmadı.
+- Görev oluşumu/istasyon/veri/durum, hazırlıkta ödül yokluğu, tek ve çift ödül engeli, altı görev sırası, güncel kaynaklar/sınırlar, arızanın tek tetiklenmesi, geç hazırlık zamanlaması, gerçekten 2 sn basılı tamir, bırakma/menzil/focus/pause/modal iptali, deadline ve tam deadline onarımı test edildi.
+- Tek etkileşim önceliği; tek görevle kazanamama, iki görevin yeterliliği, olay değerlendirilmeden kazanamama, 10 aktif saniye, eşik geçişinde istikrarın sıfırlanması ve 100 sınırındaki geçerli ayar test edildi.
+- Eski stratejik cache'in korunması ve bakım sonrası yeni kaynakla final/özet, 0/1/2/3 karar zaman aşımı, bakım tamam/arıza aktif sonu, kaçırılan olay sonrası devam/başarı, iki replay ve final sonrası ödül engeli geçti.
+- Tam oturumlar: **27/27 stratejik dizide kriz başarısı**, iki engelli sulamada ücretsiz depolama alternatifi; üç enerji seçimiyle başarı; üç sürdürülebilirlik kategorisi. Güneş/verimlilik/koruma Yeniden Doğuş, dizel/pompa/sulama kriz başarılı ama Eksik Dönüşüm. Kötü dizel/mevcut/depolama + tek bakım + kaçırılan arıza 240 sn'de Kaybedilen Gelecek. Ayrıntı [CRISIS_BALANCE](CRISIS_BALANCE.md).
+- İlk simülasyon rotasında ikinci görevden 10 sn sonra erken başarıya erişildiğinden 27 sn sonra üçüncü görevi tamamlama denemesi reddedildi. Tam üç bakım simülasyon rotası, üçüncü görevi başarı penceresi dolmadan yapacak şekilde düzeltildi. En az iki bakım kuralı değişmedi; iki görevle başarı ayrıca test edildi.
+- **34 Unity C# dosyası × 5 Editor/player input sembol birleşimi** Roslyn C# 9 parser kontrolü: **0 sözdizimi hatası**. Unity API/tür çözümlemesi veya Unity derlemesi değildir.
+- `git diff --check`, seçili stage dosyaları/içerikleri, gizli veri kalıpları, doküman bağlantıları ve korunan kaynak/kişisel dosya içerik kontrolleri yapıldı. Eski dallara merge/force push yoktur.
+
+Çalıştırılan komut:
+
+```sh
+DOTNET_CLI_HOME=/private/tmp/sonbirumut-dotnet DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_GENERATE_ASPNET_CERTIFICATE=false dotnet run --project Tests/LogicTests/LogicTests.csproj --configuration Release --no-restore -p:UseSharedCompilation=false -- --crisis-report docs/CRISIS_BALANCE.md
+```
+
+## Henüz Unity'de doğrulanmayanlar
+
+Unity 6.3 LTS API derlemesi, scene builder/varlık importu, sahne kapatıp açma ve serileştirilmiş referanslar, işaretlerin bütün stratejilerde fiziksel erişimi, gerçek E pressed/held ve Shift, tek kare girdi sırası, CharacterController, gerçek odağa dönüş callback'leri, IMGUI 1280×720/1920×1080 metin/scroll, Built-in/URP sis/ışık görünürlüğü ve Windows EXE **test edilmedi**. Yeni bir doğrulanmış Unity hata kaydı yoktur; test edilmeden hatasız çalışma iddiası yoktur.
+
+Varsayılan rota simülasyonu 178 aktif saniyedir; hareket/dolaşma zamanları modele verilmiştir. Gerçek 3–4 dakika hedefi ölçülmedi; hızlı oyuncu daha erken bitirebilir. En az iki bakım kuralı üçüncü işi zorunlu kılmaz. Varsayılan denge için bütün enerji yollarında kriz başarısı doğrulandı; keyfî Inspector ayarlarında aynı kazanılabilirlik garanti değildir. Basılı tamir ve aynı kare menzil geçişleri özellikle Windows'ta denenmelidir.
+
+[Hakan için son test planı](FINAL_UNITY_TEST.md) · [Genel kontrol listesi](../UNITY_TEST_CHECKLIST.md)
+
+---
+
+Aşağıdaki bölümler **tarihsel Aşama 1 ve polish kayıtlarıdır**; güncel toplam 116'dır.
+
 # Doğrulama kaydı — Kriz Nöbeti Aşama 1/2
 
 Dal: `feature/live-village-demo`, kaynak `ee6f8a0`. Tarih: 2026-10-31.

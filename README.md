@@ -1,89 +1,54 @@
 # Son Bir Umut: Kriz Nöbeti — GAMEUP Türkiye 2026
 
-Unity 6.3 LTS / C# / Windows için küçük low-poly izometrik köy demosu. **Güncel geliştirme dalı: `feature/live-village-demo`**, kaynak `feature/polish-backup-demo` (`ee6f8a0`). `main` ve önceki feature dalları korunur. Bu Mac'te Unity Editor yoktur; yeni kaynakların Unity derlemesi/oynanışı ekip doğrulaması bekler.
+Unity **6.3 LTS**, C#, Windows için low-poly izometrik köy demosu. Güncel dal **feature/live-village-demo**; Aşama 2, `f60b0b1` üstüne eklenmiştir. Bu Mac'te Unity Editor yoktur; yeni kaynakların Unity derlemesi ve oynanışı henüz ekip tarafından doğrulanmalıdır.
 
-## Kriz Nöbeti — Aşama 1/2
+## Oynanış kaynaklarında eklenenler
 
-- Eski üç karar → final akışı varsayılandır: **Tools > GameUP > Create Demo Scene**.
-- Yeni mod yalnız **Tools > GameUP > Create Crisis Foundation Scene** ile ayrı sahnede etkinleşir.
-- Sol Shift ile 1.6× koşma, yumuşak hızlanma/frenleme; giriş/kart/final hareket kilidi.
-- Kısa olay başlığı, üç seçenek ve renkli net +/- etkili odak paneli. Teknik bileşenler isteğe bağlı Etki ayrıntısı ekranındadır.
-- Yeni modda yapılandırılabilir 240 aktif saniye ve 0–100 kriz baskısı. Intro/kart/odaksızlıkta süre durur; odak dönüşünde zaman sıçraması atılır.
-- Saf C# Intro → Preparation → CrisisManagement → Ending oturum durumu. Erken süre sonunda 0/1/2 kararda da güvenli sonuç/özet.
-- Yalnız yeni sahnede hafif, yumuşak sis/ışık atmosferi; pipeline veya ağır paket değişikliği yok.
+- Kamera yönlü WASD, yumuşak hız/dönüş ve Sol Shift ile 1.6× koşma; mevcut CharacterController ve harita korunur.
+- Enerji → su → tarım için üç stratejik karar; kısa odak kartları, maliyet, net etkiler ve isteğe bağlı hesap ayrıntısı.
+- Kararlar sonrası bağımsız sırada üç tek seferlik bakım: enerji denetimi, su kaybını giderme, sulama vanası.
+- Bir su hattı arızası: kırmızı işaret/uyarı, menzilde E'yi 2 aktif saniye tutarak onarım; bırakma/uzaklaşma/odak kaybı ilerlemeyi sıfırlar.
+- 240 aktif saniye, 0–100 kriz baskısı ve hafif sis/ışık sunumu. Giriş/kart/odak dışı süre durur; gerçek zamanlı onarımda ilerler.
+- Üç karar + en az iki bakım + arıza sonucu değerlendirilmiş + baskı ≤35 altında 10 aktif saniye: erken kriz başarısı. Eksik hazırlık/arıza dahil süre sonları güvenli sonuç üretir.
+- Kriz nöbetini yönetmek ve uzun vadeli sürdürülebilirlik ayrıdır. Dizel ile kriz başarısı mümkündür; yüksek emisyon en iyi genel finali engeller. Üç eski kategori korunur.
+- Bakım/arıza sonrası HUD, dünya ve final güncel kaynakları kullanır; stratejik karar geçmişi korunur. Yeniden Oyna oturumu sıfırlar.
 
-**Bakım görevleri, acil arıza ve yeni kriz kazanma sistemi henüz yoktur.** Üç karar sonrasında yeni sahnede köyü inceleme sürer; süre dolunca mevcut stratejik sonuç gösterilir. Kriz modu bu aşamada varsayılan teslim değildir. 3–4 dakika hedefi aktif sayaç süresidir; kart okuma dahil toplam süre ölçülmedi.
+Kaynaklar boyutsuz örnek oyun puanlarıdır. Sis kriz hazırlığının görsel metaforudur; emisyon anlık sıcaklık yaratmaz, oyun iklim değişikliğini ortadan kaldırdığını söylemez. Yeni paket, model, NPC, crafting, envanter veya ses sistemi eklenmedi.
 
-[Aşama 1 altyapısı ve ayarlar](docs/LIVE_VILLAGE_STAGE1.md)
+## Hakan için başlangıç
 
-## Kaynak polish dalından korunan görsel Aşama 2
+**Önce çalışan Unity projesini yedekle.** Ardından bu dalın `UnityAssets/SonBirUmutDemo` içeriğini dış Unity projesindeki `Assets/SonBirUmutDemo` üzerine, mevcut `.meta`, `Scenes` ve `Generated` dosyalarını silmeden kopyala. Yeni scriptleri ve Editor klasörünü birlikte aktar.
 
-`a5a41ed` yalnızca Aşama 1 kaydıydı; o commit'te görsel Aşama 2 yoktu. Kaynak polish dalında şu görsel değişiklikler eklendi:
+Active Input Handling: **Old veya Both**; New-only IMGUI fare tıklamalarını desteklemez. Built-in 3D veya URP kullan; HDRP desteklenmez. Console derlemesi bitince **Tools > GameUP > Create Crisis Demo Scene**.
 
-- Kiremit çatılı/pencereli evler, taş temeller, patikalar, çit, kuyu, bank, kaya ve kuru ot detayları.
-- Kapsül collider üstünde çokgen köylü modeli: baş, yüz yönü, şapka, ceket, çanta, kol/bacak; gerçek harekete bağlı basit görsel adım hareketi.
-- Suya göre çekilen havuz/çatlaklar; bitki sağlığına göre yaprak veya kuru dal, ürün boyu ve toprak görünümü. Geçişler görseldir; kaynak değerleri değişmez.
-- Opak koyu tema, renkli kaynak çubukları, belirgin seçim kartları ve sıradaki nokta etiketi.
-- Sekmeli/kaydırılabilir final raporu ve **Köyü izle / Sonuç raporuna dön**; kamera panel gizlenince köyü ortalar.
+| Menü | Benzersiz sahne yolu (Assets/SonBirUmutDemo altında) | Mod |
+| --- | --- | --- |
+| Create Demo Scene | Scenes/SonBirUmutVisualDemo.unity | Eski üç karar → final; zaman/görev/arıza yok |
+| Create Crisis Foundation Scene | Scenes/SonBirUmutCrisisFoundation.unity | Aşama 1 süre/baskı temeli; bakım/arıza/erken başarı yok |
+| **Create Crisis Demo Scene** | **Scenes/SonBirUmutCrisisDemo.unity** | **Yeni üç karar + bakım + arıza + kriz başarısı** |
 
-**Yeni köy/karakter için Tools menüsünden yeni sahne üretmek gerekir.** Mevcut sahneyi yalnız açmak, kaydedilmiş geometrisini kendiliğinden değiştirmez.
+Dolu yollar numaralanır; eski sahneler/materyaller ezilmez. Yeni oyun için yeni CrisisDemo sahnesi üretilmelidir; eski Foundation sahnesini açmak yeni görevleri kendiliğinden eklemez. Bu depo doğrudan Unity projesi değildir.
 
-[Aşama 2 dosya ve doğrulama raporu](docs/VISUAL_STAGE2.md)
+[Hakan'ın tam Windows test planı](docs/FINAL_UNITY_TEST.md) · [Entegrasyon](docs/INTEGRATION.md) · [Mimari ve yeni sınıflar](docs/ARCHITECTURE.md)
 
-## Korunan oyun döngüsü ve Aşama 1 iyileştirmeleri
+## Gerçek otomatik doğrulama
 
-- CharacterController korunarak hızlanma, frenleme ve yumuşak Y dönüşü; kamera yönüne göre WASD ve çapraz hız sınırı.
-- Tek primitive köy; enerji → su → tarım sırasıyla üç nokta ve her birinde üç kart.
-- Merkezi kaynak hesabı, enerjiye bağlı pompa ve suya bağlı bitki desteği; bütçe/enerji/su yetersizliğinde açıklamalı engel.
-- Her aşamada ücretsiz seçenek; aynı kararın tekrar uygulanmasını önleyen oturum sistemi.
-- Kısa köye dönüş / yaklaşan kuraklık hikâyesi; sürekli ana hedef, ilerleme, sıradaki nokta ve kritik kaynak uyarısı.
-- Kartlarda kazanç, bedel, maliyet ve net etkiler; seçim/tur/kuraklık ayrımı isteğe bağlı ayrıntıda gösterilir. Bildirim × veya Esc ile kapatılır, 10 saniye sonra kapanır.
-- Panel/jeneratör, su seviyesi, vana/pompa, tarla ve ağaç renkleriyle dünya geri bildirimi.
-- Korunan üç final eşiği; su stoku, tarım/doğa, öne çıkan iki karar ve süren risk açıklaması. Mevcut final kamerası ve yeniden oynama korunur.
-
-Kaynaklar boyutsuz örnek oyun puanlarıdır. Emisyon anlık köy sıcaklığı yaratmaz. Hastalık anlatımı kaldırıldı; motivasyon aile ve komşuların kuraklık öncesi temel ihtiyaçlarıdır. Crafting, çöp toplama, NPC görevleri, sinematik ve karmaşık animasyon eklenmedi.
-
-## Hakan / Enes için hızlı kurulum
-
-1. Depoda `feature/live-village-demo` dalını al; test projesindeki çalışmanı önce koru.
-2. Unity **6.3 LTS**, **Universal 3D (URP)** veya **3D Built-in** projesi kullan. Kaynak klasörü doğrudan Unity projesi değildir.
-3. `UnityAssets/SonBirUmutDemo` içeriğini mevcut `Assets/SonBirUmutDemo` üzerine **klasörü silmeden** kopyala. Eski `.meta`, `Scenes` ve `Generated` dosyalarını koru.
-4. Active Input Handling: **Both** veya **Input Manager (Old)**. IMGUI fare girdisi nedeniyle New-only desteklenmez; gerekirse Editor'ı yeniden başlat.
-5. Console derlemesi tamamlanınca **Tools > GameUP > Create Demo Scene** çalıştır. Görsel sürüm **`Assets/SonBirUmutDemo/Scenes/SonBirUmutVisualDemo.unity`** veya numaralı yeni yola kaydedilir. Yeni mesh/materyaller `Generated/VisualDemo...` içindedir; eski sahneler ezilmez.
-6. Kriz altyapısını denemek için ayrıca **Create Crisis Foundation Scene** ile ayrı sahne üret. Bu sahne `SonBirUmutCrisisFoundation.unity` ve `Generated/CrisisFoundation...` yollarını kullanır; varsayılan sahne eski modda kalır.
-7. Game görünümünü 16:9 aç, Play, Enter. WASD ile dolaş, Sol Shift ile koş; sıradaki noktada E, kartta Seç. Üç karardan sonra finali ve Yeniden Oyna'yı dene.
-
-[Windows kurulum rehberi](docs/INTEGRATION.md) · [Unity test listesi](UNITY_TEST_CHECKLIST.md) · [Hareket değişikliği](docs/MOVEMENT.md) · [Mimari](docs/ARCHITECTURE.md)
-
-## Otomatik testler
-
-Mevcut .NET 8 veya 9 SDK ile:
+Mevcut .NET 8/9 SDK ile; yeni paket/SDK gerekmez:
 
 ```sh
-dotnet run --project Tests/LogicTests/LogicTests.csproj --configuration Release -- --report docs/DECISION_MATRIX.md
+dotnet run --project Tests/LogicTests/LogicTests.csproj --configuration Release -- --crisis-report docs/CRISIS_BALANCE.md
 ```
 
-Harici test paketi gerekmez. **80 test grubu geçti, 0 başarısız.** Önceki 54 grup korundu; 26 oturum/sayaç/baskı/koşma politikası grubu eklendi. 27 dizinin 25'i doğrudan tamamlandı; 2 sulama dizisi su yetersizliği nedeniyle doğru biçimde engellendi ve ücretsiz alternatifle final doğrulandı. Üç final kategorisine ulaşıldı. Unity hareketi, fizik, UI ve Editor derlemesi bu testlerin kapsamında değildir.
+**116 test grubu geçti, 0 başarısız**: önceki 80 grup korundu, 36 kriz grubu eklendi. 27 stratejik dizinin tamamı tam oturum simülasyonunda kriz başarısına ulaştı; iki engelli sulama dizisinde ücretsiz depolama alternatifi kullanıldı. Her enerji seçimiyle başarı ve genel sonuçlarda üç kategori doğrulandı. Örnek tam müdahale rotası 178 aktif saniyede bitti; bu, Unity'de ölçülen yürüyüş/deneyim süresi değildir.
 
-[Polish tasarımı ve güneş sorununun nedeni](docs/POLISH_DESIGN.md) · [Karar kuralları](docs/DECISIONS.md) · [27 dizi raporu](docs/DECISION_MATRIX.md) · [Doğrulama kaydı ve açık kontroller](docs/TEST_RESULTS.md)
+[27 oturumun sayısal raporu](docs/CRISIS_BALANCE.md) · [Test kaydı ve sınırları](docs/TEST_RESULTS.md) · [Unity kontrol listesi](UNITY_TEST_CHECKLIST.md)
 
-## Kaynak düzeni
+Unity API derlemesi, gerçek klavye/fizik/erişim, sahne referansları, okunabilirlik, sis/pipeline, 3–4 dakika hedefi ve Windows EXE **henüz doğrulanmadı**. İki bakım yeterli olabildiği için hızlı rota daha erken bitebilir; gerçek süre Windows testinde ölçülmeli.
 
-| Konum | İçerik |
-| --- | --- |
-| `UnityAssets/SonBirUmutDemo/Editor` | Benzersiz sahne ve materyal üreten Editor aracı |
-| `Scripts/Core` | Oturum koordinasyonu, giriş adaptörü, merkezi hikâye metni |
-| `Scripts/Player` | Hareket ve sabit açılı takip/final kamerası |
-| `Scripts/Interaction` | Korunan EnergyStation ve su/tarım için DecisionStation |
-| `Scripts/Decisions`, `Scripts/Simulation` | UnityEngine'den bağımsız karar, kaynak, geçmiş ve final hesapları |
-| `Scripts/World`, `Scripts/UI` | Dünya görselleri ve IMGUI |
-| `Data` | Sonraki veri varlıkları için ayrılan klasörler |
-| `Tests/LogicTests` | Gerçek mantık kaynaklarını doğrudan derleyen test koşucusu |
+## Kaynak düzeni ve korunanlar
 
-## Eski prototip ve gizlilik
+`UnityAssets/SonBirUmutDemo/Editor` sahne/varlık oluşturur; `Scripts/Simulation` ve `Scripts/Decisions` saf C#; Core koordinasyon/giriş, Interaction istasyon/işaret, Player hareket/kamera, World görünüm/atmosfer, UI IMGUI sunumudur. `Tests/LogicTests` gerçek mantık kaynaklarını doğrudan derler.
 
-Aşağıdaki görsel Aşama 2 açıklamaları kaynak dalın tarihsel kapsamıdır. Bu dalda kontrolcü, giriş, motor ve HUD yeni altyapı için genişletildi; mevcut stratejik hesap dosyaları değiştirilmedi.
+`GameSession`, `DecisionCatalog`, `SimulationRules`, `EndingResult`, `EndingSummary`, mevcut istasyonlar, karakter/motor/kamera ve köy geometrisi korunur. `CurrentResources` kriz kaynaklarını stratejik snapshot'tan ayırır. Eski dallara merge veya force push yapılmaz. Kişisel PDF/görsel/video, gizli dosyalar ve build/cache çıktıları Git'e eklenmez.
 
-Eski sahne dosyaları değiştirilmez. Serileştirilmiş `player` / `station` referansları korunur; eski sahne tek istasyon modunda kalır. Kaynak polish dalındaki görsel Aşama 2, önceki oyun mantığını ve motoru koruyordu; güncel dal bunların üstüne yukarıdaki oturum ve koşma eklerini getirir. Kamera ve dünya kodundaki değişiklikler sunum içindir. Aşama 1 dengeleme farkları: güneş emisyonu +1 → 0; mevcut kanallarla sulama bütçesi 15 → 5. Aşama 2 modeli ve köy ayrıntıları C# Editor aracıyla üretilir; harici model paketi gerekmez. Birebir önceki davranış için `main` kaynaklarını ayrı test projesinde kullan; dal değiştirmek tek başına dış Unity projesindeki kopyayı güncellemez.
-
-[GitHub](https://github.com/omrumcerenguler/gameup-son-bir-umut-demo) herkese açıktır. Yerel PDF, JPG/PNG ve WhatsApp görüntüleri paylaşılmaz, değiştirilmez. Yalnızca açık dosya yollarını stage et, staged içeriği incele; toplu ekleme veya force push kullanma. SDK, gerçek Unity projesi, build çıktısı ve kişisel belge bu kaynak teslimine eklenmez.
+Tarihsel belgeler: [Görsel polish](docs/VISUAL_STAGE2.md), [Aşama 1 altyapısı](docs/LIVE_VILLAGE_STAGE1.md), [Stratejik kurallar](docs/DECISIONS.md), [Stratejik 27 dizi](docs/DECISION_MATRIX.md).

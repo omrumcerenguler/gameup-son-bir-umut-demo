@@ -1,5 +1,7 @@
 # Kriz Nöbeti — yeni oynanış altyapısı, Aşama 1/2
 
+> Tarihsel f60b0b1 kaydıdır. Güncel Aşama 2 görev/arıza/final yapısı için [mimari](ARCHITECTURE.md) ve [son Unity testi](FINAL_UNITY_TEST.md) kullanılmalı. Aşağıdaki “henüz yok” ifadeleri bu önceki aşamaya aittir.
+
 Dal: `feature/live-village-demo`. Kaynak: `feature/polish-backup-demo` (`ee6f8a0`). Hedef Unity 6.3 LTS / Windows. Bu sürüm Mac'te Unity Editor ile derlenmedi veya oynanmadı.
 
 ## İki ayrı mod
