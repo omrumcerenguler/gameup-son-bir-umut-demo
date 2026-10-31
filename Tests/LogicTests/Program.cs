@@ -418,6 +418,7 @@ internal static class Program
             Check(warning.Contains("enerji yetersiz") && warning.Contains("emisyon"));
             Check(!DecisionMessaging.CriticalResources(new ResourceState(0, 0, 0, 0, 20), false).Contains("ücretsiz seçenek"));
         });
+        RunStateTests.Register(Run);
         Console.WriteLine($"{passed} passed; {failed} failed.");
         return failed == 0 ? 0 : 1;
     }
