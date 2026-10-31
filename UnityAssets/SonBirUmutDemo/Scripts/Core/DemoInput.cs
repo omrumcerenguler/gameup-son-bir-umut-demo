@@ -55,6 +55,20 @@ namespace SonBirUmutDemo.Core
             }
         }
 
+        public static bool StartPressed
+        {
+            get
+            {
+#if ENABLE_INPUT_SYSTEM
+                return Keyboard.current != null && Keyboard.current.enterKey.wasPressedThisFrame;
+#elif ENABLE_LEGACY_INPUT_MANAGER
+                return Input.GetKeyDown(KeyCode.Return);
+#else
+                return false;
+#endif
+            }
+        }
+
         public static bool CancelPressed
         {
             get

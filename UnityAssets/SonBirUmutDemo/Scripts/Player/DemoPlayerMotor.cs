@@ -27,13 +27,13 @@ namespace SonBirUmutDemo.Player
         private void Update()
         {
             if (game == null || cameraTransform == null || game.Session == null) return;
-            Vector2 input = game.CardsOpen ? Vector2.zero : DemoInput.Movement;
+            Vector2 input = game.MovementLocked ? Vector2.zero : DemoInput.Movement;
             Vector3 forward = Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up).normalized;
             Vector3 right = Vector3.ProjectOnPlane(cameraTransform.right, Vector3.up).normalized;
             Vector3 direction = Vector3.ClampMagnitude(forward * input.y + right * input.x, 1f);
             // Digital input still has eight targets; velocity and facing move continuously between them.
             // Modal UI is an immediate stop, independent of the normal braking distance.
-            if (game.CardsOpen) horizontalVelocity = Vector3.zero;
+            if (game.MovementLocked) horizontalVelocity = Vector3.zero;
             else horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, direction * speed,
                 (input.sqrMagnitude > 0.001f ? acceleration : deceleration) * Time.deltaTime);
             if (controller.isGrounded && verticalSpeed < 0) verticalSpeed = -2f;

@@ -1,6 +1,10 @@
 #if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using SonBirUmutDemo.Core;
+using SonBirUmutDemo.Decisions;
+using SonBirUmutDemo.Simulation;
+using SonBirUmutDemo.World;
 using SonBirUmutDemo.Interaction;
 using SonBirUmutDemo.Player;
 using SonBirUmutDemo.UI;
@@ -55,9 +59,9 @@ namespace SonBirUmutDemo.Editor
             EnsureFolder("Assets", "SonBirUmutDemo");
             EnsureFolder(Root, "Scenes");
             EnsureFolder(Root, "Generated");
-            string materialsFolder = AssetDatabase.GenerateUniqueAssetPath(Root + "/Generated/Demo");
+            string materialsFolder = AssetDatabase.GenerateUniqueAssetPath(Root + "/Generated/CompleteDemo");
             AssetDatabase.CreateFolder(Root + "/Generated", System.IO.Path.GetFileName(materialsFolder));
-            string scenePath = AssetDatabase.GenerateUniqueAssetPath(Root + "/Scenes/SonBirUmutDemo.unity");
+            string scenePath = AssetDatabase.GenerateUniqueAssetPath(Root + "/Scenes/SonBirUmutCompleteDemo.unity");
 
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var terrain = Material("DrySoil", new Color(0.66f, 0.53f, 0.31f), shader, materialsFolder);
@@ -72,7 +76,8 @@ namespace SonBirUmutDemo.Editor
             var green = Material("CompleteGreen", new Color(0.18f, 0.70f, 0.31f), shader, materialsFolder);
             var playerMaterial = Material("Player", new Color(0.88f, 0.31f, 0.17f), shader, materialsFolder);
 
-            Transform environment = new GameObject("Kırsal harita").transform;
+            Transform environment = new GameObject("Kırsal harita - Son Bir Umut").transform;
+            var treeCrowns = new List<Renderer>();
             Primitive("Zemin", PrimitiveType.Cube, environment, new Vector3(0, -0.25f, 0), new Vector3(28, 0.5f, 24), terrain);
             // Invisible boundaries keep the character on the small map.
             Boundary(environment, new Vector3(-14, 1, 0), new Vector3(0.3f, 3, 24));
@@ -85,16 +90,20 @@ namespace SonBirUmutDemo.Editor
                 Primitive("Çatı", PrimitiveType.Cube, environment, position + Vector3.up * 2.6f, new Vector3(3.5f, 0.5f, 3.5f), roof);
                 Primitive("Kapı", PrimitiveType.Cube, environment, position + new Vector3(0, 0.8f, -1.53f), new Vector3(0.8f, 1.6f, 0.1f), wood);
             }
-            foreach (Vector3 position in new[] { new Vector3(-10, 0, 8), new Vector3(-10, 0, -8), new Vector3(6, 0, -6), new Vector3(10, 0, -3), new Vector3(0, 0, 8) })
+            foreach (Vector3 position in new[] { new Vector3(-10, 0, 8), new Vector3(-10, 0, -8), new Vector3(9, 0, -8), new Vector3(10, 0, -3), new Vector3(0, 0, 8) })
             {
                 Primitive("Ağaç gövdesi", PrimitiveType.Cylinder, environment, position + Vector3.up, new Vector3(0.4f, 1, 0.4f), wood);
-                Primitive("Ağaç tacı", PrimitiveType.Sphere, environment, position + Vector3.up * 2.4f, new Vector3(2, 1.8f, 2), leaves);
+                treeCrowns.Add(Primitive("Ağaç tacı", PrimitiveType.Sphere, environment, position + Vector3.up * 2.4f, new Vector3(2, 1.8f, 2), leaves).GetComponent<Renderer>());
             }
-            Primitive("Su deposu", PrimitiveType.Cylinder, environment, new Vector3(-2, 1.1f, 5), new Vector3(2, 1.1f, 2), metal);
-            Primitive("Depodaki su göstergesi", PrimitiveType.Cylinder, environment, new Vector3(-2, 2.22f, 5), new Vector3(1.8f, 0.04f, 1.8f), water, false);
+            var waterPoint = CreateWaterStation(environment, metal, water, green, yellow, out var waterGauge);
+            var farmPoint = CreateFarmStation(environment, terrain, wood, leaves, water, green, out var crops);
+            var world = environment.gameObject.AddComponent<DemoWorldView>();
+            world.Configure(treeCrowns.ToArray(), crops, waterGauge);
+            world.Apply(ResourceState.Initial());
 
-            var stationObject = new GameObject("ENERJİ İSTASYONU");
-            stationObject.transform.position = new Vector3(3, 0, 0);
+            var stationObject = new GameObject("01 - ENERJİ İSTASYONU");
+            stationObject.transform.SetParent(environment, false);
+            stationObject.transform.localPosition = new Vector3(3, 0, 0);
             var station = stationObject.AddComponent<EnergyStation>();
             Primitive("İstasyon kaidesi", PrimitiveType.Cube, stationObject.transform, new Vector3(0, 0.15f, 0), new Vector3(3, 0.3f, 2), metal);
             Primitive("Kontrol kutusu", PrimitiveType.Cube, stationObject.transform, new Vector3(0, 0.85f, 0.35f), new Vector3(0.8f, 1.1f, 0.5f), yellow);
@@ -137,7 +146,8 @@ namespace SonBirUmutDemo.Editor
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = new Color(0.67f, 0.75f, 0.77f);
             cameraObject.AddComponent<AudioListener>();
-            cameraObject.AddComponent<IsometricFollowCamera>().Configure(playerObject.transform);
+            var follow = cameraObject.AddComponent<IsometricFollowCamera>();
+            follow.Configure(playerObject.transform, environment);
 
             var light = new GameObject("Güneş ışığı").AddComponent<Light>();
             light.type = LightType.Directional;
@@ -149,14 +159,70 @@ namespace SonBirUmutDemo.Editor
 
             var gameObject = new GameObject("Demo oturumu");
             var game = gameObject.AddComponent<DemoGameController>();
-            game.Configure(motor, station);
+            game.ConfigureCompleteDemo(motor, station, waterPoint, farmPoint, world, follow);
             motor.Configure(game, cameraObject.transform);
             gameObject.AddComponent<DemoHud>().Configure(game);
 
             if (!EditorSceneManager.SaveScene(scene, scenePath))
                 throw new InvalidOperationException("Demo sahnesi kaydedilemedi. Console ve dosya izinlerini kontrol edin.");
             Selection.activeGameObject = playerObject;
-            Debug.Log("Son Bir Umut sahnesi oluşturuldu: " + scenePath + ". Game görünümünü açıp Play'e basın. Unity çalışma testi henüz yapılmalıdır.");
+            Debug.Log("Üç kararlı Son Bir Umut demo sahnesi oluşturuldu: " + scenePath + ". Game görünümünü açıp Play'e basın. Unity çalışma testi henüz yapılmalıdır.");
+        }
+
+        private static DecisionStation CreateWaterStation(Transform environment, Material metal, Material water,
+            Material green, Material yellow, out Transform gauge)
+        {
+            var root = Group("02 - SU DEPOSU", environment);
+            root.localPosition = new Vector3(-2, 0, 5);
+            Primitive("Mevcut su deposu", PrimitiveType.Cylinder, root, new Vector3(0, 1.1f, 0), new Vector3(2, 1.1f, 2), metal);
+            gauge = Primitive("Kullanılabilir su - seviye göstergesi", PrimitiveType.Cube, root,
+                new Vector3(-0.6f, 1.1f, -1.02f), new Vector3(0.28f, 2, 0.12f), water, false).transform;
+            var pump = Group("A - Arıtma ve pompa", root);
+            Primitive("Pompa gövdesi", PrimitiveType.Cube, pump, new Vector3(1.7f, 0.55f, 0), new Vector3(1.1f, 1.1f, 1), water, false);
+            Primitive("Bağlantı borusu", PrimitiveType.Cube, pump, new Vector3(0.9f, 0.5f, 0), new Vector3(1.4f, 0.18f, 0.18f), metal, false);
+            var efficiency = Group("B - Verimlilik vanası", root);
+            Primitive("Onarılmış vana", PrimitiveType.Sphere, efficiency, new Vector3(-1.4f, 0.7f, 0), Vector3.one * 0.6f, green, false);
+            var unchanged = Group("C - Mevcut düzen uyarısı", root);
+            Primitive("Sızıntı uyarı levhası", PrimitiveType.Cube, unchanged, new Vector3(1.3f, 0.8f, 0), new Vector3(0.7f, 0.9f, 0.1f), yellow, false);
+            var anchor = Group("Etkileşim konumu", root);
+            anchor.localPosition = new Vector3(0, 1, -2);
+            var complete = Primitive("Tamamlandı lambası", PrimitiveType.Sphere, root, new Vector3(0, 2.5f, 0), Vector3.one * 0.4f, green, false);
+            var station = root.gameObject.AddComponent<DecisionStation>();
+            station.Configure(DecisionCatalog.WaterStationId, anchor,
+                new[] { pump.gameObject, efficiency.gameObject, unchanged.gameObject }, complete);
+            return station;
+        }
+
+        private static DecisionStation CreateFarmStation(Transform environment, Material soil, Material wood,
+            Material leaves, Material water, Material green, out Renderer[] crops)
+        {
+            var root = Group("03 - TARIM VE DOĞAL ALAN", environment);
+            root.localPosition = new Vector3(6, 0, -5);
+            Primitive("Tarla zemini", PrimitiveType.Cube, root, new Vector3(0, 0.04f, 0), new Vector3(5, 0.08f, 3.8f), soil, false);
+            var field = Group("Ürün sıraları - sağlık görünümü", root);
+            var renderers = new List<Renderer>();
+            for (int row = 0; row < 3; row++)
+                for (int column = 0; column < 5; column++)
+                    renderers.Add(Primitive("Ürün " + row + "-" + column, PrimitiveType.Cube, field,
+                        new Vector3(-1.8f + column * 0.9f, 0.4f, -1.1f + row * 1.1f), new Vector3(0.3f, 0.65f, 0.3f), leaves, false).GetComponent<Renderer>());
+            crops = renderers.ToArray();
+            Primitive("Araştırma işareti", PrimitiveType.Cube, root, new Vector3(-2.5f, 0.8f, -1.5f), new Vector3(0.5f, 1.6f, 0.2f), wood);
+            var protection = Group("A - Doğal alan koruması", root);
+            Primitive("Koruma çiti", PrimitiveType.Cube, protection, new Vector3(0, 0.65f, 2), new Vector3(5.2f, 0.2f, 0.15f), wood, false);
+            Primitive("Koruma işareti", PrimitiveType.Cube, protection, new Vector3(-2.5f, 1.5f, -1.5f), new Vector3(0.7f, 0.5f, 0.15f), green, false);
+            var irrigation = Group("B - Sulama kanalları", root);
+            for (int i = 0; i < 3; i++)
+                Primitive("Sulama hattı " + i, PrimitiveType.Cube, irrigation, new Vector3(0, 0.11f, -0.7f + i), new Vector3(4.6f, 0.07f, 0.12f), water, false);
+            var storage = Group("C - Kurak dönem depolaması", root);
+            for (int i = 0; i < 2; i++)
+                Primitive("Su varili " + i, PrimitiveType.Cylinder, storage, new Vector3(3, 0.6f, -0.8f + i * 1.4f), new Vector3(0.8f, 0.6f, 0.8f), water, false);
+            var anchor = Group("Etkileşim konumu", root);
+            anchor.localPosition = new Vector3(0, 1, -2.5f);
+            var complete = Primitive("Tamamlandı lambası", PrimitiveType.Sphere, root, new Vector3(-2.5f, 1.9f, -1.5f), Vector3.one * 0.4f, green, false);
+            var station = root.gameObject.AddComponent<DecisionStation>();
+            station.Configure(DecisionCatalog.FarmStationId, anchor,
+                new[] { protection.gameObject, irrigation.gameObject, storage.gameObject }, complete);
+            return station;
         }
 
         private static void EnsureFolder(string parent, string name)
