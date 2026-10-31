@@ -10,5 +10,6 @@
   <ItemGroup>
     <Compile Include="../../UnityAssets/SonBirUmutDemo/Scripts/Simulation/*.cs" Link="Simulation/%(Filename)%(Extension)" />
     <Compile Include="../../UnityAssets/SonBirUmutDemo/Scripts/Decisions/*.cs" Link="Decisions/%(Filename)%(Extension)" />
+    <Compile Include="../../UnityAssets/SonBirUmutDemo/Scripts/Core/DemoStory.cs" Link="Core/DemoStory.cs" />
   </ItemGroup>
 </Project>

@@ -20,10 +20,15 @@ namespace SonBirUmutDemo.Core
         public static string CrisisGoal(GameRunState run) =>
             (run.UsesTaskNodes ? "Köye dağılmış " : "") + $"{run.Crisis.Tasks.Count} bakım görevinden en az {run.Crisis.RequiredCount} tanesini tamamla. Su hattındaki arızaya müdahale et; " +
             $"baskıyı {run.CrisisRules.StableThreshold:0} veya altında {run.CrisisRules.StableDuration:0} saniye koru.";
-        public static string HowTo(GameRunState run) => "WASD ile yürü, Sol Shift ile koş.\n\n" +
-            "Enerji → su → tarım noktalarında E ile karar ver.\n\n" +
-            $"Arızada depoya koş; E'yi {run.CrisisRules.RepairDuration:0} saniye basılı tut. Bırakırsan onarım sıfırlanır.\n\n" +
-            CrisisGoal(run) + "\n\nKalan süre üst şeritte. Esc ile duraklat.";
+        public static string HowTo(GameRunState run) =>
+            "Köyü kuraklığa hazırla. Önce ENERJİ istasyonuna git.\n\n" +
+            "WASD yürü · Shift koş · Yakında E ile etkileş.\n" +
+            "Enerji → Su → Tarım: üç stratejik karar ver.\n\n" +
+            (run.UsesTaskNodes ? $"{FinalPacingCatalog.All.Count} ayrı noktadan {run.Crisis.Tasks.Count} bakım çağrısı gelir. " : $"{run.Crisis.Tasks.Count} bakım görevi var. ") +
+            $"En az {run.Crisis.RequiredCount} tanesini tamamla.\n" +
+            $"Arızada depoya koş: {run.CrisisRules.EmergencyWindow:0} sn içinde E'yi {run.CrisisRules.RepairDuration:0} sn tut.\n\n" +
+            $"Baskıyı {run.CrisisRules.StableThreshold:0} veya altında {run.CrisisRules.StableDuration:0} sn koru.\n" +
+            $"Toplam {run.RemainingSeconds:0} aktif sn. Süre üstte; Esc duraklatır.";
         public static string EndingBrief(EndingCategory category, bool stabilized)
         {
             if (category == EndingCategory.Rebirth) return "Köyün temel ihtiyaçlarını korudun. Kurak döneme daha dayanıklı giriyorsunuz.";
