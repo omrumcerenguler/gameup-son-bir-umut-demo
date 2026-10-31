@@ -23,7 +23,7 @@ namespace SonBirUmutDemo.Simulation
             triggerRemaining = Math.Min(rules.EmergencyDelay, sessionRemaining / 4);
             if (triggerRemaining == 0) Status = EmergencyStatus.Active;
         }
-        internal void CancelRepair() => RepairSeconds = 0;
+        internal void CancelRepair() { if (Status == EmergencyStatus.Active) RepairSeconds = 0; }
         internal double NextBoundary(bool held, bool inRange)
         {
             if (Status == EmergencyStatus.Waiting) return triggerRemaining;
@@ -43,7 +43,7 @@ namespace SonBirUmutDemo.Simulation
             RepairSeconds = held && inRange ? Math.Min(rules.RepairDuration, RepairSeconds + seconds) : 0;
             // A repair finishing exactly on the deadline succeeds.
             if (RepairSeconds >= rules.RepairDuration - 1e-9) Status = EmergencyStatus.Repaired;
-            else if (RemainingSeconds <= 1e-9) { Status = EmergencyStatus.Expired; CancelRepair(); }
+            else if (RemainingSeconds <= 1e-9) { Status = EmergencyStatus.Expired; RepairSeconds = 0; }
         }
     }
 }

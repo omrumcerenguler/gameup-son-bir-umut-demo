@@ -66,20 +66,21 @@ namespace SonBirUmutDemo.Simulation
         {
             if (hasFocus == focused) return;
             hasFocus = focused; discardNextDelta = true;
-            Crisis?.Emergency.CancelRepair();
+            if (!IsEnded) Crisis?.Emergency.CancelRepair();
         }
 
         public void SetApplicationPaused(bool paused)
         {
             if (applicationPaused == paused) return;
             applicationPaused = paused; discardNextDelta = true;
-            Crisis?.Emergency.CancelRepair();
+            if (!IsEnded) Crisis?.Emergency.CancelRepair();
         }
 
         public void Tick(double seconds, bool cardsOpen, bool repairHeld = false, bool repairInRange = false)
         {
             RunNumbers.NonNegative(seconds, nameof(seconds));
-            if (!UsesCrisisMode || IsEnded || Phase == GameRunPhase.Intro || cardsOpen || !hasFocus || applicationPaused)
+            if (!UsesCrisisMode || IsEnded) return;
+            if (Phase == GameRunPhase.Intro || cardsOpen || !hasFocus || applicationPaused)
             { Crisis?.Emergency.CancelRepair(); return; }
             if (discardNextDelta) { discardNextDelta = false; Crisis?.Emergency.CancelRepair(); return; }
             if (!repairHeld || !repairInRange) Crisis?.Emergency.CancelRepair();
@@ -100,7 +101,8 @@ namespace SonBirUmutDemo.Simulation
                 double rate = PressureRiseRate;
                 bool eligible = Crisis.CompletedCount >= 2 && incident.IsResolved &&
                     pressure.Value <= crisisRules.StableThreshold;
-                double untilHigh = rate > 0 ? (crisisRules.StableThreshold - pressure.Value) / rate : double.PositiveInfinity;
+                double untilHigh = rate > 0 && crisisRules.StableThreshold < 100
+                    ? (crisisRules.StableThreshold - pressure.Value) / rate : double.PositiveInfinity;
                 if (eligible && untilHigh <= 1e-9) eligible = false;
                 if (!eligible) Crisis.StableSeconds = 0;
                 double step = Math.Min(pending, incident.NextBoundary(repairHeld, repairInRange));

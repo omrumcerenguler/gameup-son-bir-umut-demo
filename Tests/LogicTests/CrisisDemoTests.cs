@@ -61,6 +61,7 @@ internal static class CrisisDemoTests
             state.Tick(2, false, true, true); Check(state.Crisis.Emergency.Status == EmergencyStatus.Repaired);
             double pressure = state.CrisisPressure; state.Tick(20, false, true, true);
             Check(state.Crisis.Emergency.Status == EmergencyStatus.Repaired && state.CrisisPressure > pressure);
+            Near(state.Crisis.Emergency.RepairSeconds, 2);
         });
         run("Crisis: late preparation still schedules event before global timeout", () => {
             var state = Create(20); state.Start(); state.Tick(18, false); Prepare(state);
@@ -211,6 +212,13 @@ internal static class CrisisDemoTests
             a.Tick(12,false,true,true); for(int i=0;i<120 && !b.IsEnded;i++) b.Tick(.1,false,true,true);
             Check(a.IsEnded && b.IsEnded && a.Result.Category==b.Result.Category);
             Near(a.RemainingSeconds,b.RemainingSeconds,.00001); Near(a.CrisisPressure,b.CrisisPressure,.00001);
+        });
+        run("Crisis: configured threshold at pressure ceiling permits stability", () => {
+            var state=Create(settings:new GameRunSettings(initialPressure:100,baseRise:1,maximumRisePerSecond:1),
+                rules:new CrisisRules(stableThreshold:100,stableDuration:2));
+            state.Start(); Prepare(state); for(int i=0;i<3;i++)Complete(state,i);
+            state.Tick(57,false); Near(state.CrisisPressure,100);
+            state.Tick(2,false); Check(state.IsEnded && state.Result.CrisisStabilized);
         });
         run("Crisis: invalid tuning rejected", () => {
             Reject(()=>new CrisisRules(stableDuration:0)); Reject(()=>new CrisisRules(stableThreshold:101));
