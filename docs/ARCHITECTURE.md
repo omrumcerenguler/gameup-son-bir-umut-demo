@@ -1,3 +1,24 @@
+# Mimari — Final Polish
+
+Dal `feature/final-polish`, korunan kaynak 747c08a. Oynanış profili aynı FinalPacing; yeni GameMode yok. Görev/arıza/süre/karar/sonuç/motor/dünya hesapları değiştirilmez.
+
+| Katman | Son ek |
+| --- | --- |
+| SoundPreferences | Mevcut master/mute yanında bağımsız müzik/efekt kazancı; eski constructor uyumlu |
+| AudioPresentation (saf C#) | Mix bağlamları, tek loop start/stop geçişi, kısa cue limiti ve 60/20/neden/final cue politikası |
+| DemoAudioManager | Eski 6 runtime cue + yalnız yeni sahnede 3 WAV source; gerçek volume/mute, kalıcı tercihler, focus/native pause ve hata izolasyonu |
+| DemoPolishAudioBuilder / SceneBuilder mode6 | Yalnız üç yeni WAV importer ayarı,3 sabit loop source, benzersiz FinalPolish sahnesi; eski 6 menü korunur |
+| DemoHud / DemoStory | Üç ses sliderı, kısa doğru yönerge, metinli süre uyarısı ve kaynakla uyumlu neden |
+| FinalPolishTests / tools/generate_audio.py | 14 yeni C# grup + üç PCM format/kenar/genlik doğrulaması |
+
+Normal yeni oturum loop transport'unu yeniden başlatmaz; eski SFX/gerilim temizlenir ve mix yeni Run'a geçer. Mute/focus/native pause/disable transport'u durdurur; sonraki uygun karede bir kez Play. Kaynaklar yalnız Editor builder tarafından oluşturulur; runtime AddComponent/DontDestroyOnLoad yoktur. Ses katmanı simülasyonu veya Time.timeScale'i değiştirmez.
+
+[Ses kaynakları, tercihler, fallback ve dosyalar](FINAL_POLISH.md) · [Son kabul](FINAL_ACCEPTANCE_TEST.md)
+
+---
+
+Aşağıdakiler **Final Pacing ve önceki aşamaların tarihsel mimari kayıtlarıdır**. Oynanış temeli korunur; güncel ses/UX katmanı yukarıdadır.
+
 # Mimari — Final Pacing
 
 Dal `feature/final-pacing`; korunan RC kaynak `5eeb35e7dad7343e2591f1d3b03870ad47d84305`.

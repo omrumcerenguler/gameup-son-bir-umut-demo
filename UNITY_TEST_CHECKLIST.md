@@ -1,3 +1,15 @@
+# Güncel kabul — Final Polish
+
+Dal **feature/final-polish**; korunan kaynak 747c08a. Hakan'ın güncel sıralı planı: **[docs/FINAL_ACCEPTANCE_TEST.md](docs/FINAL_ACCEPTANCE_TEST.md)**. Bütün kutular bekliyor.
+
+Önce çalışan Unity projesini yedekle. Scripts/Editor/**Audio ve üç WAV** birlikte aktarılır; eski .meta/Scenes/Generated korunur. Menü: **Tools > GameUP > Create Final Polish Scene**.
+
+192 saf C# test grubu ve üç WAV sayısal kontrolü geçti; gerçek Unity API/AudioSource/dinleme/GUI/fizik/Windows testi değildir. Özellikle4source/1 Listener sabitliği, müzik/efekt/master/mute/kalıcılık,10/6/2/4,45/2,240sn, restart/final,720p/1080p ve EXE/video kabul listesinde denenmeli. [Ses/UX/dosya dökümü](docs/FINAL_POLISH.md).
+
+---
+
+Aşağıdaki listeler **korunan eski sahne profillerinin tarihsel planlarıdır**; yeni ses/UX teslimi için yukarıdaki son listeyi kullan.
+
 # Güncel kabul — Final Pacing
 
 Dal **feature/final-pacing**; korunan RC commit'i 5eeb35e. **[Hakan'ın güncel kısa Unity listesi](docs/FINAL_PACING_UNITY_TEST.md)** henüz işaretlenmemiştir.

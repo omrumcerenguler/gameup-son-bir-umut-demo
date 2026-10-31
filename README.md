@@ -1,47 +1,49 @@
 # Son Bir Umut: Kuraklıktan Önce — GAMEUP Türkiye 2026
 
-**KRİZ NÖBETİ** · Unity 6.3 LTS / C# / Windows · Dal: `feature/final-pacing`.
+**KRİZ NÖBETİ** · Unity 6.3 LTS / C# / Windows · `feature/final-polish`.
 
-Korunan çalışan kaynak: `feature/release-candidate / 5eeb35e7dad7343e2591f1d3b03870ad47d84305`. Bu depo kaynak teslimidir; Mac'te Unity Editor yoktur. **Yeni sahne, fiziksel erişim, GUI/ses ve Windows EXE doğrulanmadı.**
+Korunan kaynak: `feature/final-pacing / 747c08afa2ba9ace9e8fdee77d9f0b83bc670c4f`. Son ses/UX ve teslim hazırlığıdır. **Mac'te Unity Editor yok; gerçek Unity derlemesi, dinleme, fizik, GUI ve Windows build doğrulanmadı.**
 
-## Son oynanış iyileştirmesi
+## Bu sürüm
 
-- **10 ayrı bakım tanımı ve 10 ayrı fiziksel node:** üç enerji, dört su, üç tarım/doğa. Her node ayrı TaskId/LocationId/konum taşır; üç stratejik istasyonun üzerine yığılmaz.
-- **Oturumda altı görev**, her bölgeden iki; 54 farklı altılı set. En fazla iki aktif çağrı, kriz başarısı için en az dört bakım. Görevler konum/bölge ve açılma saatine göre sunulur; ayrı bakım son tarihleri yoktur.
-- Yakın doğru noktada E, tek ödül, aktif sarı işaret/tamamlanmış yeşil onay ve mevcut bakım sesi. Acil olay bakım etkileşimlerinden önce gelir.
-- Kısa hedef, ekran kenarı yönlendirmesi, açık görev süresi/yeni hedef bildirimi; son 60/20 sn için daha belirgin sayaç uyarısı.
-- Korunan 32×28 köy, WASD/1.9×Shift, üç karar, tek arıza 45 sn / 2 sn onarım, 240 aktif sn ve üç genel final. Karar ekonomisi/emisyon/final eşikleri değişmedi.
-- RC ana menü, gerçek ses/mute/PlayerPrefs, bağımsız Esc pause, restart/menu/final/replay korunur. Yeni oturum görev seti ve on node işaretini mevcut dünya/kamera/HUD ile birlikte temizler.
+- Yeni Final Polish sahnesinde özgün 12 sn menü müziği, 8 sn rüzgâr ve 8 sn hafif baskı uğultusu. Üç standart PCM WAV, toplam yaklaşık 1.18 MiB; dış kayıt/paket/vokal yok. Müzikal kaliteyi Hakan dinlemeli.
+- Gerçek Ana ses / Müzik / Efekt ve ortam / Mute; eski master/mute kayıt anahtarları korunur. Müzik, pause/menü/final bağlamına göre kısa miks geçişleri kullanır; focus/native pause/mute kaynakları durdurur. Kaynak sayısı sabit, eski altı cue korunur; aynı cue tekrarına ve yoğun üst üste çalmaya sınır getirildi.
+- İlk hedef açıkça enerji; HowTo 10 nokta/6 görev/en az 4 ve 240/45/2 kurallarını kısa satırlarda açıklar. Son 60/20 sn uyarıları renk yanında metin ve `!` taşır. Finalde gerçek kaynaklara bağlı kısa neden eklenir.
+- Oynanış değişmedi: 32×28 köy, üç stratejik karar, 10 node/oturumda 6/en fazla 2/en az 4, tek arıza 45/2, 240 aktif sn, 1.9×Shift, baskı/fog, üç final, menü/pause/restart/replay. Karar ekonomisi, görev/çağrı saatleri ve final eşikleri korunur.
 
-Değerler oyun dengelemesidir; iklim değişikliğinin tamamen çözüldüğü iddia edilmez. Yeni büyük harita, NPC, crafting, envanter, ekstra arıza, paket veya oyun kaydı eklenmedi.
+Yeni görev/harita/NPC/envanter/crafting/save-load/pipeline eklenmedi. Suya özel ayrı akış katmanı ve ek görsel geçişler kapsam dışında kaldı. Sayılar oyun parametreleridir; iklim değişikliğinin çözüldüğü iddia edilmez.
 
-## Hakan için ilk adım
+## Hakan'ın ilk adımı
 
-**Önce çalışan Unity projesini yedekle.** Temiz kaynak depoda `feature/final-pacing` dalını al. `UnityAssets/SonBirUmutDemo` içeriğinin tamamını dış projenin `Assets/SonBirUmutDemo` klasörüne kopyala; yeni dosyalar dahil Scripts ve Editor birlikte olmalı. Eski `.meta`, Scenes ve Generated dosyalarını silme. Built-in/URP, Active Input Handling **Old veya Both**.
+**Çalışan gerçek Unity projesini önce yedekle.** Temiz kaynak depoda `feature/final-polish` dalını al. UnityAssets/SonBirUmutDemo içeriğinin **tamamını** dış projenin Assets/SonBirUmutDemo klasörüne aktar: Scripts + Editor + **Audio ve üç WAV**. Eski .meta/Scenes/Generated silinmez. Unity 6.3 LTS, Built-in/URP ve Input Handling **Old veya Both**.
 
-Console derlemesi bitince **Tools > GameUP > Create Final Pacing Scene**. Sahne `Assets/SonBirUmutDemo/Scenes/SonBirUmutFinalPacing.unity`, varlıklar `Generated/FinalPacing...`; dolu yollar benzersiz numaralanır. Kaydet/kapat/yeniden aç, Play ile ana menüden başla.
+Console derlemesinden sonra **Tools > GameUP > Create Final Polish Scene**. Yeni `Assets/SonBirUmutDemo/Scenes/SonBirUmutFinalPolish.unity` ve `Generated/FinalPolish...` benzersiz numaralanır. Kaydet/kapat/yeniden aç; Play ile ana menüden başla. Araç global Player Settings'i değiştirmez.
 
 | Menü | Profil |
 | --- | --- |
-| Create Final Pacing Scene | On konum, oturumda altı/en az dört, RC menü/pause/ses |
-| Create Release Candidate Scene | Korunan beş görev/en az dört ve RC kabuğu |
-| Create Playtest Demo Scene | Korunan Aşama3, beş görev/en az dört |
+| Create Final Polish Scene | Aynı Final Pacing oynanışı + özgün arka plan sesleri |
+| Create Final Pacing Scene | Korunan 10 node/6 görev/4 asgari, kısa efektler |
+| Create Release Candidate Scene | Korunan 5 görev/4 asgari |
+| Create Playtest Demo Scene | Korunan Aşama 3 beş görevli profil |
 | Create Crisis Demo Scene | Eski üç bakım/en az iki |
-| Create Crisis Foundation Scene | Süre/baskı temeli; görev/arıza yok |
+| Create Crisis Foundation Scene | Süre/baskı temeli |
 | Create Demo Scene | Eski üç stratejik karar→final |
 
-Kaydedilmiş eski sahne kendiliğinden Final Pacing olmaz. [Hakan'ın kısa test listesi](docs/FINAL_PACING_UNITY_TEST.md) · [Kurulum](docs/INTEGRATION.md) · [Konumlar/mimari/dosya dökümü](docs/FINAL_PACING.md).
+Eski sahne otomatik müzik almaz. Eksik WAV/import hatası uyarıyla kısa efektli kurulum oluşturur; runtime ses katmanı hatası temel simülasyonu durdurmaz. Sessiz modda kritik olaylar görsel/metinle anlaşılmalıdır.
+
+[Son kabul ve Windows teslim listesi](docs/FINAL_ACCEPTANCE_TEST.md) · [Kurulum](docs/INTEGRATION.md) · [Ses/UX/dosya dökümü ve riskler](docs/FINAL_POLISH.md) · [Özgün sesler](UnityAssets/SonBirUmutDemo/Audio/README.md)
 
 ## Gerçekte çalıştırılanlar
 
-**178 test grubu geçti, 0 başarısız:** önceki 157 korundu, 21 yeni. Kimlik/yanlış konum/menzil/modal/tek ödül, çağrı sırası/saatler,54 görev seti, menü/restart/final,27 strateji/üç genel final ve eski profiller test edildi. 44 Unity C# dosyası ×5 sembol birleşimi sözdizimi kontrolünden hatasız geçti; bu Unity API/tür derlemesi değildir.
+**192 test grubu geçti, 0 başarısız**: önceki 178 aynı beklentilerle korundu, 14 yeni grup. Ses tercihi/mix/loop transport/cue güvenliği, uyarı sınırları, gerçek HowTo ve 27 rotanın final/cue uyumu doğrulandı. Gerçek AudioSource/GUI/dinleme testi değildir. 46 C# dosyası ×5 sembol C#9 sözdizimi kontrolü hatasız; Unity API/tür derlemesi değildir.
 
 ```sh
 dotnet run --project Tests/LogicTests/LogicTests.csproj --configuration Release
+python3 tools/generate_audio.py --check
 ```
 
-[Rota/süre tahmini](docs/FINAL_PACING_BALANCE.md): yürüyüş 3.5 ve 1.9×sprint, şişirilmiş engel grafiği, yön bulma/etkileşim/tepki payı ve olay saatleriyle hızlı 87–90, yeni oyuncu 155–175 aktif sn. Üç enerji seçeneği için de 54/54 sette başarı yolu; geciken profil 240 sn'de geçerli sonuç. **Gerçek Unity hareketi veya oyuncu süresi ölçümü değildir.**
+Üç WAV'ın format/süre/genlik/RMS/DC ve döngü kenarı sayısal kontrolleri geçti. Yeni SDK/paket kurulmadı. [Test kaydı](docs/TEST_RESULTS.md) · [Mimari](docs/ARCHITECTURE.md).
 
-[Test kaydı ve riskler](docs/TEST_RESULTS.md) · [Mimari](docs/ARCHITECTURE.md). Özellikle on noktanın erişimi, gerçek tempo/arama, işaret/kamera, UI taşıması, pause/focus, ses ve Windows build ekip tarafından denenmeli. Build Profiles Scene List'te Final Pacing sahnesi ilk/etkin; EXE/_Data/UnityPlayer.dll ve bütün yan dosyalar birlikte teslim edilmeli. Tam Unity proje yedeği Assets/Packages/ProjectSettings ve gerekli .meta içermeli; [teslim rehberi](docs/RELEASE_CANDIDATE_TEST.md).
+[Korunan rota tahmini](docs/FINAL_PACING_BALANCE.md) hızlı 87–90/yeni oyuncu 155–175 aktif sn verir; gerçek oyuncu ölçümü değildir. Sesin duyulması/seviye/kalıcılık, gerçek 10 node erişimi/fog, iki çözünürlük ve Windows EXE ekip testi bekler. Scene List'te FinalPolish ilk/etkin; EXE/_Data/UnityPlayer.dll ve bütün yan dosyalar birlikte teslim edilmeli. Tam Unity proje yedeği Assets/Packages/ProjectSettings ve gerekli .meta içermeli.
 
-Eski dallar/kişisel belgeler korunur. Kişisel medya, gizli bilgi, build/cache Git'e eklenmez; merge veya force push yapılmaz. [Korunan RC uygulaması](docs/RELEASE_CANDIDATE.md) · [Aşama3 UX](docs/PLAYTEST_UX.md).
+Eski dallar/kişisel belgeler korunur. Kişisel medya, gizli bilgi ve build/cache Git'e eklenmez; merge veya force push yapılmaz. [Korunan Final Pacing tasarımı](docs/FINAL_PACING.md).

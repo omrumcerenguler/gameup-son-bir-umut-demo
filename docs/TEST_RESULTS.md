@@ -1,3 +1,34 @@
+# Doğrulama — Final Polish
+
+Dal `feature/final-polish`; korunan kaynak 747c08afa2ba9ace9e8fdee77d9f0b83bc670c4f. Mac'te Unity Editor yok; yeni SDK/paket kurulmadı.
+
+- Başlangıç regresyonu:178 geçti / 0 başarısız. Önceki test dosyaları/beklentileri değişmedi.
+- Yeni 14 grup ile **192 geçti / 0 başarısız**. Mevcut .NET 9.0.303/net8.0/C#9/warnings-as-errors; no-restore.
+- Master/müzik/efekt sınırları/NaN/Infinity/mute, tercihin model round-trip'i, loop transport'un tek Start/Stop'u, menü/Intro/oyun/kart/pause/focus/native mix, reset tercih/transport koruması test edildi.
+- Cue aynı kare/75ms tekrar ve iki voice limiti/öncelik,60/20 eşikleri, gerçek DemoStory HowTo10/6/4 ve eski5/4,27 rotanın üç final/cue/neden uyumu geçti. Önceki görev/yanlış konum/çift ödül/arıza/rota/RC regresyonları yeniden çalıştı.
+- **46 Unity C# dosyası ×5 Editor/player input sembol birleşimi**, C#9 Roslyn parser: 0 hata. API/tür derlemesi değildir.
+- Üç özgün WAV standart Python ile üretildi; **3/3** dosyada mono 22050 Hz/16-bit PCM/süre/tepe/RMS/DC/baş-son sıfır/kenar eğimi kontrolleri geçti. Toplam 1234932 bayt. Dinleme yapılmadı.
+
+Gerçekte çalıştırılanlar:
+
+```sh
+DOTNET_CLI_HOME=/private/tmp/sonbirumut-dotnet DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_GENERATE_ASPNET_CERTIFICATE=false dotnet run --project Tests/LogicTests/LogicTests.csproj --configuration Release --no-restore -p:UseSharedCompilation=false
+python3 tools/generate_audio.py
+python3 tools/generate_audio.py --check
+```
+
+İlk Python komutu yalnız üç yeni isimli WAV'ı üretti; tekrar üretmek kurulum için gerekmez. Önceki rota raporu yeniden yazılmadı; rota/oynanış verisi değişmedi.
+
+## Test edilmemişler ve riskler
+
+Unity API derlemesi/import, 4 gerçek AudioSource/1 Listener ve tekrar oturumda sabit sayı, dinleme/müzikal kalite/döngü birleşimi/fade/cihaz/headroom, PlayerPrefs disk kalıcılığı, GUI/klavye/fare/Türkçe font/720p-1080p,10 node collider erişimi/fog/gerçek tempo, Windows build/EXE/video **test edilmedi**. Ses source yönetimi saf LoopPlayback modeli düzeyinde testlidir; gerçek Unity davranışı diye raporlanmaz.
+
+Ses başarısızlığında uyarı ve katman izolasyonu kaynakta vardır; gerçek import/aygıt hata senaryoları bekler. Eski master/mute anahtarları korunur; Editor/EXE depoları farklı olabilir. Son60sn yalnız renk boşluğu metin/`!` ile giderildi; çift cue için koruma eklendi, önceki duyulmuş patlama ölçümü iddia edilmez. Ek su bölgesi sesi/görsel efekt eklenmedi. [Henüz işaretlenmemiş son kabul listesi](FINAL_ACCEPTANCE_TEST.md).
+
+---
+
+Aşağıdakiler **tarihsel doğrulama kayıtlarıdır**; güncel toplam192/0, korunan Final Pacing başlangıcı178/0'dır.
+
 # Doğrulama — Final Pacing
 
 Dal `feature/final-pacing`; korunan başlangıç `5eeb35e7dad7343e2591f1d3b03870ad47d84305`. Mac'te Unity Editor yoktur; yeni SDK/paket kurulmadı.

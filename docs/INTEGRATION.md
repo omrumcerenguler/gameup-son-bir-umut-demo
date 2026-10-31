@@ -1,3 +1,20 @@
+# Final Polish — güncel Windows kurulumu
+
+1. **Önce çalışan gerçek Unity projesini yedekle.** Yerel düzenlemeleri koru. Temiz kaynak depoda `git fetch origin`, `git switch feature/final-polish`, `git pull --ff-only origin feature/final-polish`; tam commit'i kaydet.
+2. UnityAssets/SonBirUmutDemo içeriğinin **tamamını** Assets/SonBirUmutDemo üzerine aktar: Scripts + Editor + Audio'daki üç WAV. Eski .meta/Scenes/Generated silinmez; yeni dosyaların .meta'sını Unity üretir. Tests/tools/docs/kişisel dosyalar Assets'e gitmez.
+3. Unity 6.3 LTS/6000.3.x, Built-in/URP; Input Handling **Old veya Both**. Console derlemesi bitsin; ilk kırmızı hata varsa kaydet ve çözmeden başarılı sayma. Bu Mac'te API derlemesi yapılmadı.
+4. Play kapalı/Prefab dışında/açık sahneler temizken **Tools > GameUP > Create Final Polish Scene**. Benzersiz Scenes/SonBirUmutFinalPolish.unity ve Generated/FinalPolish... oluşturulur. Yalnız üç yeni WAV PCM/preload/mono ayarına alınır; global Player Settings değişmez. Eksik/import edilemeyen ses uyarıyla kısa efektli sahneye düşer.
+5. Sahneyi kaydet/kapat/yeniden aç. Tam sesli sahnede controller/node/görsel referansları, üç loop ve mevcut efekt source'u (toplam 4), tek kamerada AudioListener olmalı. Runtime source oluşturulmaz.
+6. **[FINAL_ACCEPTANCE_TEST](FINAL_ACCEPTANCE_TEST.md)** sırasını uygula: gerçek dinleme/döngü/seviye/mute/PlayerPrefs, menü/yeni oyun/üç karar/6 bakım/10 node/arıza/pause/final/restart ve 720p/1080p. Yeni mix clip hazır olması fiziksel sesin duyulduğunu kanıtlamaz.
+7. Windows Build Profiles Scene List'te **FinalPolish etkin ve ilk**. Ürün adı/pencere başlığı/simgeyi manuel kontrol et; başka oyunun ayarını kullanma. EXE'yi Editor dışında baştan sona oyna, ses ve çıkışı dene. EXE/_Data/UnityPlayer.dll ve bütün yan dosyaları birlikte teslim et; son oynanış videosunu kaydet.
+8. Test edilmiş tam Unity yedeği Assets/Packages/ProjectSettings ve bütün gerekli .meta içermeli; Library/Temp/Logs/cache gerekmez. Gerçek Generated ve Audio dosyaları önbellek değildir. [Tam teslim kuralları](RELEASE_CANDIDATE_TEST.md).
+
+Eski Final Pacing ve RC 5/4 dahil diğer menüler/profiller korunur; eski sahne otomatik arka plan sesi almaz.192 saf C# test ve WAV kontrolleri geçti; gerçek Unity/Windows kabulü bekliyor. [Ses/UX ayrıntıları](FINAL_POLISH.md).
+
+---
+
+Aşağıdaki metin **korunan eski sahnelerin kurulumudur**. Yeni ses atmosferi için yukarıdaki Final Polish menüsünü kullan.
+
 # Final Pacing — güncel Windows kurulumu
 
 1. **Önce çalışan Unity projesini ve yerel düzenlemeleri yedekle.** RC kaynak dalı 5eeb35e korunur; yeni çalışma `feature/final-pacing`.
