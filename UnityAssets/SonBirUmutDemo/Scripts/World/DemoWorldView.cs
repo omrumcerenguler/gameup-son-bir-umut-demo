@@ -78,7 +78,8 @@ namespace SonBirUmutDemo.World
             targetPlants = state.PlantHealth;
             targetWater = state.Water;
             // A new session/replay snaps to its initial appearance. Choices animate visuals only.
-            bool snap = !initialized || !Application.isPlaying || game == null || !ReferenceEquals(seenSession, game.Session);
+            bool snap = !initialized || !Application.isPlaying || game == null || !ReferenceEquals(seenSession, game.Session) ||
+                (game.IsReleaseCandidate && game.IsComplete);
             if (snap)
             {
                 plantView = targetPlants;
@@ -94,7 +95,7 @@ namespace SonBirUmutDemo.World
         private float TargetTint() => game != null && game.UsesPlaytestMode ? Mathf.Clamp01(((float)game.Run.CrisisPressure - 60) / 40) : 0;
         private void Update()
         {
-            if (!initialized) return;
+            if (!initialized || (game != null && game.IsReleaseCandidate && game.SimulationPaused)) return;
             float tint = Mathf.MoveTowards(crisisTint, TargetTint(), Time.deltaTime * .3f);
             if (Mathf.Approximately(plantView, targetPlants) && Mathf.Approximately(waterView, targetWater) && Mathf.Approximately(tint, crisisTint)) return;
             crisisTint = tint;

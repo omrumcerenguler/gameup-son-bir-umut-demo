@@ -14,12 +14,15 @@ namespace SonBirUmutDemo.UI
         public static readonly Color Gold = new Color(.91f, .73f, .39f);
         public static readonly Color Blue = new Color(.43f, .74f, .87f);
         public static readonly Color Red = new Color(.92f, .50f, .37f);
-        public readonly GUIStyle Title, Heading, ChoiceTitle, Body, Small, Tiny, Button, QuietButton;
+        public readonly GUIStyle Title, Hero, Toggle, Heading, ChoiceTitle, Body, Small, Tiny, Button, QuietButton;
         private readonly Texture2D normal, hover, pressed, disabled, quiet;
         private readonly GUIStyle unavailable;
         public DemoGuiTheme()
         {
             Title = Label(25, Text, true);
+            Hero = Label(32, Text, true);
+            Toggle = new GUIStyle(GUI.skin.toggle) { fontSize = 17, wordWrap = true };
+            Toggle.normal.textColor = Toggle.onNormal.textColor = Text;
             Heading = Label(20, Text, true);
             ChoiceTitle = Label(17, Text, true);
             Body = Label(17, Text);

@@ -20,6 +20,8 @@ namespace SonBirUmutDemo.Interaction
             if (emergencyVisual != null) emergencyVisual.SetActive(false);
         }
 
+        public void RefreshNow() => LateUpdate();
+
         private void LateUpdate()
         {
             bool active = game != null && game.UsesCrisisDemo && !game.IsComplete &&

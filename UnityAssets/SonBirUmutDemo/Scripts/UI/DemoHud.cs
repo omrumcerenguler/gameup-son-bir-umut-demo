@@ -20,6 +20,9 @@ namespace SonBirUmutDemo.UI
         private Vector2 finalScroll;
         private int finalTab;
         private bool overviewOnly;
+        private bool finalDetails;
+        private int releaseSurface = -1;
+        private bool releaseFocused = true;
         private bool detailsOpen, wasCardsOpen;
         private string shownPoint;
         private Vector2 detailsScroll;
@@ -51,22 +54,31 @@ namespace SonBirUmutDemo.UI
                 shownSession = game.Session;
                 finalScroll = Vector2.zero;
                 finalTab = 0;
-                overviewOnly = false;
+                overviewOnly = finalDetails = false;
                 detailsOpen = false; wasCardsOpen = false; shownPoint = null;
                 if (followCamera != null)
-                    followCamera.SetResultPanelVisible(true);
+                    followCamera.SetResultPanelVisible(!(game.IsReleaseCandidate && game.Menu.MainMenuBackground));
             }
 
             string pointId = game.Session.CurrentPoint?.Id;
             if ((game.CardsOpen && !wasCardsOpen) || pointId != shownPoint)
             { detailsOpen = false; detailsScroll = Vector2.zero; }
             wasCardsOpen = game.CardsOpen; shownPoint = pointId;
+            if (game.IsReleaseCandidate)
+            {
+                int surface = (int)game.Menu.Screen * 16 + (int)game.Run.Phase * 2 + (game.CardsOpen ? 1 : 0);
+                if (surface != releaseSurface || game.UiInputAvailable != releaseFocused) ClearGuiFocus();
+                releaseSurface = surface; releaseFocused = game.UiInputAvailable;
+            }
             Matrix4x4 previous = GUI.matrix;
             scale = Mathf.Min(Screen.width / 1280f, Screen.height / 720f);
             canvasOffset = new Vector2((Screen.width - 1280f * scale) / 2, (Screen.height - 720f * scale) / 2);
             GUI.matrix = Matrix4x4.TRS(new Vector3(canvasOffset.x, canvasOffset.y, 0), Quaternion.identity, Vector3.one * scale);
             try
             {
+                if (game.IsReleaseCandidate && game.ReleaseMenuVisible) { DrawReleaseMenu(); return; }
+                if (game.IsReleaseCandidate && game.IsComplete) { DrawReleaseEnding(); return; }
+                if (game.IsReleaseCandidate && game.IntroOpen) { DrawIntro(); return; }
                 DrawStatus();
                 if (game.IntroOpen)
                     DrawIntro();
@@ -88,6 +100,116 @@ namespace SonBirUmutDemo.UI
             {
                 GUI.matrix = previous;
             }
+        }
+
+        private void ClearGuiFocus()
+        { GUIUtility.hotControl = 0; GUIUtility.keyboardControl = 0; }
+
+        private bool ReleaseButton(Rect area, string text, ReleaseCommand command)
+        {
+            if (!theme.Action(area,text)) return false;
+            if (game.SubmitMenuCommand(command)) ClearGuiFocus();
+            return true; // Stop drawing this branch even if a second event was rejected.
+        }
+        private bool LocalReleaseButton(Rect area, string text, System.Action action)
+        {
+            if (!theme.Action(area,text,quietStyle:true)) return false;
+            if (game.ConsumeLocalUiAction()) { action(); ClearGuiFocus(); }
+            return true;
+        }
+
+        private void DrawReleaseMenu()
+        {
+            bool previous = GUI.enabled; GUI.enabled = previous && game.UiInputAvailable;
+            try
+            {
+                switch (game.Menu.Screen)
+                {
+                    case ReleaseScreen.MainMenu:
+                        theme.Panel(new Rect(65,100,600,540),DemoGuiTheme.Gold);
+                        GUI.Label(new Rect(105,130,520,94),DemoStory.ReleaseTitle,theme.Hero);
+                        GUI.Label(new Rect(108,234,510,26),DemoStory.ReleaseSubtitle,theme.Heading);
+                        GUI.Label(new Rect(108,278,505,45),"Kuraklık yaklaşırken köyün su ve yaşam kaynaklarını koru.",theme.Body);
+                        if (ReleaseButton(new Rect(110,335,430,46),"Yeni Oyun",ReleaseCommand.NewGame)) return;
+                        if (ReleaseButton(new Rect(110,392,430,46),"Nasıl Oynanır",ReleaseCommand.HowToPlay)) return;
+                        if (ReleaseButton(new Rect(110,449,430,46),"Ayarlar",ReleaseCommand.Settings)) return;
+                        if (theme.Action(new Rect(110,506,430,46),"Çıkış")) { if (game.RequestQuit()) ClearGuiFocus(); return; }
+                        GUI.Label(new Rect(108,573,505,42),game.MenuNotice,theme.Small);
+                        break;
+                    case ReleaseScreen.Paused:
+                        theme.Panel(new Rect(415,185,450,390),DemoGuiTheme.Gold);
+                        GUI.Label(new Rect(450,211,380,40),"Duraklatıldı",theme.Title);
+                        if (ReleaseButton(new Rect(450,275,380,46),"Devam Et",ReleaseCommand.Resume)) return;
+                        if (ReleaseButton(new Rect(450,337,380,46),"Yeniden Başlat",ReleaseCommand.Restart)) return;
+                        if (ReleaseButton(new Rect(450,399,380,46),"Ayarlar",ReleaseCommand.Settings)) return;
+                        if (ReleaseButton(new Rect(450,461,380,46),"Ana Menüye Dön",ReleaseCommand.MainMenu)) return;
+                        GUI.Label(new Rect(450,535,380,24),"Esc ile devam et",theme.Small);
+                        break;
+                    case ReleaseScreen.HowToPlay:
+                        theme.Panel(new Rect(350,140,580,490),DemoGuiTheme.Green);
+                        GUI.Label(new Rect(390,165,500,40),"Nasıl Oynanır",theme.Title);
+                        GUI.Label(new Rect(390,220,500,305),DemoStory.HowTo(game.Run),theme.Body);
+                        ReleaseButton(new Rect(480,550,320,46),"Geri",ReleaseCommand.Back);
+                        break;
+                    case ReleaseScreen.Settings:
+                        theme.Panel(new Rect(360,175,560,410),DemoGuiTheme.Green);
+                        GUI.Label(new Rect(400,200,480,40),"Ses Ayarları",theme.Title);
+                        var audio = game.Audio;
+                        bool controls = GUI.enabled;
+                        GUI.enabled = controls && audio.Available;
+                        bool muted = GUI.Toggle(new Rect(405,265,470,36),audio.Settings.Muted,"Ses kapalı",theme.Toggle);
+                        if (muted != audio.Settings.Muted) audio.SetMuted(muted);
+                        GUI.Label(new Rect(405,325,470,28),$"Ana ses düzeyi  %{audio.Settings.Volume*100:0}",theme.Body);
+                        float volume = GUI.HorizontalSlider(new Rect(405,365,460,28),(float)audio.Settings.Volume,0,1);
+                        audio.SetVolume(volume);
+                        GUI.enabled = controls;
+                        GUI.Label(new Rect(405,408,470,55),audio.Available ? "Tercihin yeni oyunlarda da korunur." :
+                            "Ses kullanılamıyor. Oyun sessiz devam eder.",theme.Small);
+                        ReleaseButton(new Rect(480,495,320,46),"Geri",ReleaseCommand.Back);
+                        break;
+                }
+            }
+            finally { GUI.enabled = previous; }
+        }
+
+        private void DrawReleaseEnding()
+        {
+            var result = game.Result;
+            Color accent = result.Category == EndingCategory.Rebirth ? DemoGuiTheme.Green :
+                result.Category == EndingCategory.PartialTransition ? DemoGuiTheme.Gold : DemoGuiTheme.Red;
+            if (followCamera != null) followCamera.SetResultPanelVisible(!overviewOnly);
+            if (overviewOnly)
+            {
+                theme.Panel(new Rect(65,632,1150,72),accent);
+                GUI.Label(new Rect(85,651,290,32),result.Title,theme.Heading);
+                if (LocalReleaseButton(new Rect(390,650,210,44),"Sonuca Dön",()=>overviewOnly=false)) return;
+                if (ReleaseButton(new Rect(615,650,210,44),"Yeniden Oyna",ReleaseCommand.Restart)) return;
+                ReleaseButton(new Rect(840,650,210,44),"Ana Menü",ReleaseCommand.MainMenu);
+                return;
+            }
+            theme.Panel(new Rect(735,155,530,550),accent);
+            GUI.Label(new Rect(755,175,490,42),result.Title,theme.Title);
+            if (finalDetails)
+            {
+                finalScroll=GUI.BeginScrollView(new Rect(755,231,490,240),finalScroll,new Rect(0,0,475,800));
+                DrawVillageSummary(460); GUI.EndScrollView();
+            }
+            else
+            {
+                GUI.Label(new Rect(755,231,490,72),DemoStory.EndingBrief(result.Category,result.CrisisStabilized),theme.Body);
+                var state=game.CurrentResources;
+                theme.ResourceMeter(new Rect(755,316,150,34),"Bütçe",state.Budget,DemoGuiTheme.Gold);
+                theme.ResourceMeter(new Rect(920,316,150,34),"Enerji",state.Energy,DemoGuiTheme.Gold);
+                theme.ResourceMeter(new Rect(1085,316,150,34),"Su",state.Water,DemoGuiTheme.Blue);
+                theme.ResourceMeter(new Rect(755,365,205,34),"Bitki",state.PlantHealth,DemoGuiTheme.Green);
+                theme.ResourceMeter(new Rect(990,365,245,34),"Emisyon",state.Emissions,DemoGuiTheme.Red,true);
+                GUI.Label(new Rect(755,420,490,42),$"Bakım {game.Run.Crisis.CompletedCount}/{game.Run.Crisis.Tasks.Count} · Baskı {game.Run.CrisisPressure:0}",theme.Body);
+            }
+            if (LocalReleaseButton(new Rect(755,479,220,31),finalDetails?"Özete Dön":"Ayrıntılar",()=>{finalDetails=!finalDetails;finalScroll=Vector2.zero;})) return;
+            if (LocalReleaseButton(new Rect(755,520,490,42),"Köyü İzle",()=>overviewOnly=true)) return;
+            if (ReleaseButton(new Rect(755,572,490,42),"Yeniden Oyna",ReleaseCommand.Restart)) return;
+            if (ReleaseButton(new Rect(755,624,490,42),"Ana Menü",ReleaseCommand.MainMenu)) return;
+            GUI.Label(new Rect(755,680,490,22),"Kuraklığa hazırlık sürüyor. Bu bir başlangıç.",theme.Small);
         }
 
         private void DrawStatus()
@@ -119,11 +241,11 @@ namespace SonBirUmutDemo.UI
             theme.Panel(new Rect(300, 235, 680, 365), DemoGuiTheme.Gold);
             GUI.Label(new Rect(330, 255, 620, 65), DemoStory.Title, theme.Title);
             GUI.Label(new Rect(330, 330, 620, 84), "Yağışlar azalıyor, köy kuraklığa hazırlanıyor. Enerji, su ve tarım hakkında üç karar ver.", theme.Body);
-            string goal = game.UsesCrisisDemo ?
-                $"Ardından en az {game.Run.Crisis.RequiredCount} bakım yap ve su hattındaki arızaya müdahale et. Baskıyı {game.Run.CrisisRules.StableThreshold:0} veya altında {game.Run.CrisisRules.StableDuration:0} saniye koru." : "İşaretli noktaları sırayla ziyaret et ve köyün geleceğini şekillendir.";
+            string goal = game.UsesCrisisDemo ? DemoStory.CrisisGoal(game.Run) :
+                "İşaretli noktaları sırayla ziyaret et ve köyün geleceğini şekillendir.";
             GUI.Label(new Rect(330, 414, 620, 65), goal, theme.Body);
             GUI.Label(new Rect(330, 490, 620, 32), "WASD yürü · Sol Shift koş · E etkileşim / arızada basılı tut", theme.Small);
-            if (theme.Action(new Rect(440, 540, 400, 44), "Köye dön  [Enter]")) game.StartGame();
+            if (theme.Action(new Rect(440, 540, 400, 44), game.IsReleaseCandidate ? "Başla  [Enter]" : "Köye dön  [Enter]")) game.StartGame();
         }
 
         private void DrawHint()
@@ -275,25 +397,25 @@ namespace SonBirUmutDemo.UI
                 game.Restart();
         }
 
-        private void DrawVillageSummary()
+        private void DrawVillageSummary(float width = 480)
         {
             var summary = game.Result.Summary;
             float offset = game.UsesCrisisDemo ? 210 : 0;
             if (game.UsesCrisisDemo)
-                GUI.Label(new Rect(0, 0, 480, 108), game.Result.ManagementSummary, theme.Body);
-            GUI.Label(new Rect(0, game.UsesCrisisDemo ? 115 : 0, 480, game.UsesCrisisDemo ? 225 : 130), game.Result.Explanation, theme.Body);
-            SummaryBlock(139 + offset, "SU GÜVENLİĞİ", summary.DrinkingWater, DemoGuiTheme.Blue);
-            SummaryBlock(221 + offset, "TARIM", summary.Agriculture, DemoGuiTheme.Gold);
-            SummaryBlock(303 + offset, "DOĞAL YAŞAM", summary.Nature, DemoGuiTheme.Green);
-            GUI.Label(new Rect(0, 387 + offset, 480, 105), summary.RemainingRisk, theme.Body);
-            GUI.Label(new Rect(0, 498 + offset, 480, 75), EndingSummary.ProxyNote, theme.Small);
+                GUI.Label(new Rect(0, 0, width, 108), game.Result.ManagementSummary, theme.Body);
+            GUI.Label(new Rect(0, game.UsesCrisisDemo ? 115 : 0, width, game.UsesCrisisDemo ? 225 : 130), game.Result.Explanation, theme.Body);
+            SummaryBlock(139 + offset, "SU GÜVENLİĞİ", summary.DrinkingWater, DemoGuiTheme.Blue, width);
+            SummaryBlock(221 + offset, "TARIM", summary.Agriculture, DemoGuiTheme.Gold, width);
+            SummaryBlock(303 + offset, "DOĞAL YAŞAM", summary.Nature, DemoGuiTheme.Green, width);
+            GUI.Label(new Rect(0, 387 + offset, width, 105), summary.RemainingRisk, theme.Body);
+            GUI.Label(new Rect(0, 498 + offset, width, 75), EndingSummary.ProxyNote, theme.Small);
         }
 
-        private void SummaryBlock(float y, string title, string text, Color accent)
+        private void SummaryBlock(float y, string title, string text, Color accent, float width = 480)
         {
             DemoGuiTheme.Fill(new Rect(0, y, 3, 72), accent);
-            GUI.Label(new Rect(14, y, 465, 20), title, theme.Small);
-            GUI.Label(new Rect(14, y + 24, 465, 48), text, theme.Body);
+            GUI.Label(new Rect(14, y, width - 15, 20), title, theme.Small);
+            GUI.Label(new Rect(14, y + 24, width - 15, 48), text, theme.Body);
         }
 
         private void DrawDecisionSummary()

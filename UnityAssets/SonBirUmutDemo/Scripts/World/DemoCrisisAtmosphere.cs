@@ -22,13 +22,15 @@ namespace SonBirUmutDemo.World
         public void Configure(DemoGameController owner, Light light, Camera camera)
         { game = owner; sun = light; view = camera; }
 
+        public void RefreshNow() { shownRun = null; Update(); }
+
         private void Update()
         {
             if (game == null || !game.UsesCrisisMode || sun == null || view == null) return;
             if (!captured) Capture();
             if (!ReferenceEquals(shownRun, game.Run))
             { shownRun = game.Run; visualPressure = (float)game.Run.CrisisPressure / 100; }
-            visualPressure = Mathf.MoveTowards(visualPressure, (float)game.Run.CrisisPressure / 100,
+            if (!game.IsReleaseCandidate || !game.SimulationPaused) visualPressure = Mathf.MoveTowards(visualPressure, (float)game.Run.CrisisPressure / 100,
                 transitionSpeed * Time.unscaledDeltaTime);
             var profile = new AtmosphereProfile(visualPressure * 100,
                 Vector3.Distance(view.transform.position, game.PlayerPosition));

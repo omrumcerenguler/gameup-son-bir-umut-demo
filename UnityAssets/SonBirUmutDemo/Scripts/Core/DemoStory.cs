@@ -1,4 +1,5 @@
 using SonBirUmutDemo.Decisions;
+using SonBirUmutDemo.Simulation;
 
 namespace SonBirUmutDemo.Core
 {
@@ -12,9 +13,26 @@ namespace SonBirUmutDemo.Core
             "Ailemin ve komşularımızın geleceği için enerji, su ve doğal yaşam hakkında üç karar vermeliyim. " +
             "Ama bir sorunu çözmek, başka bir kaynağı tüketebilir.\n\n" + MainGoal;
         public const string Controls = "WASD ile dolaş, Sol Shift ile koş. İşaretli noktada E'ye bas. Üç karttan birini seç; Esc ile kapat. Kart açıkken hareket ve sayaç durur.";
-        public const string CrisisIntroduction = "İklim değişikliği yağış düzenini bozuyor; kuraklık köyün su ve yaşam kaynaklarını zorluyor.\n\n" +
-            "Üç karar ver, köyün altyapısını onar ve kriz baskısını düşürerek kuraklığa hazırlan. Önce sarı işaretli enerji istasyonuna git; E ile karar ver. Sonra su ve tarım noktalarını araştır.\n\n" +
-            "Üç bakım noktasını denetle; acil su hattı arızasında depoya koş ve E'yi basılı tut. En az iki bakım ve arıza değerlendirmesinden sonra baskıyı HUD'daki sınırın altında belirtilen süre koru.";
+        public const string ReleaseTitle = "SON BİR UMUT:\nKURAKLIKTAN ÖNCE";
+        public const string ReleaseSubtitle = "KRİZ NÖBETİ";
+        public const string CrisisIntroduction = "Azalan yağışlar köyün su ve yaşam kaynaklarını zorluyor. " +
+            "Enerji, su ve tarım kararlarını ver; altyapıyı onar ve kriz baskısını düşür.";
+        public static string CrisisGoal(GameRunState run) =>
+            $"{run.Crisis.Tasks.Count} bakım görevinden en az {run.Crisis.RequiredCount} tanesini tamamla. Su hattındaki arızaya müdahale et; " +
+            $"baskıyı {run.CrisisRules.StableThreshold:0} veya altında {run.CrisisRules.StableDuration:0} saniye koru.";
+        public static string HowTo(GameRunState run) => "WASD ile yürü, Sol Shift ile koş.\n\n" +
+            "Enerji → su → tarım noktalarında E ile karar ver.\n\n" +
+            $"Arızada depoya koş; E'yi {run.CrisisRules.RepairDuration:0} saniye basılı tut. Bırakırsan onarım sıfırlanır.\n\n" +
+            CrisisGoal(run) + "\n\nKalan süre üst şeritte. Esc ile duraklat.";
+        public static string EndingBrief(EndingCategory category, bool stabilized)
+        {
+            if (category == EndingCategory.Rebirth) return "Köyün temel ihtiyaçlarını korudun. Kurak döneme daha dayanıklı giriyorsunuz.";
+            if (category == EndingCategory.PartialTransition) return stabilized ?
+                "Nöbeti dengeledin; köyün uzun vadeli dönüşümünde hâlâ açıklar var." :
+                "Bazı ihtiyaçlar korundu, ancak kriz nöbeti istikrara kavuşmadı.";
+            return stabilized ? "Nöbeti dengeledin, ancak kalan kaynaklar kurak döneme yetmedi." :
+                "Su ve bitki yaşamı kuraklığa hazır değil. Başka kararlarla yeniden deneyebilirsin.";
+        }
         public const string FoundationIntroduction = "Köyün kuraklığa hazırlığı için enerji, su ve tarım hakkında üç karar ver. " +
             "Bu temel sahnede aktif nöbet süresi ve kriz baskısını izleyebilirsin. Kart açıkken sayaç durur. Süre sonunda mevcut hazırlığın değerlendirilir.";
         public const string CrisisControls = "WASD yürü • Sol Shift koş • E karar/bakım • Arızada E basılı tut. " +

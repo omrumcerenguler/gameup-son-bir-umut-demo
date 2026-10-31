@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using SonBirUmutDemo.Core;
+using SonBirUmutDemo.Audio;
 using SonBirUmutDemo.Decisions;
 using SonBirUmutDemo.Simulation;
 using SonBirUmutDemo.World;
@@ -31,11 +32,15 @@ namespace SonBirUmutDemo.Editor
         [MenuItem("Tools/GameUP/Create Playtest Demo Scene")]
         public static void CreatePlaytestDemoScene() => BuildScene(3);
 
+        [MenuItem("Tools/GameUP/Create Release Candidate Scene")]
+        public static void CreateReleaseCandidateScene() => BuildScene(4);
+
         private static void BuildScene(int mode)
         {
             bool crisisFoundation = mode != 0;
             bool crisisDemo = mode >= 2;
-            bool playtest = mode == 3;
+            bool playtest = mode >= 3;
+            bool release = mode == 4;
             if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling)
                 return;
             if (!DemoInput.SupportsRuntimeUi)
@@ -74,10 +79,10 @@ namespace SonBirUmutDemo.Editor
             EnsureFolder(Root, "Scenes");
             EnsureFolder(Root, "Generated");
             string materialsFolder = AssetDatabase.GenerateUniqueAssetPath(Root + "/Generated/" +
-                (playtest ? "PlaytestDemo" : crisisDemo ? "CrisisDemo" : crisisFoundation ? "CrisisFoundation" : "VisualDemo"));
+                (release ? "ReleaseCandidate" : playtest ? "PlaytestDemo" : crisisDemo ? "CrisisDemo" : crisisFoundation ? "CrisisFoundation" : "VisualDemo"));
             AssetDatabase.CreateFolder(Root + "/Generated", System.IO.Path.GetFileName(materialsFolder));
             string scenePath = AssetDatabase.GenerateUniqueAssetPath(Root + "/Scenes/" +
-                (playtest ? "SonBirUmutPlaytestDemo.unity" : crisisDemo ? "SonBirUmutCrisisDemo.unity" : crisisFoundation ? "SonBirUmutCrisisFoundation.unity" : "SonBirUmutVisualDemo.unity"));
+                (release ? "SonBirUmutReleaseCandidate.unity" : playtest ? "SonBirUmutPlaytestDemo.unity" : crisisDemo ? "SonBirUmutCrisisDemo.unity" : crisisFoundation ? "SonBirUmutCrisisFoundation.unity" : "SonBirUmutVisualDemo.unity"));
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var art = new DemoVisualBuilder(shader, materialsFolder);
             var terrain = Material("DrySoil", new Color(0.66f, 0.53f, 0.31f), shader, materialsFolder);
@@ -220,6 +225,15 @@ namespace SonBirUmutDemo.Editor
                 playtestArt.Feedback(game, station.transform, DecisionCatalog.EnergyStationId, panels);
                 playtestArt.Feedback(game, waterPoint.transform, DecisionCatalog.WaterStationId, null);
                 playtestArt.Feedback(game, farmPoint.transform, DecisionCatalog.FarmStationId, null);
+            }
+            if (release)
+            {
+                var source = gameObject.AddComponent<AudioSource>();
+                source.playOnAwake = false; source.loop = false; source.spatialBlend = 0;
+                var audio = gameObject.AddComponent<DemoAudioManager>(); audio.Configure(source);
+                game.ConfigureReleaseCandidate(audio,new[] {
+                    station.GetComponent<DemoStationFeedback>(), waterPoint.GetComponent<DemoStationFeedback>(), farmPoint.GetComponent<DemoStationFeedback>()
+                },gameObject.GetComponent<DemoCrisisAtmosphere>());
             }
             motor.ConfigureSprint(playtest ? 1.9f : 1.6f);
             motor.Configure(game, cameraObject.transform);

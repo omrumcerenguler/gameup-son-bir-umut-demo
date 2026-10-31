@@ -31,6 +31,8 @@ namespace SonBirUmutDemo.World
             if (solarLamp != null) solarLamp.gameObject.SetActive(false);
         }
 
+        public void RefreshNow() { shownRun = null; Update(); }
+
         private void Update()
         {
             if (game == null || !game.UsesPlaytestMode) return;

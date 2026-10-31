@@ -22,6 +22,7 @@ namespace SonBirUmutDemo.Player
         private float normalSize = 8.5f;
         private float distance = 22f;
         private bool overview;
+        private bool menuOverview;
         private bool resultPanelVisible = true;
         private float horizontalOffset, offsetVelocity;
         private static readonly Quaternion ViewRotation = Quaternion.Euler(35.264f, 45f, 0f);
@@ -42,15 +43,24 @@ namespace SonBirUmutDemo.Player
 
         private void OnEnable()
         {
-            if (target != null)
+            if (target != null && !menuOverview)
                 ResetView();
         }
 
-        public void SetOverview(bool value) => overview = value;
+        public void SetOverview(bool value) { menuOverview = false; overview = value; }
+        public void ShowMenuOverview()
+        {
+            menuOverview = overview = true; resultPanelVisible = false;
+            horizontalOffset = offsetVelocity = 0; velocity = Vector3.zero;
+            zoomVelocity = distanceVelocity = 0; distance = 38f;
+            EnsureView(); view.orthographicSize = overviewSize;
+            Transform focus = overviewTarget != null ? overviewTarget : target;
+            if (focus != null) transform.SetPositionAndRotation(focus.position + Vector3.up - ViewRotation * Vector3.forward * distance, ViewRotation);
+        }
         public void SetResultPanelVisible(bool value) => resultPanelVisible = value;
         public void ResetView()
         {
-            overview = false;
+            overview = menuOverview = false;
             resultPanelVisible = true;
             horizontalOffset = offsetVelocity = 0;
             velocity = Vector3.zero;
