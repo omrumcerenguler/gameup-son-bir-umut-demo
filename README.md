@@ -1,65 +1,59 @@
-# Son Bir Umut
+# Son Bir Umut — GAMEUP Türkiye 2026
 
-GAMEUP Türkiye 2026 Hackathonu için iklim değişikliği, kuraklık ve kırsal yaşam temalı Unity 6.3 LTS / C# demosu.
+Unity 6.3 LTS / C# ile kırsal yaşam, kuraklık ve dayanıklılık temalı küçük 3D izometrik demo. Hedef Windows'ta 3–5 dakikalık bir deneyimdir; süre ve yeni sürümün oynanışı henüz Unity'de ölçülmedi.
 
-**Durum:** Tek enerji istasyonlu prototip kaynakları ve Editor sahne oluşturucusu hazırdır. Mac üzerinde Unity kurulu değildir; Unity derlemesi, sahne üretimi, oynanış ve Windows build doğrulaması ekip tarafından yapılmalıdır. Depo henüz Unity Hub'da doğrudan açılabilecek bir proje içermez.
+**Geliştirme dalı: `feature/complete-demo`.** `main` önceki tek enerji istasyonlu prototipte kalır; otomatik merge yapılmaz. Hakan'ın önceki sürümde harita, kapsül, kamera ve HUD'ı gördüğü kullanıcı tarafından aktarıldı. Bu dalın hareket ve tam oyun döngüsü Unity onayı bekler. Mac geliştiricisinin Unity Editor'ı yoktur.
 
-## İlk prototip
+## Bu dalda hazırlananlar
 
-- Primitive 3D nesnelerden küçük kırsal harita, evler, ağaçlar ve su deposu.
-- Kapsül oyuncu, kamera yönüne göre WASD hareket, sabit izometrik açı ve smooth follow.
-- E ile enerji istasyonunda üç karar: güneş, dizel veya tasarruf; kartlar açıkken hareket girdisi durur.
-- Bütçe, enerji, su, bitki sağlığı ve emisyon için merkezi saf C# hesapları.
-- Seçime bağlı panel/jeneratör/tasarruf görseli, tamamlanma, sonuç mesajı ve yeniden oynama.
-- IMGUI arayüzü; harici model veya üçüncü taraf UI paketi gerekmez.
+- CharacterController korunarak hızlanma, frenleme ve yumuşak Y dönüşü; kamera yönüne göre WASD ve çapraz hız sınırı.
+- Tek primitive köy; enerji → su → tarım sırasıyla üç nokta ve her birinde üç kart.
+- Merkezi kaynak hesabı, enerjiye bağlı pompa ve suya bağlı bitki desteği; bütçe/enerji/su yetersizliğinde açıklamalı engel.
+- Her aşamada ücretsiz seçenek; aynı kararın tekrar uygulanmasını önleyen oturum sistemi.
+- Kısa ve merkezi Türkçe hikâye, Enter ile başlangıç, net etkileri gösteren IMGUI kartları ve HUD.
+- Panel/jeneratör, su seviyesi, vana/pompa, tarla ve ağaç renkleriyle dünya geri bildirimi.
+- Üç koşullu final, karar özeti, köy geneline yumuşak açılan kamera ve yeniden oynama.
 
-Değerler örnek oyun puanlarıdır, bilimsel ölçüm değildir. Emisyon anlık yerel sıcaklık artışına bağlanmaz. Gelecekteki su pompaları için enerjiye bağlı kapasite hesabı vardır; bu sürümde pompa çalışmaz.
+Kaynaklar boyutsuz örnek oyun puanlarıdır. Emisyon anlık köy sıcaklığı yaratmaz. Babanın rahatsızlığına teşhis, iklim kaynaklı neden veya kararlarla otomatik iyileşme atfedilmez. Crafting, çöp toplama, NPC görevleri, sinematik ve karmaşık animasyon eklenmedi.
 
-## Windows ekibi için başlangıç
+## Hakan / Enes için hızlı kurulum
 
-1. Unity **6.3 LTS**, Universal 3D (URP) veya 3D Built-in test projesi oluştur.
-2. `UnityAssets/SonBirUmutDemo` klasörünü `Assets/SonBirUmutDemo` içine kopyala; `Editor` alt klasörünü dahil et.
-3. Active Input Handling ayarını **Both** veya **Input Manager (Old)** yap; gerekirse Editor'ı yeniden başlat. Script derlemesi bittikten sonra **Tools > GameUP > Create Demo Scene** seç.
-4. Oluşan sahnede Play'e bas. Game görünümüne tıkla, WASD ile sarı istasyona yaklaş ve E'ye bas.
+1. Depoda `feature/complete-demo` dalını al; test projesindeki çalışmanı önce koru.
+2. Unity **6.3 LTS**, **Universal 3D (URP)** veya **3D Built-in** projesi kullan. Kaynak klasörü doğrudan Unity projesi değildir.
+3. `UnityAssets/SonBirUmutDemo` içeriğini mevcut `Assets/SonBirUmutDemo` üzerine **klasörü silmeden** kopyala. Eski `.meta`, `Scenes` ve `Generated` dosyalarını koru.
+4. Active Input Handling: **Both** veya **Input Manager (Old)**. IMGUI fare girdisi nedeniyle New-only desteklenmez; gerekirse Editor'ı yeniden başlat.
+5. Console derlemesi tamamlanınca **Tools > GameUP > Create Demo Scene**. Yeni sahne `Assets/SonBirUmutDemo/Scenes/SonBirUmutCompleteDemo.unity` veya numaralı benzersiz yola kaydedilir; eski sahneler ezilmez.
+6. Game görünümünü 16:9 aç, Play, Enter. WASD ile dolaş; sıradaki noktada E, kartta Seç. Üç karardan sonra finali ve Yeniden Oyna'yı dene.
 
-Tam kurulum, input modları, beklenen değerler ve Console kontrolleri: [INTEGRATION](docs/INTEGRATION.md). Sistem sorumlulukları ve hesaplar: [ARCHITECTURE](docs/ARCHITECTURE.md).
+[Windows kurulum rehberi](docs/INTEGRATION.md) · [Unity test listesi](UNITY_TEST_CHECKLIST.md) · [Hareket değişikliği](docs/MOVEMENT.md) · [Mimari](docs/ARCHITECTURE.md)
+
+## Otomatik testler
+
+Mevcut .NET 8 veya 9 SDK ile:
+
+```sh
+dotnet run --project Tests/LogicTests/LogicTests.csproj --configuration Release -- --report docs/DECISION_MATRIX.md
+```
+
+Harici test paketi gerekmez. **39 test grubu geçti, 0 başarısız.** 27 dizinin 25'i doğrudan tamamlandı; 2 sulama dizisi su yetersizliği nedeniyle doğru biçimde engellendi ve ücretsiz alternatifle final doğrulandı. Üç final kategorisine ulaşıldı. Unity hareketi, fizik, UI ve Editor derlemesi bu testlerin kapsamında değildir.
+
+[Karar kuralları](docs/DECISIONS.md) · [27 dizi raporu](docs/DECISION_MATRIX.md) · [Doğrulama kaydı ve açık kontroller](docs/TEST_RESULTS.md)
 
 ## Kaynak düzeni
 
-```text
-UnityAssets/SonBirUmutDemo/
-  Editor/                 Sahne oluşturucu
-  Scripts/
-    Core/                 Oturum ve giriş adaptörü
-    Player/               Hareket ve kamera
-    Interaction/          Enerji istasyonu
-    Decisions/            Saf C# karar tanımları
-    Simulation/           Saf C# kaynak ve oturum hesapları
-    UI/                   IMGUI arayüzü
-    World/                İlerisi için ayrılan klasör
-  Data/                   İlerisi için ayrılan veri klasörleri
-Tests/LogicTests/          Paket gerektirmeyen .NET test koşucusu
-docs/                     Mimari ve Windows entegrasyonu
-```
+| Konum | İçerik |
+| --- | --- |
+| `UnityAssets/SonBirUmutDemo/Editor` | Benzersiz sahne ve materyal üreten Editor aracı |
+| `Scripts/Core` | Oturum koordinasyonu, giriş adaptörü, merkezi hikâye metni |
+| `Scripts/Player` | Hareket ve sabit açılı takip/final kamerası |
+| `Scripts/Interaction` | Korunan EnergyStation ve su/tarım için DecisionStation |
+| `Scripts/Decisions`, `Scripts/Simulation` | UnityEngine'den bağımsız karar, kaynak, geçmiş ve final hesapları |
+| `Scripts/World`, `Scripts/UI` | Dünya görselleri ve IMGUI |
+| `Data` | Sonraki veri varlıkları için ayrılan klasörler |
+| `Tests/LogicTests` | Gerçek mantık kaynaklarını doğrudan derleyen test koşucusu |
 
-Kaynakların asıl konumu `UnityAssets` altıdır. Test projesindeki düzenlemeler buraya geri taşınır. Sahne ve materyaller Windows'taki gerçek Editor tarafından üretilir; sahte Unity proje dosyaları bulunmaz.
+## Eski prototip ve gizlilik
 
-## Otomatik mantık testleri
+Eski sahne dosyaları değiştirilmez. Serileştirilmiş `player` / `station` referansları korunur; eski sahne tek istasyon modunda kalır. Bu dalda hareket ve ücretsiz tasarruf dengesi günceldir. Birebir önceki davranış için `main` kaynaklarını ayrı test projesinde kullan; dal değiştirmek tek başına dış Unity projesindeki kopyayı güncellemez.
 
-Mevcut .NET 8 veya 9 SDK ile depo kökünde:
-
-```sh
-dotnet run --project Tests/LogicTests/LogicTests.csproj --configuration Release
-```
-
-Koşucu başarısızlıkta sıfırdan farklı kod döndürür; harici NuGet paketi kullanmaz. Unity input, fizik, görüntü ve Editor doğrulaması ayrıca yapılmalıdır.
-
-## Sonraki aşamalar
-
-Üç karar noktasına genişletme, su/bitki kararları, daha kapsamlı görsel dünya değişimleri ve tam final akışı sonraya bırakılmıştır. Crafting, çöp toplama, NPC, kapsamlı hikâye ve animasyon bu sürümün kapsamında değildir.
-
-## Git ve gizlilik
-
-[GitHub deposu](https://github.com/omrumcerenguler/gameup-son-bir-umut-demo) · SSH: `git@github.com:omrumcerenguler/gameup-son-bir-umut-demo.git`
-
-Depo herkese açıktır. Mevcut yerel PDF, görsel ve WhatsApp ekran görüntüleri paylaşılmaz; değiştirilmeden yerinde korunur. `.gitignore` kişisel belgeleri, gizli anahtarları ve üretilen dosyaları dışarıda tutmaya yardımcı olur. Yalnızca açık dosya yollarını stage edin; her commit öncesinde staged dosya listesi ve içeriğini inceleyin. Git kimliğinde özel e-posta yerine GitHub noreply adresini kullanın. Force push kullanmayın.
+[GitHub](https://github.com/omrumcerenguler/gameup-son-bir-umut-demo) herkese açıktır. Yerel PDF, JPG/PNG ve WhatsApp görüntüleri paylaşılmaz, değiştirilmez. Yalnızca açık dosya yollarını stage et, staged içeriği incele; toplu ekleme veya force push kullanma. SDK, gerçek Unity projesi, build çıktısı ve kişisel belge bu kaynak teslimine eklenmez.

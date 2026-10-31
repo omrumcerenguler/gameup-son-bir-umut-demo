@@ -13,7 +13,7 @@ Yeni oluşturulan oyuncuda Inspector başlangıç değerleri:
 | Deceleration | 16 birim/sn² |
 | Turn Speed | 600 derece/sn |
 
-Tam hıza yaklaşık 0.29 sn, tam hızdan duruşa yaklaşık 0.22 sn gerekir. Kart açılması normal frenleme yerine yatay hızı hemen sıfırlar. Yeniden başlama da hız biriktirmez. Yerçekimi ve tek `CharacterController.Move` çağrısı devam eder; Rigidbody eklenmez. Kamera sabit 35.264°/45° izometrik açıyı korur, oyuncunun dönüşünü miras almaz.
+Tam hıza yaklaşık 0.29 sn, tam hızdan duruşa yaklaşık 0.22 sn gerekir. Kart açılması normal frenleme yerine yatay hızı hemen sıfırlar. Tam demoda giriş ve final de hareketi kilitler. Yeniden başlama da hız biriktirmez. Yerçekimi ve tek `CharacterController.Move` çağrısı devam eder; Rigidbody eklenmez. Kamera sabit 35.264°/45° izometrik açıyı korur, oyuncunun dönüşünü miras almaz.
 
 Eski kaydedilmiş sahnelerde serileştirilen Speed değeri 4 olarak kalabilir; istenirse Inspector'dan 3.5 yapılmalıdır. Yeni sahne oluşturucu yeni varsayılanları kullanır. Kapsülün mevcut küçük yön işareti korunur.
 

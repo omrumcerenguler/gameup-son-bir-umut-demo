@@ -1,90 +1,109 @@
-# Windows / Unity 6.3 LTS kurulum rehberi
+# Hakan / Enes — Windows, Unity 6.3 LTS entegrasyonu
 
-## Doğrulama durumu
+## Durum ve dal
 
-Kaynaklar Mac üzerinde Unity Editor olmadan geliştirildi. Saf C# testleri .NET ile çalıştırıldı: **21 test grubu geçti, 0 başarısız**. Bu, Unity derlemesi veya oynanış testi yerine geçmez. Editor sahne üretimi, input, fizik, IMGUI, materyaller ve Windows build henüz Unity'de doğrulanmamıştır.
+Bu sürüm **feature/complete-demo** dalındadır. `main` önceki tek istasyonlu prototipte bırakıldı; otomatik merge yapılmaz. Mac üzerinde Unity yoktur. Yeni hareket ve tam demo Unity'de doğrulanmadı; saf C# testleri **39/39** geçti.
 
-## 1. Gerçek Unity projesini oluştur
+## 1. Kaynakları güvenle al
 
-1. Windows'ta Unity Hub üzerinden **Unity 6.3 LTS (6000.3.x)** Editor kullan. Ekipte aynı patch sürümünü kullanın ve test kaydına tam sürümü yazın. Mac geliştiricisinin Unity, Xcode veya SDK kurması gerekmez.
-2. Git deposunu klonla veya temiz çalışma ağacında `git pull --ff-only` ile güncelle.
-3. Unity Hub ile **Universal 3D (URP)** veya **3D Built-in Render Pipeline** şablonundan yeni bir test projesi oluştur. HDRP desteklenmez. Harici model, UI paketi veya Asset Store içeriği gerekmez.
-4. Test projesini Git deposunun dışında tut. Bu aşamada kaynakların asıl konumu depodaki `UnityAssets` klasörüdür; boş bir Unity projesini bu klasör diye açmaya çalışma.
-5. **`UnityAssets/SonBirUmutDemo` klasörünün tamamını**, `Editor` alt klasörü dahil, test projesinin **`Assets/SonBirUmutDemo`** konumuna kopyala. Sonuç `Assets/UnityAssets/...` olmamalı. `Tests` ve `docs` klasörlerini Unity Assets içine kopyalama. `.gitkeep` dosyaları aktarılmayabilir.
-6. Unity'nin import ve script derlemesini bitirmesini bekle. `.meta` dosyalarını Editor üretsin. Kaynaklara elle `.meta`, `.unity`, `.csproj` veya paket manifesti ekleme.
+Çalışma ağacındaki kendi değişikliklerini önce koru; yerel değişikliklerin üzerine yazma. Depo temizken:
 
-## 2. Giriş ayarını kontrol et
+```sh
+git fetch origin
+git switch feature/complete-demo
+git pull --ff-only origin feature/complete-demo
+```
+
+İlk klonlamada `git clone --branch feature/complete-demo git@github.com:omrumcerenguler/gameup-son-bir-umut-demo.git` kullanılabilir. Bu Windows'taki ekip kurulumu içindir; mevcut Mac çalışma klasöründe yeni klon oluşturulmaz.
+
+1. Unity Hub'da **Unity 6.3 LTS (6000.3.x)** kullan; tam patch sürümünü test kaydına yaz.
+2. Mevcut **Universal 3D (URP)** veya **3D Built-in** test projesini kullan. Yeni proje gerekiyorsa bu iki şablondan biriyle depodan ayrı konumda oluştur. HDRP desteklenmez. UnityAssets klasörü doğrudan proje değildir.
+3. Projedeki kendi düzenlemelerini koru. `UnityAssets/SonBirUmutDemo` içeriğinin tamamını **`Assets/SonBirUmutDemo` üzerine, klasörü silmeden** kopyala. `Editor` dahil olmalı; yeni scriptleri de al.
+4. Mevcut `.meta`, `Scenes` ve `Generated` dosyalarını silme veya yeniden oluşturma. Kaynakta `.meta` bulunmadığı için eski scriptlerin GUID'leri korunabilir; yeni scriptlerin `.meta` dosyalarını Editor üretsin.
+5. Depodaki `Tests`, `docs` veya kişisel görselleri Assets içine kopyalama. Dış test projesindeki kod düzeltmelerini daha sonra depodaki UnityAssets kaynaklarına geri taşı.
+
+## 2. Input ve import
 
 **Edit > Project Settings > Player > Other Settings > Configuration > Active Input Handling**:
 
-- **Both (yeni paketli proje için önerilen):** Projede Unity'nin resmi `Input System` paketi kurulu olmalı. Oyun klavyesi `Keyboard.current` kullanır; IMGUI fare olayları eski backend üzerinden gelir. Input Actions varlığı veya PlayerInput bileşeni gerekmez.
-- **Input Manager (Old):** Yeni paket gerekmez. Kod doğrudan `Input.GetKey` / `GetKeyDown` kullanır; özel eksen ayarı istemez. IMGUI kartları eski backend'i kullanır.
-- **Input System Package (New) tek başına desteklenmez:** Klavye adaptörü bulunsa da bu mod runtime IMGUI'ye fare olaylarını iletmez. Sahne oluşturucu açıklama gösterip durur; daha önce üretilmiş sahne de çalışma sırasında Console hatasıyla oturumu başlatmaz. **Both** veya **Old** seçip Editor'ı yeniden başlat.
+- **Both:** Resmi Input System paketi zaten kullanılıyorsa önerilir. Klavye yeni backend'den, IMGUI fare olayları eski backend'den gelir. Input Actions varlığı / PlayerInput bileşeni gerekmez.
+- **Input Manager (Old):** Yeni paket gerekmez; WASD, E, Esc ve Enter doğrudan eski API ile okunur. Özel eksen ayarı yoktur.
+- **New-only:** Runtime IMGUI tıklamalarını desteklemediğinden bu demo için uygun değildir. Araç uyarıp durur. Both/Old yapıp Editor isterse yeniden başlat.
 
-Koşullu derleme `ENABLE_INPUT_SYSTEM` ve `ENABLE_LEGACY_INPUT_MANAGER` sembollerini kullanır; bunları elle eklemeyin. Ayar değiştiğinde Unity isterse Editor'ı yeniden başlatın. Yeni sistemde güncelleme modu varsayılan **Process Events In Dynamic Update** olarak kalsın (`Project Settings > Input System Package`). Kurulu olmayan paketi varmış gibi sembol tanımlamayın.
+Input sembollerini elle tanımlama. Yeni backend'de güncelleme modu **Process Events In Dynamic Update** kalsın. Bu özellik için yeni paket kurmak zorunda değilsin. [Unity'nin IMGUI açıklaması](https://github.com/Unity-Technologies/InputSystem/blob/develop/Packages/com.unity.inputsystem/Documentation~/use-imgui-alongside-input-system.md).
 
-IMGUI kısıtı Unity'nin resmi [IMGUI ve Input System birlikte kullanımı](https://github.com/Unity-Technologies/InputSystem/blob/develop/Packages/com.unity.inputsystem/Documentation~/use-imgui-alongside-input-system.md) belgesinde açıklanır. Giriş ayarları için [Input System kurulum rehberi](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.14/manual/Installation.html) ve [Unity 6.3 Input Manager açıklaması](https://docs.unity.com/en-us/engine/6000.3/manual/input/legacy/class-input-manager) incelenebilir. Oyun Windows masaüstü klavye ve fare kullanımını hedefler.
+Console'u aç (**Window > General > Console**); import/derleme bitene kadar bekle. İlk kırmızı hata başka bir scriptte de olsa önce onu çöz. Bu Mac'te gerçek Unity derlemesi yapılmadı.
 
-## 3. Demo sahnesini oluştur
+## 3. Yeni tam demo sahnesi
 
-1. **Window > General > Console** penceresini aç. Önce tüm kırmızı script hatalarını çöz. Projedeki başka bir scriptin derleme hatası da menünün görünmesini engelleyebilir.
-2. Açık sahnelerde kaydedilmemiş değişiklik varsa **kendin kaydet** veya geri al. Araç bu durumda uyarıp durur; mevcut sahneleri kaydetmez veya değişiklikleri atmaz.
-3. Play modu kapalıyken ve Prefab düzenleme modundan çıktıktan sonra **Tools > GameUP > Create Demo Scene** seç. New-only input ayarı varsa önce yukarıdaki giriş ayarını düzelt.
-4. Araç temiz bir sahne açar; önceki temiz sahneleri kapatır. Mevcut sahne dosyalarını silmez veya üzerlerine yazmaz. Harita, evler, ağaçlar, su deposu, sarı enerji istasyonu, kapsül oyuncu, kamera, ışık ve arayüz referansları otomatik kurulur.
-5. Sahne **`Assets/SonBirUmutDemo/Scenes/SonBirUmutDemo.unity`** altında kaydedilir. Bu yol doluysa `GenerateUniqueAssetPath` ile numaralı yeni dosya seçilir. Her çalıştırmada materyaller de **`Assets/SonBirUmutDemo/Generated/Demo.../`** altında yeni bir klasöre kaydedilir. Materyaller sahneye bağlı gerçek Editor varlıklarıdır; Play sonrası kaybolmamalıdır.
-6. Console'da sahnenin oluşturulduğu yolun yazıldığını doğrula. Araç sahneyi Build Profiles listesine kendiliğinden eklemez.
+1. Play'i durdur, Prefab düzenleme modundan çık. Açık sahnelerde kaydedilmemiş değişiklik varsa kendin kaydet veya geri al; araç bunları kaydetmez veya atmaz.
+2. **Tools > GameUP > Create Demo Scene** seç.
+3. Araç temiz yeni sahne açar; mevcut temiz sahneleri kapatır. Eski dosyaları silmez. Yeni yol **`Assets/SonBirUmutDemo/Scenes/SonBirUmutCompleteDemo.unity`**; doluysa numaralı benzersiz yol kullanılır.
+4. Yeni materyaller **`Assets/SonBirUmutDemo/Generated/CompleteDemo...`** altına kaydedilir; önceki materyaller ezilmez. Console'da oluşturulan sahne yolunu kontrol et.
+5. Hierarchy'de `Kırsal harita - Son Bir Umut` altında `01 - ENERJİ İSTASYONU`, `02 - SU DEPOSU`, `03 - TARIM VE DOĞAL ALAN` gruplarını kontrol et. Oyuncu, kamera ve Demo oturumu referansları bağlı olmalı.
 
-Araç Unity'nin [NewScene](https://docs.unity.com/en-us/engine/6000.3/script-reference/unityeditor/scenemanagement/editorscenemanager/newscene), [GenerateUniqueAssetPath](https://docs.unity.com/en-us/engine/6000.3/script-reference/unityeditor/assetdatabase/generateuniqueassetpath) ve [SaveScene](https://docs.unity.com/en-us/engine/6000.3/script-reference/unityeditor/scenemanagement/editorscenemanager/savescene) API'lerini kullanır. Bu API tercihi çalışma testi yapıldığı anlamına gelmez.
+Dünya koordinatlarıyla enerji **(3, 0, 0)**, su **(-2, 0, 5)**, tarım **(6, 0, -5)** konumundadır. Su göstergesi deponun önündeki mavi çubuktur. Enerji noktasında sarı kutu, tarımda ürün sıraları ve tahta işaret bulunur.
 
-## 4. Play ile uçtan uca doğrula
+## 4. Oyna ve hareketi öncelikle kontrol et
 
-1. **Game** görünümünü 16:9, tercihen 1280×720 veya daha büyük ayarla. Play'e bas ve klavye odağı için Game görünümüne tıkla.
-2. Ortografik izometrik kamera kapsülü yumuşakça takip etmeli. W ekranın üst yönüne, D sağına götürmeli; çapraz hareket daha hızlı olmamalı. Evler ve harita sınırları oyuncuyu durdurmalı, kapsül zeminden düşmemeli.
-3. Sarı kontrol kutulu istasyonun önüne yaklaş. `[E] Enerji istasyonunda karar ver` ipucu yalnızca menzil içinde ve karar tamamlanmamışken görünmeli.
-4. E ile üç kartı aç. WASD artık karakteri yürütmemeli. Esc ve **Vazgeç** kartları kapatmalı ve hiçbir kaynak değişmemeli.
-5. Güneş seçeneğini tıkla: bütçe **40**, enerji **55**, su **32**, bitki **41**, emisyon **1** olmalı. Panel grubu ve yeşil tamamlanma lambası görünmeli; jeneratör ve tasarruf işareti kapalı olmalı. Sonuç mesajını kontrol et.
-6. E'ye tekrar bas: karar yeniden açılamamalı ve ikinci maliyet kesilmemeli.
-7. **Yeniden oyna** ile başlangıç değerlerini **100 / 20 / 40 / 55 / 0**, oyuncu konumunu ve görsellerin sıfırlanmasını kontrol et. Dizel seç: **75 / 70 / 29 / 41 / 18** ve jeneratör görünmeli. Yeniden başlayıp tasarrufu seç: **90 / 15 / 40 / 53 / 0** ve yeşil tasarruf işareti görünmeli.
-8. Oyuncuyu beklet: kaynaklar zamanla kendiliğinden değişmemeli. Bu prototipte yalnızca karar bir tur ilerletir; henüz su pompası yoktur. Emisyon anlık yerel sıcaklık artışı üretmez.
-9. Play'i durdurup yeniden başlat. Console'da `NullReferenceException`, `Missing Script`, shader veya input hatası olmamalı. Sahneyi kapatıp tekrar açarak materyallerin ve referansların kalıcı olduğunu doğrula.
-10. Sahne oluşturma menüsünü yeniden çalıştır: eski sahne ve materyaller değişmemeli, yeni numaralı sahne oluşmalı. Kaydedilmemiş sahneyle çalıştır: uyarı vermeli ve hiçbir sahneyi değiştirmemeli.
-11. Kullanılan input modunu kaydet. Mümkünse **Old** ve **Both** modlarında ayrı oturumlarla klavye ve IMGUI kart tıklamalarını doğrula. **New-only** modunda sahne aracının uyarıp durduğunu ve mevcut sahnenin açıklayıcı Console hatası verdiğini kontrol et.
+1. Game görünümünü **16:9 / 1280×720 veya büyük** yap. Play ve Game'e tıklama sonrası **Enter** veya Başla düğmesiyle girişten çık.
+2. Oyuncunun `DemoPlayerMotor` Inspector değerleri yeni sahnede **3.5 / 12 / 16 / 600** olmalı (hız / hızlanma / yavaşlama / derece-sn dönüş). CharacterController kalmalı; Rigidbody eklenmemeli.
+3. W/A/S/D ve dört çaprazı dene. W+A sırasında A'yı bırak, W'den S'ye geç, tüm tuşları bırak. Hızlanma ve fren kısa; dönüş yumuşak; çapraz hız aynı olmalı. Klavye sekiz hedef yön verir; yönelim ve hız aralarında sürekli değişir, analog kontrol eklenmedi.
+4. Kameranın açısı karakter dönerken sabit kalmalı. 30/60/120 FPS'de hissi karşılaştır. [Hareket notları](MOVEMENT.md) ve [kontrol listesi](../UNITY_TEST_CHECKLIST.md) sonuçlarını doldur.
+5. Kart açılır açılmaz yatay hareket durmalı; Esc/Vazgeç ile kapanınca yeniden hızlanmalı. Giriş ve final de hareketi kilitler. Ev, ağaç, depo ve sınır çarpışmalarını dene. Dekoratif karar modelleri çarpışmasızdır.
 
-## Console sorunlarını giderme
+## 5. Üç karar ve final
 
-| Belirti | Kontrol |
+Sıra **enerji → su → tarım**. Önce başka noktaya gitmek kart açmamalı. HUD sıradaki noktayı yazar. Her kartta mevcut kaynaklara göre maliyet ve tur dahil **net** etkiler gösterilir. Uygulanamayan seçenek gerekçesiyle devre dışıdır. Beklemek kaynak tüketmez.
+
+Aşağıdaki saf C# sonuçlarını Unity'de karşılaştır (sıra: bütçe / enerji / su / bitki / emisyon):
+
+| Enerji → Su → Tarım | Son değerler | Beklenen final |
+| --- | --- | --- |
+| Güneş → Verimlilik → Doğal alanı koru | 20 / 55 / 42 / 59 / 0 | Yeniden Doğuş |
+| Dizel → Pompa → Sulama | 35 / 70 / 43 / 73 / 18 | Eksik Dönüşüm |
+| Güneş → Mevcut düzen → Depola | 40 / 55 / 17 / 8 / 1 | Kaybedilen Gelecek |
+
+Ek kontroller:
+
+- Enerji tasarrufu bu dalda ücretsizdir. Güneşten sonra pompa maliyeti 25; tasarruftan sonra 30 olmalı. Kapasite su kazanımına yansımalı.
+- Güneş/dizel → mevcut su düzeni sonrasında sulama su yetersizliğinden engellenmeli. Depola her zaman seçilebilir kalmalı.
+- Aynı noktaya dönmek ikinci seçim veya ikinci maliyet üretmemeli.
+- Panel/jeneratör/tasarruf, pompa/vana/uyarı ve koruma/sulama/depolama grupları seçime göre açılmalı.
+- Su çubuğu kaynakla değişmeli; bitki sağlığı ≥55 yeşil, 30–54 sarı, daha azı kuru görünmeli. Tarlanın rengi de değişmeli.
+- Üçüncü kararda final başlığı ve üç kararın net etkisi görünmeli. Kamera yumuşakça uzaklaşıp/yükselip köyü sol tarafta göstermeli; yeni harita yüklenmemeli.
+- Finalde karakter durmalı. Yeniden Oyna; tüm kaynak, görsel, ilerleme, kamera, oyuncu ve hız durumunu sıfırlayıp girişe dönmeli. Birkaç farklı diziyle arka arkaya dene.
+- İlk kez oynayan ekip üyesinin süresini ölç. **3–5 dakika hedeftir; henüz ölçülmedi.** Gerekiyorsa metin ve hareket hissi için geri bildirim yaz; yapay bekleme eklenmedi.
+
+Formüller [DECISIONS](DECISIONS.md), 27 dizi [DECISION_MATRIX](DECISION_MATRIX.md) içindedir. Bu puanlar bilimsel ölçüm değildir. Jeneratör anlık sıcaklık artışı oluşturmaz; hikâye tıbbi neden/iyileşme iddiası içermez.
+
+## 6. Eski prototip ve sahne güvenliği
+
+Eski `SonBirUmutDemo.unity` dosyasını koru. Yeni kod eski serileştirilmiş referansları ve tek istasyon modunu korur; ancak bu dalın hareketi ve ücretsiz tasarruf dengesi geçerlidir. Eski sahneyi yeni sürümde açarak referans uyumunu ayrıca kontrol et; henüz doğrulanmadı.
+
+Birebir önceki sürüm için `main` kaynaklarını **ayrı Unity test projesinde** kullan. Git dalı değiştirmek dış projeye önceden kopyalanan dosyaları geri almaz. Yeni sürüme ait fazladan scriptlerle eski kaynakları karıştırma. Eski sahneleri veya Hakan'ın yerel değişikliklerini silerek geri dönüş yapma.
+
+Sahne aracını iki kere çalıştırıp yeni numaralı yolları doğrula. Kirli sahneyle dene: uyarı verip dosyayı değiştirmemeli. Kaynak/scene dosyalarının yedeğini almadan dosya temizleme yapma.
+
+## 7. Console ve Windows build
+
+| Sorun | Kontrol |
 | --- | --- |
-| Tools menüsü yok | Kopyalama yolu, `Editor` klasörünün varlığı ve ilk kırmızı derleme hatası |
-| `UnityEngine.InputSystem` bulunamadı | Resmi Input System paketi ve Active Input Handling; elle tanımlanmış input sembollerini kaldır |
-| Eski Input API için `InvalidOperationException` | Doğru güncel kaynakları kopyaladığını ve input ayarını değiştirdikten sonra Editor yeniden başladığını kontrol et |
-| Kartlar tıklanmıyor / IMGUI giriş uyarısı | Active Input Handling ayarını Both veya Old yapıp Editor'ı yeniden başlat |
-| Tuşlar çalışmıyor | Game odağı, kartların açık olup olmadığı ve New input için Dynamic Update ayarı |
-| Pembe materyal veya shader bulunamadı | URP/Built-in şablonuyla pipeline ayarının eşleşmesi; HDRP yerine desteklenen şablon |
-| Demo referansları eksik / NullReference | Scriptleri elle boş sahneye eklemek yerine sahne oluşturucuyu çalıştır; Inspector'da Missing Script olup olmadığını kontrol et |
-| Kaydetme hatası | Proje Assets klasörüne yazma izni, Console'daki ilk hata ve disk durumu; kaynak sahneyi elle taklit etme |
+| Tools menüsü yok | Editor klasörünün doğru kopyalanması ve ilk kırmızı derleme hatası |
+| Eksik yeni sınıf | Güncel klasörün tamamı kopyalandı mı? Eski ve yeni kaynaklar karıştı mı? |
+| InputSystem bulunamadı | Paket / Active Input Handling uyumu; elle eklenen semboller |
+| Kart tıklanmıyor | Both veya Old, Editor yeniden başlatma ve Game odağı |
+| Yalnız enerji görünüyor | Eski sahne açıktır; yeni araçla CompleteDemo sahnesi üret |
+| Referans eksik / Missing Script | Mevcut .meta korunmuş mu? Yeni sahne oluşturucu kullanıldı mı? |
+| Pembe model | URP/Built-in shader ve proje pipeline eşleşmesi; HDRP kullanılmaması |
+| Final kadrajı dar | 16:9 Game görünümü; IsometricFollowCamera Overview Size ve Horizontal Offset; test kaydına değerleri yaz |
 
-## Saf C# otomatik testleri
+Editor kontrolleri geçerse **File > Build Profiles** Windows profili aç; yeni CompleteDemo sahnesini Scene List'e ekleyip başlangıç sahnesi yap. Mevcut Windows build modüllerini kullan; Mac'e SDK kurulmaz. Çıktıyı depoya ekleme. EXE içinde kontrol listesinin oynanış adımlarını tekrarla.
 
-Depo kökünde, mevcut .NET 8 veya 9 SDK ile:
+Test kaydı: commit, tam Unity sürümü, pipeline, input modu, Windows sürümü, FPS, hareket değerleri, süre ve ilk Console hatası. [UNITY_TEST_CHECKLIST](../UNITY_TEST_CHECKLIST.md) kutularını yalnızca gerçekten çalıştırdıktan sonra işaretle.
 
-```sh
-dotnet run --project Tests/LogicTests/LogicTests.csproj --configuration Release
-```
+## Saf C# ve Git
 
-Bu, harici test paketi kullanmayan bir console test koşucusudur; `dotnet test` projesi değildir. Başarısızlıkta çıkış kodu 1 verir. Üretimde kullanılan dört saf C# dosyasını doğrudan derler; mantığın ayrı bir kopyasını test etmez. `NuGet.Config` harici paket kaynaklarını kapatır. Gerekli SDK yoksa bu adım atlanır; büyük SDK kurulumu yapılmaz.
+Mevcut .NET 8/9 ile `dotnet run --project Tests/LogicTests/LogicTests.csproj --configuration Release -- --report docs/DECISION_MATRIX.md` çalışır. Harici NuGet paketi yoktur. Sonuçlar [TEST_RESULTS](TEST_RESULTS.md) içinde; bu testler Unity input/fizik testi değildir.
 
-Ayrıca 11 kaynak dosyası C# 9 sözdizimi açısından 5 Editor/player input sembol birleşiminde geçici Roslyn denetleyicisiyle tarandı; hata bulunmadı. Bu denetim Unity API veya tür doğrulaması yapmaz.
-
-21 test grubu; üç seçeneğin kesin sonuçlarını, bütçe yetersizliği ve tam bütçeyi, bilinmeyen kimlikleri, tekrar seçimin engellenmesini, birden fazla kayıtlı noktayı, kaynak sınırlarını, su/kuraklık/bitki ilişkisini, emisyon ayrımını, pompa kapasitesini, bağımsız oturumları ve geçersiz tanımları kapsar. Son grup 432 başlangıç/seçenek birleşiminin durum kurallarını kontrol eder. Bunlar Unity input, fizik, UI veya Editor testleri değildir.
-
-## Windows build ve test kaydı
-
-Editor kontrolleri geçtikten sonra **File > Build Profiles** üzerinden Windows profili oluştur. Üretilen demo sahnesini Scene List'e ekle; başka örnek sahneler varsa demo sahnesinin başlangıç sahnesi olduğunu kontrol et. Mevcut Windows build modüllerini kullan; eksik modül varsa ekipte uygun kurulu makinede derle. Çıktıyı depoya ekleme. Çalıştırılabilir dosyada hareket, kart tıklaması ve yeniden oynamayı tekrar dene.
-
-Test kaydına commit kimliği, tam Editor sürümü, pipeline, input modu, platform, geçen/başarısız adımlar ve Console hatalarını yaz. Bu Mac üzerinde doğrulanmış gibi raporlama.
-
-## Git ve kaynak paylaşımı
-
-Kaynak değişikliklerini `UnityAssets/SonBirUmutDemo` altına geri taşı ve dokümanları güncelle. İleride gerçek Unity projesi depoya alınacaksa `Assets` ve `.meta` dosyaları, `Packages/manifest.json`, `packages-lock.json`, `ProjectSettings` ve `ProjectVersion.txt` birlikte incelenmelidir; mevcut kaynak düzenini tek başına değiştirme.
-
-Yalnızca açık dosya yollarını stage et; `git add .`, `git add -A`, `git add -f` veya force push kullanma. `git diff --cached --name-status` ve `git diff --cached` ile incele. Yerel PDF, PNG/JPG/JPEG ve WhatsApp dosyaları yerinde kalmalı, değiştirilmemeli ve Git'e eklenmemeli. Depo herkese açıktır; sır, kişisel belge ve özel e-posta paylaşma. Test `bin/obj`, Unity `Library/Temp` ve build çıktıları izlenmez.
+Düzeltmeleri feature/complete-demo dalına, açık dosya yollarıyla ve staged içerik kontrolüyle commit et. `git add .`, `git add -A`, `git add -f`, force push veya otomatik main merge kullanma. Yerel kişisel belgeleri ve ekran görüntülerini değiştirme/ekleme. Test bin/obj, Unity Library/Temp, SDK ve build çıktıları izlenmez.

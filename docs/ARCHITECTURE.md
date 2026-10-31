@@ -1,61 +1,57 @@
-# Mimari
+# Mimari — tamamlanabilir demo
 
-## Mevcut prototip
+## Sınırlar ve durum
 
-Unity 6.3 LTS / Windows hedefi için tek enerji istasyonlu prototip kaynakları hazırlanmıştır. Gerçek Unity projesi, sahne ve `.meta` dosyaları bu Mac üzerinde oluşturulmadı. Unity derleme, Editor ve oynanış doğrulaması Windows ekibinde yapılmalıdır.
-
-`UnityAssets/SonBirUmutDemo/` kaynakların asıl konumudur. Unity projesine buradan kopyalanır; ekip test projesindeki kodu değiştirirse değişiklikleri bu konuma geri taşımalıdır. İki ayrı kaynak kopyasında paralel geliştirme yapılmaz. Kalıcı bir Unity projesine geçiş ayrı bir ekip kararıdır.
+Unity 6.3 LTS / Windows hedefi. Tek primitive harita, üç karar ve üç final vardır. Gerçek Unity projesi, sahne veya `.meta` bu Mac üzerinde üretilmez. `UnityAssets/SonBirUmutDemo` kaynakların asıl konumudur; Windows test projesine kopyalanır. Editor/oynanış doğrulaması Hakan veya Enes'tedir.
 
 ## Sorumluluklar
 
-| Konum | Sorumluluk |
+| Sınıf / konum | Sorumluluk |
 | --- | --- |
-| `Scripts/Simulation/ResourceState.cs` | Değiştirilemeyen bütçe, enerji, su, bitki ve emisyon anlık durumu; değer sınırları |
-| `Scripts/Simulation/SimulationRules.cs` | Tek karar turunun kaynak hesabı; kuraklık ve gelecekteki pompalar için kapasite hesabı |
-| `Scripts/Simulation/GameSession.cs` | Kayıtlı karar noktaları, maliyet doğrulaması, seçimin tek uygulanması ve oturum durumu |
-| `Scripts/Decisions/DecisionCatalog.cs` | Değiştirilemeyen karar tanımları ve üç enerji seçeneği |
-| `Scripts/Core` | Unity oturum koordinasyonu ve koşullu yeni/eski klavye giriş adaptörü |
-| `Scripts/Player` | CharacterController hareketi ve sabit açılı, ortografik smooth follow kamera |
-| `Scripts/Interaction` | İstasyon menzili ve seçime bağlı panel/jeneratör/tasarruf görselleri |
-| `Scripts/UI` | Üç IMGUI kartı, kaynak göstergeleri, E ipucu, sonuç ve yeniden oynama |
-| `Editor/DemoSceneBuilder.cs` | Yalnızca Editor'da çalışan primitive sahne ve materyal üretimi |
-| `Data/Decisions`, `Data/Simulation`, `Scripts/World` | Sonraki aşamalara ayrılan mevcut klasörler; şu an ek sistem içermez |
-| `Tests/LogicTests` | Unity dışından gerçek simülasyon kaynaklarını derleyen, harici paketsiz C# test koşucusu |
+| `ResourceState` | Değiştirilemeyen kaynak anlık durumu ve sınırları |
+| `DecisionCatalog` | Üç nokta, dokuz seçenek, maliyetler ve etki türleri |
+| `SimulationRules` | Su tüketimi, pompa, bitki desteği, kuraklık ve uygulanabilirlik hesabı |
+| `DecisionPreview`, `DecisionRecord` | Net etkiler ve önceki/sonraki durumla seçim geçmişi |
+| `GameSession` | Enerji → su → tarım sırası, tek uygulama, oturum ve final |
+| `EndingResult` | Birden fazla kaynağa dayalı üç sonuç kategorisi ve açıklaması |
+| `DemoGameController` | Giriş anlatımı, oynama/kart/final akışı ve Unity referansları |
+| `DemoStory` | Merkezi, kolay değiştirilebilir giriş, hedef ve kapanış metni |
+| `DemoInput` | Koşullu eski/yeni klavye API'si; Both/Old IMGUI gereksinimi |
+| `DemoPlayerMotor` | Korunan CharacterController; yatay hız ve Y dönüşü yumuşatması |
+| `IsometricFollowCamera` | Sabit açı; normal takip ve finalde panoramik kadraj |
+| `EnergyStation` | Önceki enerji noktasının korunan menzil ve model referansları |
+| `DecisionStation` | Su ve tarım menzili; seçime karşılık gelen görsel grubu |
+| `DemoWorldView` | Su göstergesi, ağaç ve tarla renklerinin durumdan türetilmesi |
+| `DemoHud` | IMGUI giriş, HUD, kartlar, net etki ve final geçmişi |
+| `Editor/DemoSceneBuilder` | Primitive çevre, referans bağlama ve benzersiz Editor varlıkları |
 
-`Simulation` ve `Decisions` UnityEngine'e bağımlı değildir. Unity bileşenleri sonucu okur; kaynakları doğrudan değiştirmez. `GameSession` yeni karar tanımlarıyla genişletilebilir; mevcut Unity etkileşimi yalnızca enerji istasyonuna bağlıdır. Singleton, üçüncü taraf UI paketi veya harici model gerektirmez. IMGUI fare girdisi nedeniyle Active Input Handling **Both** veya **Old** olmalıdır; New-only modunda araç ve oturum açıklayıcı uyarıyla durur. Both modunda klavye yeni backend ile okunur.
+`Simulation` ve `Decisions` UnityEngine'den bağımsızdır. `Tests/LogicTests` bu dosyaları doğrudan derler; mantığın kopyasını kullanmaz. UnityEditor referansları yalnızca `Editor` klasöründedir. Harici model, UI paketi, singleton veya Rigidbody eklenmedi.
 
-## Veri ve oyun akışı
+## Akış
 
-1. Sahne oluşturucu tüm nesneleri ve serileştirilen referansları bağlar.
-2. `DemoGameController.Awake` yeni oturum açar. Erken çalışma sırası sayesinde oyuncu bu oturumu kullanır.
-3. Oyuncu istasyonun önündeki etkileşim konumuna 3 birim yatay mesafe içinde yaklaşır. E ile kartlar açılır; hareket girdisi durur, yerçekimi sürer.
-4. `GameSession.TryChoose` nokta ve seçenek kimliğini, tamamlanma durumunu ve bütçeyi kontrol eder. Başarısız seçim hiçbir kaynağı ve ilerlemeyi değiştirmez.
-5. Başarılı seçimde `SimulationRules.ApplyTurn` bir kez çalışır; yeni durum ve tamamlanma kaydı saklanır.
-6. İstasyon yalnızca seçilen görseli ve yeşil tamamlanma lambasını açar; kart kapanır, sonuç gösterilir. Aynı nokta tekrar kullanılamaz.
-7. Yeniden oynama yeni `GameSession` yaratır, görselleri kapatır, oyuncuyu başlangıca taşır. Kamera yeniden oyuncuya yumuşakça yaklaşır.
+1. Sahne oluşturucu mevcut köyü yeni bir sahne olarak kurar; enerji istasyonu korunur, su/tarım noktaları eklenir.
+2. Oturum başlangıç değerleriyle açılır; giriş metni açıkken hareket kilitlidir. Enter/Başla keşfi başlatır.
+3. Yalnızca sıradaki noktanın menzilinde E kartları açar. Kart açıkken yatay hız aynı karede sıfırlanır; yerçekimi sürer.
+4. Her kart `GameSession.GetPreview` üzerinden gerçek maliyeti ve tur sonu net etkilerini okur. Karşılanamayan seçenek açıklamayla devre dışıdır.
+5. `TryChoose` aynı hesapla doğrular; reddedilen seçim hiçbir durum veya geçmişi değiştirmez. Kabul edilen seçim tam bir tur ilerletir.
+6. Görsel gruplar ve `DemoWorldView` yeni durumu gösterir. Emisyon bitkiye veya sıcaklığa anlık etki etmez.
+7. Üçüncü karardan sonra `EndingResult` hesaplanır; hareket kilitlenir. Kamera aynı açıda uzaklaşıp köyü sonuç panelinin solunda çerçeveler.
+8. Yeniden Oyna yeni GameSession açar; oyuncu, hız, kamera, modeller, su seviyesi ve renkler başlangıca döner. Giriş yeniden görünür.
 
-## Örnek dengeleme
+Karar formülleri ve eşikler [DECISIONS](DECISIONS.md), tüm temel diziler [DECISION_MATRIX](DECISION_MATRIX.md) içinde tutulur.
 
-Tüm değerler boyutsuz oyun puanlarıdır; bilimsel ölçüm, para birimi veya gerçek emisyon miktarı değildir. Başlangıç: bütçe **100**, enerji **20**, su **40**, bitki **55**, emisyon **0**. Bütçe 0–999, diğer kaynaklar 0–100 arasında tutulur.
+## Görsel ve sahne güvenliği
 
-| Seçenek | Bütçe maliyeti | Enerji farkı | Doğrudan su farkı | Emisyon farkı |
-| --- | ---: | ---: | ---: | ---: |
-| Güneş | 60 | +35 | 0 | +1 |
-| Dizel | 25 | +50 | -3 | +18 |
-| Tasarruf | 10 | -5 | +8 | 0 |
+Ağaçlar bitki sağlığı ≥55'te yeşil, 30–54'te sarı, daha düşükte kurudur. Tarla rengi sağlıkla sürekli değişir. Depo önündeki mavi gösterge suyla ölçeklenir; suyun sıfırında çok ince bir taban kalır. `MaterialPropertyBlock` ile renkler değiştirilir, ortak materyal varlıkları değiştirilmez. Yeniden oynama yeni materyal kopyaları yaratmaz.
 
-Her başarılı karar bir turdur. Seçenek etkisinden sonra **8 su** tüketilir ve su sınırlandırılır. Kalan su en az 35 ise bitki etkisi +4, daha azsa -8 olur; ardından dışsal kuraklık baskısı **6** çıkarılır. Bitki değeri sınırlandırılır. Beklemek tur ilerletmez. İlk seçimden sonraki durumlar:
+Evler, ağaç gövdeleri/taçları, depo, istasyon kaidesi ve harita sınırları çarpışma içerir. Karar sonrasında görünen dekoratif modeller oyuncuyu içine hapsetmemek için çarpışmasızdır. Gösterge ve tarla ürünleri de dekoratiftir.
 
-| Seçenek | Bütçe | Enerji | Su | Bitki | Emisyon |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Güneş | 40 | 55 | 32 | 41 | 1 |
-| Dizel | 75 | 70 | 29 | 41 | 18 |
-| Tasarruf | 90 | 15 | 40 | 53 | 0 |
+Araç `SonBirUmutCompleteDemo.unity` ve `Generated/CompleteDemo...` için benzersiz yollar kullanır. Kirli açık sahne, Prefab düzenleme modu veya New-only input durumunda hiçbir sahne üretmeden durur. Mevcut sahne dosyası silinmez veya kaydedilmez.
 
-Gelecekteki pompa eylemleri `PumpCapacity(energy, requestedWater)` ile `min(talep, enerji × 2)` sınırını kullanabilir. Mevcut prototipte pompa çalışmaz; güneş/dizel seçimi kendiliğinden su üretmez. Pompa eyleminin suya uygulanması sonraki karar noktasının işidir.
+## Geriye dönüş
 
-Emisyon ayrı izlenir. Jeneratör çevrede anlık sıcaklık artışı yaratmaz; emisyon bitki sağlığına anlık ceza uygulamaz. Kuraklık baskısı dışarıdan belirlenen sabit oyun parametresidir.
+`EnergyStation` sınıfı ve eski serileştirilmiş `player`, `station`, kamera `target`, hareket `speed` alanları korunur. Eski sahnelerde yeni `completeDemo` alanı false olduğundan tek noktalı akış sürer. Üç noktalı akış yalnızca yeni sahne oluşturucunun `ConfigureCompleteDemo` çağrısıyla açılır. Birebir eski denge ve kod `main` dalındadır; mevcut feature dalında tasarruf ücretsizdir.
 
-## Kapsam dışı
+## Açık doğrulamalar
 
-Diğer iki karar noktası, crafting, çöp toplama, NPC, hikâye, animasyon, kayıt sistemi ve üç kararlı tam final sonraki aşamalardadır. Mevcut tamamlanma paneli yalnızca tek istasyonun sonucunu ve yeniden oynamayı sunar. Sahne, materyal, `.meta`, `ProjectSettings` ve paket dosyaları Unity Editor tarafından üretilecektir; elle taklit edilmez.
+C# mantığı otomatik test edildi; Unity API tür denetimi, Editor derlemesi, input/fizik, görsel kadraj, eski sahne uyumu, 3–5 dakika hedefi ve Windows build henüz test edilmedi. [Test listesi](../UNITY_TEST_CHECKLIST.md) bu ayrımı korur. Hikâye tıbbi nedensellik veya iyileşme sistemi içermez.
