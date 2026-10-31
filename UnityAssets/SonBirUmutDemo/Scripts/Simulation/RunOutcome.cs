@@ -31,7 +31,7 @@ namespace SonBirUmutDemo.Simulation
                 progress.Emergency.Status == EmergencyStatus.Expired ? "süresi doldu" :
                 progress.Emergency.Status == EmergencyStatus.Active ? "çözülmedi" : "henüz oluşmadı";
             ManagementSummary = (CrisisStabilized ? "Kriz nöbeti istikrara kavuştu." : "Süre doldu; nöbet istikrara kavuşmadı.") +
-                $" Karar {CompletedDecisions}/{RequiredDecisions}, bakım {progress.CompletedCount}/3, baskı {pressure:0.0}. Arıza: {incident}.";
+                $" Karar {CompletedDecisions}/{RequiredDecisions}, bakım {progress.CompletedCount}/{progress.Tasks.Count}, baskı {pressure:0.0}. Arıza: {incident}.";
             Explanation = (!session.IsComplete ? "Stratejik hazırlık eksik kaldı. " : "") + village.Explanation;
             if (Category != village.Category) Explanation += " En iyi genel sonuç için kriz nöbeti de istikrara kavuşmalı.";
             Explanation += " Kuraklığa hazırlık sürer; iklim değişikliği ortadan kalkmadı.";

@@ -4,7 +4,7 @@ using SonBirUmutDemo.Decisions;
 
 namespace SonBirUmutDemo.Simulation
 {
-    public enum GameMode { LegacyDecisions, CrisisFoundation, CrisisDemo }
+    public enum GameMode { LegacyDecisions, CrisisFoundation, CrisisDemo, PlaytestDemo }
     public enum GameRunPhase { Intro, Preparation, CrisisManagement, Ending }
 
     public sealed class GameRunState
@@ -24,7 +24,8 @@ namespace SonBirUmutDemo.Simulation
         public bool IsEnded => Phase == GameRunPhase.Ending;
         public bool MovementLocked => Phase == GameRunPhase.Intro || IsEnded;
         public bool UsesCrisisMode => Mode != GameMode.LegacyDecisions;
-        public bool UsesCrisisDemo => Mode == GameMode.CrisisDemo;
+        public bool UsesCrisisDemo => Mode == GameMode.CrisisDemo || UsesPlaytestMode;
+        public bool UsesPlaytestMode => Mode == GameMode.PlaytestDemo;
         public CrisisProgress Crisis { get; private set; }
         public CrisisRules CrisisRules => crisisRules;
         public ResourceState CurrentResources => crisisResources ?? Session.State;
@@ -50,7 +51,7 @@ namespace SonBirUmutDemo.Simulation
         {
             Session = new GameSession(initial, definitions: definitions);
             timer.Reset(); pressure.Reset();
-            crisisResources = null; Crisis = UsesCrisisDemo ? new CrisisProgress(crisisRules) : null;
+            crisisResources = null; Crisis = UsesCrisisDemo ? new CrisisProgress(crisisRules, UsesPlaytestMode) : null;
             Phase = GameRunPhase.Intro; Result = null;
             hasFocus = true; applicationPaused = discardNextDelta = false;
         }
@@ -99,7 +100,7 @@ namespace SonBirUmutDemo.Simulation
             {
                 var incident = Crisis.Emergency;
                 double rate = PressureRiseRate;
-                bool eligible = Crisis.CompletedCount >= 2 && incident.IsResolved &&
+                bool eligible = Crisis.CompletedCount >= Crisis.RequiredCount && incident.IsResolved &&
                     pressure.Value <= crisisRules.StableThreshold;
                 double untilHigh = rate > 0 && crisisRules.StableThreshold < 100
                     ? (crisisRules.StableThreshold - pressure.Value) / rate : double.PositiveInfinity;
@@ -132,6 +133,7 @@ namespace SonBirUmutDemo.Simulation
             if (!UsesCrisisDemo || Phase != GameRunPhase.CrisisManagement || !hasFocus || applicationPaused ||
                 task == null || Crisis.Emergency.Status == EmergencyStatus.Active || !task.Complete())
             { message = "Bu bakım şu anda uygulanamaz veya zaten tamamlandı."; return false; }
+            Crisis.Promote();
             pressure.Change(-task.Effects.PressureRelief);
             ChangeResources(task.Effects.WaterProtection, task.Effects.PlantSupport);
             message = task.Title + $" tamamlandı. Baskı -{task.Effects.PressureRelief:0}" +
