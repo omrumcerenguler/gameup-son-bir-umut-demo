@@ -1,3 +1,34 @@
+# Doğrulama — Aşama 3 Playtest UX
+
+Dal `feature/playtest-ux`, başlangıç `1912d943819e6e115192f8d335981f64aed44e1f`. Yeni sürüm bu Mac'te Unity Editor'da derlenmedi/oynanmadı. Hakan'ın Aşama 2 geri bildirimi kullanıcı aktarımıdır.
+
+## Gerçekte çalıştırılanlar
+
+- Başlangıç regresyonu **116 geçti, 0 başarısız**. Mevcut test dosyaları ve beklentileri korundu.
+- Yeni 20 grupla toplam **136 geçti, 0 başarısız**; mevcut .NET9.0.303 / net8.0 / C#9 ve warnings-as-errors. Yeni SDK/paket indirilmedi.
+- Beş görevde kimlik/üç eski görev, en fazla iki aktif/istasyonda tek iş, kilitli ödül engeli, terfi, istasyonda ikinci varyasyon, farklı sıra, tekrar/sonsuz ödül engeli, dört görev asgarisi ve isteğe bağlı beşinci görev, eski üç görev profilinin korunması, replay ve1.9 hız niyeti/kilit test edildi.
+- 30/60/120 FPS'de 45 sn olay ve2sn basılı tamir testleri geçti; pause/kart/focus iki saati koruyor, bırakma iptali ve tek ceza temel testlerle birlikte geçiyor. **Arıza zamanında doğrulanmış bir mevcut mantık hatası bulunmadı; süreler değiştirilmedi.**
+- Baskı profilinin monotonluğu, 0–100 sınırlama/invalid değerleri, farklı kamera mesafelerinde yakın görüşün matematiksel tamponu ve son12sn aciliyet aralığı geçti. Bu test shader/render görünürlüğünü kanıtlamaz.
+- Korunan modun27 dizisi ve yeni modun27 dizisi geçti. Yeni beş bakım rotası tüm enerji seçimlerinde195 aktif sn'de kriz başarısına ulaştı; iki engelli sulamada ücretsiz depolama kullanıldı. Üç genel final kategorisi ve eksik müdahalede kısmi/kötü final korundu. [Sayısal rapor](PLAYTEST_BALANCE.md).
+- **37 Unity C# dosyası ×5 Editor/player input sembol birleşimi** Roslyn C#9 sözdizimi kontrolü:0 hata. Bu Unity API/tür kontrolü veya Unity derlemesi değildir.
+- `git diff --check`, staged dosya listesi/içeriği, doküman bağlantıları ve gizli veri kalıpları kontrol edildi. Korunan karar sınıfları/eski testler, kişisel belgeler ve eski dal uçları içerik/commit karşılaştırmasıyla denetlendi.
+
+Çalıştırılan komut:
+
+```sh
+DOTNET_CLI_HOME=/private/tmp/sonbirumut-dotnet DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_GENERATE_ASPNET_CERTIFICATE=false dotnet run --project Tests/LogicTests/LogicTests.csproj --configuration Release --no-restore -p:UseSharedCompilation=false -- --playtest-report docs/PLAYTEST_BALANCE.md
+```
+
+## Bekleyenler / teknik sınırlar
+
+Unity6.3LTS API derlemesi, yeni sahne ve serileştirilmiş referanslar, gerçek1.9sprint/yön/CharacterController/kamera, büyüyen haritada erişim/çarpışma, tek kare E/menzil, Türkçe font ve1280×720/1920×1080 yerleşim/scroll, Built-in/URP fog yakın yol/karakter görünürlüğü, geri bildirimlerin okunması ve Windows EXE **test edilmedi**. [Aşama3 Unity listesi](PLAYTEST_UNITY_TEST.md) henüz işaretlenmedi.
+
+195 aktif saniye hareket/okuma ölçümü değildir; rota zamanları modele verilmiştir. Gerçek3–4dakika hedefi ölçülmedi; hızlı oyuncu daha erken, kart okuma dahil toplam süre daha geç bitebilir. Fog kapalı alternatif yalnız renk/ışık değiştirir; uzak nesne örtmez. Dekorların bir kısmı bilerek çarpışmasızdır; ana yolların gerçek erişimi Windows'ta denenmeli. Eski sahne referansları korunur ama bu dalda ortak HUD/atmosfer görünümü değişir; birebir Aşama2 yedeği1912d94'tür.
+
+---
+
+Aşağıdaki kayıtlar **tarihsel Aşama2/1/polish** sonuçlarıdır; güncel toplam136'dır.
+
 # Doğrulama kaydı — Kriz Nöbeti Aşama 2/2
 
 Dal: `feature/live-village-demo`; başlangıç `f60b0b1c822be158e894905593f753a3d553b64c`. Bu Mac'te Unity Editor yoktur.

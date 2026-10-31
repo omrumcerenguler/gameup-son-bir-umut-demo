@@ -1,5 +1,16 @@
 # Son Bir Umut — Unity test kontrol listesi
 
+**Aşama3 güncel liste:** [PLAYTEST_UNITY_TEST](docs/PLAYTEST_UNITY_TEST.md). Yeni sürüm Unity'de doğrulanmadı; aşağıdaki Aşama2/1/polish kutuları tarihsel regresyon kaydıdır.
+
+- [ ] Yeni feature/playtest-ux / PlaytestDemo sahnesi,37C# dosyası ve tüm serileştirilmiş referanslar Unity6.3LTS'de doğrulandı.
+- [ ] İnce HUD, kısa kartlar, yalnız menzilde E ve tek acil/bildirim, iki çözünürlükte okunuyor.
+- [ ] 32×28 harita/üç bölge/yol/kanal/ağaçlar;1.9sprint, kamera ve fiziksel erişim denendi.
+- [ ] Beş görev/en fazla iki aktif/en az dört başarı; tekrar ödül yok, eski üç görevli mod korunuyor.
+- [ ] Arıza45/2; son saniye vurgusu, damla/tamir/solar seçim kontrolü, pause/focus ve iki replay denendi.
+- [ ] Yüksek baskıda uzak pus, yakın karakter/yol/işaret görünürlüğü, kaynakla dünya tepkisi ve fog alternatifi doğrulandı.
+- [ ] Gerçek aktif/toplam süre ölçüldü; Windows PlaytestDemo build/EXE denendi, ilk hata kaydedildi.
+
+
 **Güncel Aşama 2/2:** Hakan önce [FINAL_UNITY_TEST](docs/FINAL_UNITY_TEST.md) planını uygulamalı. Bu yeni sürüm Unity'de henüz test edilmedi; aşağıdaki Aşama 1/polish kutuları da geçmişten aktarılıp otomatik işaretlenmez.
 
 ## Aşama 2/2 — yeni kriz demosu (bekliyor)

@@ -1,3 +1,29 @@
+# Mimari — Aşama 3 Playtest UX
+
+Dal `feature/playtest-ux`, korunan referans `1912d94`. Aşağıdaki Aşama 2 katmanları üzerine küçük ekler yapılır; karar/kaynak/final eşikleri yeniden yazılmaz.
+
+| Ek / değişiklik | Sorumluluk |
+| --- | --- |
+| GameMode.PlaytestDemo | Yeni sahneye özel beş görevli profil; diğer üç mod korunur |
+| CrisisProgress.varied / RequiredCount / Promote | Beş sabit görev, dört asgari tamamlama, aynı anda en fazla iki ve istasyon başına en fazla bir açık görev |
+| AtStation / RunOutcome | Açık varyasyonun seçilmesi ve gerçek toplamla sonuç; tekrar ödül yok |
+| AtmosphereProfile (yeni, saf C#) | Baskı/kamera mesafesinden yakın görüşü koruyan fog aralığı ve son12sn aciliyet katsayısı; emisyon girdi değildir |
+| DemoPlaytestBuilder (yeni, Editor) | Yeni tek sahneye 32×28 sınır/zemin, yollar/bölgeler/dekor/kanal ve kalıcı feedback referansları |
+| DemoStationFeedback (yeni, World) | Seçime uygun solar ışığı, sızıntı/onarım/kayıp izi ve bakım onayı; hesap/input üretmez |
+| DemoWorldView | Mevcut kaynak görseline kanal/zemin ve sınırlı baskı solgunluğu ekler |
+| DemoHud / DemoGuiTheme / DemoStory | İnce HUD, kısa hedef/yakın E, sade kart kopyası, tek kısa bildirim ve acil süre/bar |
+| DemoPlayerMotor.ConfigureSprint | Yeni sahnede1.9; eski menülerde1.6. Aynı Controller/yön normalizasyonu/dönüş |
+
+Yeni profil açık görevleri bitirdikçe sıradakini açar. Aynı istasyondaki kilitli ikinci iş ancak o istasyonda açık iş yoksa açılır. Eski CrisisDemo profili üç bağımsız görev/en az ikiyle çalışır. Playtest profili en az dört ister; iki görev sonrası erken finalle rotanın kesilmesi önlenir. Sayaç/arıza/faz/CurrentResources/EndingSummary altyapısı korunur. Yeni task etkileri yalnız toplam8 ek baskı rahatlamasıdır; kaynak desteği +4 su/+4 bitkide kalır.
+
+Görünüm katmanları kaynakları veya input'u değiştirmez. Güneş ışık göstergesi seçilmiş panel grubunun çocuğudur; su/farm bakım bileşenleri kalıcı köktedir. Kanal yüzeyi gerçek suya göre küçülür, sıfırda kapanır. Atmosfer yakın karakter mesafesinden en az7birim sonra başlar; shader görünürlüğü gerçek Unity testidir.
+
+[UX, harita, görev verileri ve dosyalar](PLAYTEST_UX.md) · [Hakan testi](PLAYTEST_UNITY_TEST.md) · [Yeni 27 rota](PLAYTEST_BALANCE.md)
+
+---
+
+Aşağıdaki metin **Aşama 2 mimarisinin tarihsel temelidir**. Üç görev/en az iki ve eski sahne menüsü açıklamaları CrisisDemo profili için geçerlidir; güncel Playtest profili yukarıdadır.
+
 # Mimari — Kriz Nöbeti Aşama 2/2
 
 Unity 6.3 LTS / Windows. Kaynaklar `UnityAssets/SonBirUmutDemo`; dış Windows test projesinin Assets klasörüne aktarılır. Gerçek Unity projesi/sahne/.meta Mac'te üretilmedi. Yeni oynanış `GameMode.CrisisDemo` ile açılır; eski LegacyDecisions ve CrisisFoundation modları korunur.

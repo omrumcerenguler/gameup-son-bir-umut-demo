@@ -1,77 +1,50 @@
-# Windows entegrasyonu — Kriz Nöbeti Aşama 2/2
+# Aşama 3 — Windows Unity entegrasyonu
 
-Dal **feature/live-village-demo**, Unity **6.3 LTS (6000.3.x)**, Windows / Built-in 3D veya URP. Yeni kod Mac'te Unity Editor ile derlenmedi veya oynanmadı. [Hakan'ın ayrıntılı test planı](FINAL_UNITY_TEST.md) teslim öncesi uygulanmalıdır.
+Yeni dal **feature/playtest-ux**; korunan Aşama 2 yedeği **feature/live-village-demo / 1912d94**. Hedef Unity 6.3 LTS (6000.3.x), Windows, Built-in 3D veya URP. Bu Mac'te Unity Editor yoktur; yeni sürüm derlenmedi/oynanmadı.
 
-## Kaynakları güvenle al
+## Kaynakları al
 
-Önce çalışan dış Unity projesini ve yerel değişikliklerini yedekle. Kaynak depon temizken:
+Önce çalışan dış Unity projesini ve yerel değişiklikleri yedekle. Kaynak depon temizken:
 
 ```sh
 git fetch origin
-git switch feature/live-village-demo
-git pull --ff-only origin feature/live-village-demo
+git switch feature/playtest-ux
+git pull --ff-only origin feature/playtest-ux
 ```
 
-Yeni klonda `git clone --branch feature/live-village-demo git@github.com:omrumcerenguler/gameup-son-bir-umut-demo.git` kullanılabilir. Bu ekip kurulumu içindir; Mac çalışma klasöründe yeni klon açılmaz.
+1. Mevcut Unity 6.3 LTS projesini kullan. Depo doğrudan Unity projesi değildir; başka proje gerekiyorsa depodan ayrı Built-in/URP proje aç. HDRP desteklenmez.
+2. `UnityAssets/SonBirUmutDemo` içeriğini `Assets/SonBirUmutDemo` üzerine klasörü silmeden aktar. Yeni **DemoPlaytestBuilder, DemoStationFeedback, AtmosphereProfile** dahil tüm Scripts ve Editor birlikte olmalı.
+3. Mevcut `.meta`, Scenes/Generated ve yerel düzenlemeleri koru; yeni scriptlerin .meta'sını Editor üretsin. Tests/docs/kişisel belgeleri Assets içine kopyalama.
+4. **Active Input Handling: Input Manager (Old) veya Both.** Both mevcut Input System paketiyle kullanılabilir; yeni paket gerekmez. New-only IMGUI fare tıklamaları için uygun değildir. İstenirse Editor yeniden başlatılmalı; input sembollerini elle ekleme.
+5. Console import/derlemesi bitmeli. Tools görünmüyorsa önce ilk kırmızı hatayı ve Editor kopyasını kontrol et; bu Mac'te Unity API derlemesi yapılmadı.
 
-1. Unity Hub'da mevcut **6.3 LTS** projesini kullan; gerekirse depodan ayrı Built-in 3D/Universal 3D test projesi oluştur. Tam patch sürümünü kaydet. Bu kaynak klasörü gerçek Unity projesi değildir.
-2. `UnityAssets/SonBirUmutDemo` içeriğini `Assets/SonBirUmutDemo` üzerine **klasörü silmeden** kopyala. Scripts ve Editor birlikte; yeni dört Simulation dosyası ve CrisisStationMarker dahil olmalı.
-3. Mevcut `.meta`, Scenes, Generated ve yerel değişiklikleri koru. Yeni dosyaların .meta'sını Editor üretir. Tests/docs ve kişisel belgeleri Assets içine kopyalama.
-4. **Edit > Project Settings > Player > Other Settings > Active Input Handling = Input Manager (Old) veya Both**; gerekirse Editor'ı yeniden başlat. Both yalnız mevcut Input System paketiyle. New-only runtime IMGUI fare olayları için uygun değildir. Input Actions / PlayerInput gerekmez; sembolleri elle ekleme.
-5. **Window > General > Console**: import/derleme bitmeli; ilk kırmızı hatayı önce çöz. Tools görünmüyorsa Editor klasörü ve ilk derleme hatasını kontrol et. Unity API derlemesi burada yapılmadı.
+## Yeni sahneyi oluştur
 
-## Doğru yeni sahneyi üret
+Play kapalı, Prefab düzenleme dışında ve açık sahneler temizken:
 
-Play kapalı, Prefab düzenleme dışında, açık sahnelerde kaydedilmemiş çalışma yokken:
+**Tools > GameUP > Create Playtest Demo Scene**
 
-**Tools > GameUP > Create Crisis Demo Scene**
+Yeni yol `Assets/SonBirUmutDemo/Scenes/SonBirUmutPlaytestDemo.unity`; varlıklar `Generated/PlaytestDemo...`. Dolu yollar benzersiz numaralanır. Eski sahne/materialler ezilmez. Sahneyi kaydet/kapat/yeniden aç ve marker/feedback/terrain/kanal/solar referanslarını kontrol et.
 
-Araç üç istasyonlu köyü, karakter/kamera/HUD/dünya/atmosfer referanslarını ve kalıcı köklere bağlı üç bakım/bir arıza işaretini kurar. Yeni yol **Assets/SonBirUmutDemo/Scenes/SonBirUmutCrisisDemo.unity**; varlıklar **Generated/CrisisDemo...**. Doluysa numaralı benzersiz yollar; eski dosyalar ezilmez. Sahneyi kaydedip kapat/yeniden aç; referans ve materyal kalıcılığını kontrol et.
+Eski Create Demo Scene / Create Crisis Foundation Scene / Create Crisis Demo Scene menüleri korunur. Aşama 3 beş görevli profil ve geniş harita için **Playtest** menüsü gereklidir; eski CrisisDemo sahnesini açmak yeni düzeni eklemez. Bu daldaki ortak HUD/atmosfer değişimleri eski sahnelerde de görülür; birebir yedek 1912d94 kaynakları ayrı test projesinde denenmelidir.
 
-Diğer menüler korunur:
+## Oynanış ve değerler
 
-| Menü | Akış |
-| --- | --- |
-| Create Demo Scene | Eski VisualDemo: üç stratejik karar → final; yeni görev/arıza yok |
-| Create Crisis Foundation Scene | Aşama 1 temel sahne: süre/baskı var, görev/arıza/erken başarı yok |
-| Create Crisis Demo Scene | Tam yeni kaynak akışı: üç karar, bakım, tek arıza, erken başarı veya süre sonu |
+1280×720, Play, Enter. WASD, Sol Shift1.9×, yakınken E; arızada2sn E held. Enerji kökü (8,0,1), su (−8,0,8), tarım (8,0,−7). Üç kararı sırayla ver; ardından en fazla iki açık bakım arasında hareket et. Beş varyasyonun her biri yalnız bir kez ödül verir. Dört bakım + arızanın onarım/zaman aşımıyla değerlendirilmesi + ≤35 baskıda10 aktif sn erken başarıdır; beşinci bakım isteğe bağlı.
 
-Eski bir sahneyi açmak yeni işaretleri eklemez. Yeni CrisisDemo sahnesi oluştur; eski sahne ve Generated varlıklarını silme.
+Sayaç240, başlangıç baskısı60; arıza gecikmesi12, penceresi45, tamir2; hız3.5/sprint1.9/hızlanma12/fren16/dönüş600. Ayarlar Play başında veya Yeniden Oyna'da okunur. Giriş/kart/odak dışı/native pause saatleri durur; onarımda ilerler. Yeni duraklatma menüsü yoktur.
 
-## Oynanış
+- Solar seçildiğinde ışık; dizel/tasarrufta solar çalışma işareti yok. Depo süzgeci ve ortak tasarruf vanası kalıcı altyapı; seçilmemiş pompa/sulama tesisinin çalıştığını göstermez.
+- Arızada su damlaları, onarımda durmuş sızıntı/yeşil hat, kaçırmada kırmızı kayıp izi. Temsilî görseldir; ek süreklilik su hesabı yaratmaz.
+- Baskı yüksekken uzaktaki pus/solgunluk artar; oyuncu/yan yol/işaretler okunmalı. Use Basic Fog kapalıysa yalnız ışık/ambient alternatifi kalır; uzak nesneyi örtmez.
+- Bilimsel emisyon/sıcaklık veya fiziksel iklim temizliği iddiası yoktur. Stratejik hesaplar ve emisyonun genel finale etkisi korunur.
 
-1280×720 / 16:9 Game, Play, Enter/Başla. WASD, Sol Shift 1.6× koşma. Enerji (3,0,0) → su (-2,0,5) → tarım (6,0,-5); yakınken E, üç karttan seçim. Kart açıkken hareket ve bağımsız sayaç durur.
+## Teslim öncesi kontroller
 
-Üçüncü kararda görevler açılır. Sarı işaretli ana istasyonlarda **yeni E basışı** tek seferlik bakım yapar; sıra serbesttir. Su pompası seçilmese bile su kökü ve işareti aktiftir. 12 aktif saniye sonra tek kırmızı su arızası çıkar; aktif arıza E önceliğini alır. Menzilde E'yi 2 aktif saniye tut; bırakma/uzaklaşma/odak kaybı ilerlemeyi sıfırlar. Onarımda süre ilerler. Onarım sonrası E basılı kalınca bakım otomatik ödüllendirilmez; bırakıp yeniden bas.
+[PLAYTEST_UNITY_TEST](PLAYTEST_UNITY_TEST.md) tüm adımları içerir. Özellikle 30/60/120 FPS, diagonal/sprint/follow, üç bölgenin fiziksel erişimi, arıza45/2, bırakma/menzil/focus, aktif en fazla iki görev ve tekrar ödül engeli, beş görevli final scroll'u, iki replay, iki çözünürlük ve eski menü/sahne regresyonunu dene. Console/Player.log'un ilk hatasını, commit/patch/pipeline/input ve gerçek süreleri kaydet.
 
-Arızanın 45 aktif saniyesi kaçırılırsa bir kez su -6, baskı +8; oyun devam eder. Üç bakım toplam -40, tamir -18 baskı. Su bakımı +4 korunmuş su, tarım bakımı +4 bitki desteği; sınırlar ve tek ödül korunur. Kaynak/atmosfer canlı güncellenir.
+Görüş için Initial Pressure20/60/100 ayrı Play denemeleri yapılabilir; bu ayarlar dengeyi değiştirir. Sonunda60 ve varsayılan değerleri geri yükle. 5 sn süreyle 0/1/2 kararda güvenli sonucu kontrol et; sonra240'a dön. Saf simülasyonda195 aktif sn, gerçek oyuncu süresi değildir.
 
-Üç karar, en az iki bakım, arızanın değerlendirilmesi ve baskı ≤35 altında 10 aktif saniye: erken kriz başarısı. Tek bakım yetmez. Kriz başarısı ile genel sürdürülebilirlik ayrı gösterilir; dizel yüksek emisyonla kriz başarısına rağmen Eksik Dönüşüm olabilir. 240 saniye sonunda eksik hazırlık/aktif arıza dahil her durumda geçerli sonuç; Yeniden Oyna tüm oturumu sıfırlar.
+Build Profiles / Windows / Scene List içinde **yeni PlaytestDemo** başlangıç olmalı. EXE'yi Editor dışında çalıştır; EXE, _Data, UnityPlayer.dll ve üretilen gerekli yan dosyaları birlikte koru. Build/cache'i depoya ekleme. Bu Mac'e Unity veya SDK kurulmadı.
 
-## Inspector ve hızlı QA
-
-Demo oturumu / DemoGameController ayarları Play başlangıcında veya Yeniden Oyna'da okunur:
-
-| Ayar | Varsayılan |
-| --- | ---: |
-| Duration Seconds / Initial Pressure | 240 / 60 |
-| Stable Threshold / Stable Duration | 35 / 10 |
-| Emergency Delay / Emergency Window / Repair Duration | 12 / 45 / 2 |
-| Base / Water / Plant / Energy Risk Rise | .04 / .04 / .03 / .02 |
-| Maximum Rise Per Second | .25 |
-
-Süre ve istikrar/onarım pozitif; arıza penceresi en az onarım süresi olmalı. Gecikme negatif olamaz. Geç hazırlıkta gecikme kalan sürenin dörtte biriyle sınırlanır. Yeni süre/baskı alanları her iki kriz modunda, bakım/arıza ayarları yalnız CrisisDemo'da etkilidir.
-
-Play dışında süreyi 5 yaparak 0/1/2 kararda sonu, 15 yaparak tamamlanmış bakım/çözülmemiş arıza sonunu dene. Sonra 240'a dön. Arıza kaçırma, iki replay, Alt+Tab (EXE dahil), üç enerji seçimi ve pompasız su işareti en önemli regresyonlardır. Use Basic Fog kapalıyken hafif ışık/ambient alternatifi kalır; pipeline/paket değişmez.
-
-## Build ve hata kaydı
-
-Editor kontrolleri geçince **File > Build Profiles** Windows profili, **Scene List** içinde **yeni CrisisDemo sahnesini başlangıç** yap. Mevcut modüllerle build al. EXE'yi Editor dışında dene. EXE + aynı isimli _Data klasörü + UnityPlayer.dll ve üretilen gerekli yan dosyaları birlikte koru. Build'i kaynak deposuna ekleme.
-
-Tools yok: ilk Console hatası/Editor kopyası. Pembe model: URP/Built-in shader uyumu. Görev yok: yanlış Foundation/VisualDemo sahnesi veya eski kaynak. Pompasız görev yok: yeni CrisisDemo'daki kalıcı kök/marker referansını kontrol et; seçenek görseline taşımamalısın. Kart tıklanmıyor: Old/Both, yeniden başlatma ve Game odağı. Onarım tamamlanmıyor: menzil, E held ve arıza süresi; focus değişimi ilerlemeyi sıfırlar.
-
-Commit, tam Unity patch, Windows, pipeline/input, çözünürlük/FPS, strateji, görev/arıza ve ilk Console/Player.log hatasını yaz. 3–4 dakika duvar saati hedefi henüz ölçülmedi; 178 aktif saniyelik simülasyon gerçek deneyim süresi değildir.
-
-[Son Unity test planı](FINAL_UNITY_TEST.md) · [Denge raporu](CRISIS_BALANCE.md) · [Mantık test kaydı](TEST_RESULTS.md)
-
-Yalnız feature/live-village-demo'ya açık dosya yollarıyla commit; staged listeyi incele. Kişisel medya/anahtarlar, SDK, bin/obj ve Unity Library/build çıktıları eklenmez. Force push veya eski dallara otomatik merge yapılmaz.
+[UX ve harita tasarımı](PLAYTEST_UX.md) · [Denge](PLAYTEST_BALANCE.md) · [Test kaydı](TEST_RESULTS.md)
