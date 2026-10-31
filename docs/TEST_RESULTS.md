@@ -1,3 +1,32 @@
+# Doğrulama kaydı — Kriz Nöbeti Aşama 1/2
+
+Dal: `feature/live-village-demo`, kaynak `ee6f8a0`. Tarih: 2026-10-31.
+
+## Bu görevde gerçekten çalıştırılanlar
+
+- Değişiklik öncesi mevcut **54 test geçti, 0 başarısız**.
+- Oturum katmanı ve 26 yeni grupla **80 test geçti, 0 başarısız**. Mevcut .NET 9.0.303 / net8.0 / C# 9, warnings-as-errors; harici paket/SDK indirilmedi.
+- Koşma hızı niyeti, Shift bırakma ve modal kilit politikası; sayacın pause/fractional/clamp/reset davranışı; sayısal ayar doğrulaması; baskı sınırları/artış tavanı ve enerji/su/bitki etkisi; intro/kart/odak/native pause; faz geçişleri; eski tek/üç karar modu; 0/1/2 karar erken sonu; üç karar sonrası süre sonu; tekrarlanan bitişin etkisizliği; yeniden oynama ve gelecekteki azaltma API'si test edildi.
+- Yeni legacy sarmalayıcı 27 temel seçim dizisinde doğrudan GameSession ile kaynak/sonuç karşılaştırmasından geçti. Önceki 54 testin kaynak/karar/final beklentileri değiştirilmedi.
+- **29 C# dosyası × 5 Editor/player input sembol birleşimi** C# 9 Roslyn sözdizimi kontrolünden hatasız geçti. Bu yalnız parser kontrolüdür; Unity API/tür çözümlemesi veya Unity derlemesi değildir.
+- `git diff --check`, seçili stage listesi/içerikleri, korunan 9 stratejik kaynak dosyasının içerik özeti, 3 kişisel dosyanın içerik/değişiklik zamanı ve korunan dal commit'leri karşılaştırıldı.
+
+Çalıştırılan komut (mevcut restore çıktılarıyla):
+
+```sh
+DOTNET_CLI_HOME=/private/tmp/sonbirumut-dotnet DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_GENERATE_ASPNET_CERTIFICATE=false dotnet run --project Tests/LogicTests/LogicTests.csproj --configuration Release --no-restore -p:UseSharedCompilation=false
+```
+
+## Unity'de yapılmayanlar ve riskler
+
+Editor kurulu değil. Unity 6.3 LTS derlemesi, sahne üretimi/yeniden açılması, referanslar, gerçek klavye, IMGUI fare/ölçek/metin taşması, koşma hissi, çarpışma/sınır, karakter pozu, odak callback sırası, render pipeline/sis ve Windows EXE testi **yapılmadı**. Windows'ta [kontrol listesi](../UNITY_TEST_CHECKLIST.md) uygulanmalı. 1280×720 panel boyutları kaynakta düzenlendi; okunaklı olduğu render edilerek doğrulanmadı.
+
+Kriz modunda bakım, acil arıza ve yeni kazanma sistemi yoktur. Üç karar sonrası yalnız köyü inceleme/sayaç/baskı devam eder. Atmosferin varsayılan akışta azalması henüz oynanışa bağlı değildir. 240 aktif saniye toplam deneyim süresini ölçmez. Sis için Built-in/URP ve Use Basic Fog kapalı alternatifinin okunurluğu ekip kontrolüdür. Eski stratejik hesaplar değişmedi; Unity sahne uyumluluğu saf C# testlerinin kapsamı değildir.
+
+---
+
+Aşağıdaki bölüm **kaynak polish dalının tarihsel test kaydıdır**; 54 sayısı bu sürümün güncel toplamı değildir.
+
 # Doğrulama kaydı — görsel Aşama 2
 
 ## Gerçekten çalıştırılan kontroller

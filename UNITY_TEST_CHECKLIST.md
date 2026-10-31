@@ -1,11 +1,11 @@
 # Son Bir Umut — Unity test kontrol listesi
 
-**Durum: Yeni görsel Aşama 2 sürümü için aşağıdaki Unity kontrolleri henüz yapılmadı.** Mac üzerinde Unity Editor bulunmaz. Kutuları Hakan veya Enes yalnızca testi gerçekten çalıştırınca işaretlemelidir. Saf C# testlerinin geçmesi bu kutuları tamamlamaz.
+**Durum: Kriz Nöbeti Aşama 1/2 ve korunan görsel temel için aşağıdaki Unity kontrolleri henüz yapılmadı.** Mac üzerinde Unity Editor bulunmaz. Kutuları Hakan veya Enes yalnızca testi gerçekten çalıştırınca işaretlemelidir. Saf C# testlerinin geçmesi bu kutuları tamamlamaz.
 
 | Test kaydı | Değer |
 | --- | --- |
 | Test eden / tarih | |
-| Branch / commit | feature/polish-backup-demo / |
+| Branch / commit | feature/live-village-demo / |
 | Unity tam sürümü (6000.3.x) | |
 | Windows sürümü / pipeline | |
 | Input Handling | Both veya Old / |
@@ -13,6 +13,31 @@
 | Hız / hızlanma / fren / dönüş | 3.5 / 12 / 16 / 600 başlangıç; test edilen: |
 | İlk kez oynanış süresi | 3–5 dk hedef; ölçülen: |
 | İlk Console hatası / adım | |
+
+## Kriz Nöbeti Aşama 1/2 — tüm adımlar bekliyor
+
+- [ ] Önce Create Demo Scene: varsayılan üç karar → final, sayaç/baskı yok. Eski tek istasyon da test edildi.
+- [ ] Create Crisis Foundation Scene ayrı benzersiz sahne/Generated klasörü üretiyor; varsayılan veya eski sahneyi ezmiyor.
+- [ ] Yeni sahne: Intro, 04:00, 60 baskı, 0/3; beklemek hareket/süre/baskıyı ilerletmiyor.
+- [ ] Sol Shift hedef hızı 1.6×; bırakınca yumuşak yürüyüş; dört çaprazda ek hız yok.
+- [ ] Shift+W tutulurken kart/intro/final yatay hareketi hemen kesiyor; kamera/CharacterController/sınırlar korunuyor.
+- [ ] 1280×720 ve 1920×1080: tek odak paneli, kısa olay metni ve üç seçenek kırpılmıyor; dünya kısmen görünüyor.
+- [ ] Kazanç, bedel, maliyet ve net +/- çipleri okunuyor; emisyon artışı kırmızı, azalışı yeşil, sıfır nötr.
+- [ ] Engelli seçeneğin gerçek gerekçesi okunuyor; tıklama durum/geçmiş/sayaç değiştirmiyor.
+- [ ] Etki ayrıntısı seçeneği teknik bileşenleri açıyor; varsayılan görünüm uzun döküm içermiyor. Yeni kart ve replay ayrıntıyı kapatıyor.
+- [ ] Kart ve ayrıntı açıkken süre/baskı duruyor; Esc/Vazgeç sonrası devam ediyor.
+- [ ] Alt+Tab, arka plan Update açık/kapalı ve kart açık/kapalı: süre dönüşte sıçramıyor; Windows EXE'de de denendi.
+- [ ] Üç karar: CrisisManagement, 3/3; final açılmıyor, kamera uzaklaşmıyor; serbest dolaşım/sayaç sürüyor.
+- [ ] 5 saniyelik test ayarıyla 0/1/2 kararda son: sonuç/eksik hazırlık, iki final sekmesi/scroll/boş geçmiş null hatasız.
+- [ ] Üç karar sonrası süre sonu: geçerli mevcut stratejik kategori ve final görünümü; dördüncü karar yok.
+- [ ] Yeniden Oyna: Intro/tam süre/60 baskı/kaynaklar/geçmiş/UI/kamera/modeller ve hareket hızı sıfırlandı.
+- [ ] Built-in ve URP: hafif sis geçişi, karakter/yol/işaretler okunuyor. Use Basic Fog kapalıyken ışık/ambient alternatifi çalışıyor.
+- [ ] Ayrı başlangıç baskısı 20/80 denemeleri açık/sıcak ve kasvetli yönü gösteriyor; varsayılan ayarlara geri dönüldü.
+- [ ] Atmosfer bileşeni kapatılıp açılınca render ayarları geri yükleniyor; eski sahnede yeni sis bileşeni yok.
+- [ ] Duration Seconds tekrar 240. Bakım/acil arıza/yeni kazanma sistemi olmadığı test notuna yazıldı.
+- [ ] Console ilk hatası, Unity patch/pipeline/input/commit ve gerçek deneyim süresi kaydedildi; Windows test build'i denendi.
+
+[Windows test adımları](docs/INTEGRATION.md) · [Modlar ve ayarlar](docs/LIVE_VILLAGE_STAGE1.md)
 
 ## Import ve sahne güvenliği
 
@@ -40,7 +65,7 @@
 - [ ] Ürün boyu ve toprak rengi değişiyor; su havuzu çekiliyor, <20 suda çatlaklar beliriyor; 0 suda yüzey kapalı.
 - [ ] Görsel geçiş sırasında kaynaklar fazladan değişmiyor; dünya kategoriden değil gerçek durumdan türetiliyor.
 - [ ] Opak tema, kaynak çubukları ve sıradaki nokta etiketi 1280×720 ve 1920×1080'de okunuyor.
-- [ ] Kartlarda avantaj/bedel/sonrası, seçim/tur/kuraklık ve net değerler kırpılmıyor; engelli düğme seçilemiyor.
+- [ ] Kartlarda kazanç/bedel/maliyet/net etkiler; isteğe bağlı ayrıntıda seçim/tur/kuraklık değerleri kırpılmıyor; engelli düğme seçilemiyor.
 - [ ] Finalin Köyün durumu / Kararlarının etkisi sekmeleri ve fareyle kaydırma çalışıyor; tüm metinlere erişiliyor.
 - [ ] Köyü izle paneli gizliyor, kamera köyü ortalıyor; Sonuç raporuna dön sağ panele yer açıyor.
 - [ ] Köyü izleme sırasında hareket/karar kilidi korunuyor; rapora dönüş kaynak veya seçim değiştirmiyor.
@@ -77,9 +102,9 @@
 
 ## Polish: hikâye ve kararların anlaşılabilirliği
 
-- [ ] Başlık Son Bir Umut: Kuraklıktan Önce; ana hedef tüm ekranlarda açık.
+- [ ] Varsayılan sahnede başlık Son Bir Umut: Kuraklıktan Önce; ana hedef tüm ekranlarda açık.
 - [ ] İlerleme, sıradaki nokta ve kritik kaynak durumu sürekli görülüyor.
-- [ ] Problem cümlesi ve Kazanç / Bedeli / Sonrası alanları okunuyor.
+- [ ] Kısa olay/problem ve Kazanç / Bedeli / Maliyet alanları okunuyor; ayrıntı isteğe bağlı.
 - [ ] Güneş sonrası 40 / 55 / 32 / 41 / 0; doğrudan bitki ve emisyon etkisi sıfır.
 - [ ] Tur su -8, su koşulu bitki -8, kuraklık bitki -6 ayrı; net bitki -14 açık.
 - [ ] 0/100 sınırındaki net değişim bileşenlerle karıştırılmıyor.
@@ -117,7 +142,7 @@
 - [ ] Güneş → verimlilik → koruma: 20 / 55 / 42 / 59 / 0, Yeniden Doğuş.
 - [ ] Dizel → pompa → sulama: 45 / 70 / 43 / 73 / 18, Eksik Dönüşüm.
 - [ ] Güneş → mevcut düzen → depola: 40 / 55 / 17 / 8 / 0, Kaybedilen Gelecek.
-- [ ] Final yalnız üçüncü karardan sonra açılıyor; su/tarım/doğa, öne çıkan iki karar ve süren risk okunuyor.
+- [ ] Varsayılan eski modda final yalnız üçüncü karardan sonra açılıyor; su/tarım/doğa, öne çıkan iki karar ve süren risk okunuyor.
 - [ ] Kamera uzaklaşıp yükseliyor; köy sonuç panelinin solunda izlenebiliyor, açı dönmüyor.
 - [ ] Final açıkken karakter kontrolü kapalı; tekrar karar uygulanamıyor.
 - [ ] Yeniden Oyna; kaynakları 100 / 20 / 40 / 55 / 0, ilerlemeyi 0/3 ve karakteri başlangıca döndürüyor.

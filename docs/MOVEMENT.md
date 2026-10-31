@@ -1,3 +1,9 @@
+# Kriz Nöbeti Aşama 1: koşma eki
+
+Güncel dal `feature/live-village-demo`. Sol Shift basılıyken Sprint Multiplier **1.6**: yeni sahnede yürüyüş 3.5, koşma 5.6. Both'ta Keyboard.leftShiftKey, Old'da KeyCode.LeftShift kullanılır. Hareket yönü normalize kalır. Hedef hız yükselirken hızlanma, düşerken frenleme kullanılır; mevcut CharacterController, kamera ve Y dönüşü korunur.
+
+Kart/giriş/final yatay hızı hemen sıfırlar; Shift tutulması kilidi aşmaz. Saf MovementPolicy testleri hız niyeti/kilit hesaplarını kapsar; gerçek klavye, çapraz hız, çarpışma ve yumuşaklık Unity'de henüz doğrulanmadı. Önceki kayıt aşağıdadır; hareket kodu artık koşma için genişletildi.
+
 # Hareket iyileştirmesi
 
 Önceki `DemoPlayerMotor` zaten W+A gibi birleşimleri okuyordu ve CharacterController kullanıyordu. Sertlik, dijital girişin doğrudan tam yürüme hızına çevrilmesinden ve hızlanma/frenleme durumunun bulunmamasından kaynaklanıyordu. Dört yön kısıtı eklenmedi; mevcut kamera yönüne göre XZ hesabı ve CharacterController çarpışmaları korundu.
