@@ -12,6 +12,9 @@
 .idea/
 .vscode/
 *.csproj
+# Unity tarafından üretilmeyen, paket gerektirmeyen saf C# test projesi.
+!/Tests/LogicTests/LogicTests.csproj
+bin/
 *.unityproj
 *.sln
 *.slnx
